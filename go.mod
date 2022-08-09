@@ -1,3 +1,3 @@
-module github.com/h8gi/go-network-analysis
+module github.com/h8gi/go-igraph
 
 go 1.18
