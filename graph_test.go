@@ -1,6 +1,7 @@
 package igraph
 
 import (
+	"fmt"
 	"os"
 	"testing"
 )
@@ -21,4 +22,10 @@ func TestGraphWriteGraphML(t *testing.T) {
 		t.Log(err)
 		t.Fail()
 	}
+}
+
+func TestVectorFromSlice(t *testing.T) {
+	v := NewVectorFromSlice([]float64{1, 2, 3, 4})
+	fmt.Println(v.vector)
+	fmt.Println(v.Get(1))
 }

@@ -4,6 +4,7 @@ package igraph
 // #include <igraph.h>
 import "C"
 import (
+	"fmt"
 	"runtime"
 )
 
@@ -25,6 +26,26 @@ func NewVector(size int) *Vector {
 	return v
 }
 
-func (v *Vector) Set(pos int, value float64) {
+func NewVectorFromSlice(s []float64) *Vector {
+	// Should I use igraph_vector_view?
+	v := NewVector(len(s))
+	for i, f := range s {
+		v.Set(i, f)
+	}
+	return v
+}
+
+func (v *Vector) Set(pos int, value float64) error {
+	if pos > v.size-1 {
+		return fmt.Errorf("Illegal access: size %d", v.size)
+	}
 	C.igraph_vector_set(&v.vector, C.long(pos), C.double(value))
+	return nil
+}
+
+func (v *Vector) Get(pos int) (float64, error) {
+	if pos > v.size-1 {
+		return 0, fmt.Errorf("Illegal access: size %d", v.size)
+	}
+	return float64(C.igraph_vector_e(&v.vector, C.long(pos))), nil
 }
