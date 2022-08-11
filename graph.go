@@ -1,6 +1,6 @@
-package main
+package igraph
 
-// #cgo pkg-config: igraph
+// #cgo pkg-config: igraph libxml-2.0
 // #include <stdio.h>
 // #include <igraph.h>
 import "C"
@@ -12,13 +12,6 @@ import (
 	"runtime"
 	"time"
 )
-
-func booltoint(in bool) C.int {
-	if in {
-		return C.int(1)
-	}
-	return C.int(0)
-}
 
 const (
 	IGRAPH_DIRECTED   = C.IGRAPH_DIRECTED
@@ -41,29 +34,6 @@ func NewGraph() *Graph {
 	return g
 }
 
-type Vector struct {
-	vector C.igraph_vector_t
-}
-
-func (v *Vector) Destroy() {
-	C.igraph_vector_destroy(&v.vector)
-}
-
-func NewVector(size int) *Vector {
-	v := &Vector{}
-	runtime.SetFinalizer(v, func(v *Vector) {
-		v.Destroy()
-	})
-
-	C.igraph_vector_init(&v.vector, C.long(size))
-
-	return v
-}
-
-func (v *Vector) Set(pos int, value float64) {
-	C.igraph_vector_set(&v.vector, C.long(pos), C.double(value))
-}
-
 func NewLattice(dim Vector, nei int, directed bool, mutual bool, circular bool) *Graph {
 	g := NewGraph()
 	C.igraph_lattice(&g.graph, &dim.vector, C.int(nei),
@@ -72,38 +42,43 @@ func NewLattice(dim Vector, nei int, directed bool, mutual bool, circular bool) 
 	return g
 }
 
-func (g *Graph) Write(file *os.File) error {
+func (g *Graph) WriteEdgeList(file *os.File) error {
 	fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
-	err := C.igraph_write_graph_edgelist(&g.graph, fstruct)
-	if err != 0 {
+	if err := C.igraph_write_graph_edgelist(&g.graph, fstruct); err != 0 {
 		return errors.New("Write failed")
 	}
 	C.fflush(fstruct)
 	return nil
 }
 
+func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
+	fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
+	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
+		return errors.New("Write failed")
+	}
+	C.fflush(fstruct)
+	return nil
+
+}
+
 func shortest() {
+	var avg_path_len C.igraph_real_t
 	graph := NewGraph()
-	dimvector := NewVector(20)
+	dimvector := NewVector(2)
 	dimvector.Set(0, 30)
 	dimvector.Set(1, 30)
-	fmt.Println(IGRAPH_DIRECTED, IGRAPH_UNDIRECTED)
 	C.igraph_lattice(&graph.graph, &dimvector.vector, 0, IGRAPH_UNDIRECTED, 0, 1)
-	g := NewLattice(*dimvector, 0, false, false, true)
 
-	f, err := os.Create("out.edgelist")
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-	g.Write(f)
+	C.igraph_average_path_length(&graph.graph, &avg_path_len, nil, C.IGRAPH_UNDIRECTED, 1)
 
-	nf, err := os.Create("hoge.edgelist")
+	fmt.Printf("Average path length (lattice): %g\n", avg_path_len)
+
+	nf, err := os.Create("hoge.graphqml")
 	if err != nil {
 		panic(err)
 	}
 	defer nf.Close()
-	graph.Write(nf)
+	graph.WriteGraphML(nf, true)
 }
 
 func hoge() {
@@ -130,12 +105,5 @@ func hoge() {
 		panic(err)
 	}
 	defer f.Close()
-	graph.Write(f)
-}
-
-func main() {
-	hoge()
-	fmt.Println("Hello")
-	fmt.Println("World")
-	shortest()
+	graph.WriteEdgeList(f)
 }
