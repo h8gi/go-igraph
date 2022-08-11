@@ -35,6 +35,15 @@ func NewVectorFromSlice(s []float64) *Vector {
 	return v
 }
 
+// cgo argument has Go pointer to Go pointer
+// GODEBUG=cgocheck=0
+// The runtime/cgo.Handle type can be used to safely pass Go values between Go and C. See the runtime/cgo package documentation for details.
+func VectorView(s []float64) *Vector {
+	v := &Vector{size: len(s)}
+	C.igraph_vector_view(&v.vector, (*C.double)(&s[0]), C.long(len(s)))
+	return v
+}
+
 func (v *Vector) Set(pos int, value float64) error {
 	if pos > v.size-1 {
 		return fmt.Errorf("Illegal access: size %d", v.size)
