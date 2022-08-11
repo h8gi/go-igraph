@@ -3,22 +3,22 @@ package igraph
 // #cgo pkg-config: igraph
 // #include <igraph.h>
 import "C"
-import "runtime"
+import (
+	"runtime"
+)
 
 type Vector struct {
 	vector C.igraph_vector_t
 	size   int
 }
 
-func (v *Vector) Destroy() {
+func (v *Vector) destroy() {
 	C.igraph_vector_destroy(&v.vector)
 }
 
 func NewVector(size int) *Vector {
 	v := &Vector{size: size}
-	runtime.SetFinalizer(v, func(v *Vector) {
-		v.Destroy()
-	})
+	runtime.SetFinalizer(v, (*Vector).destroy)
 
 	C.igraph_vector_init(&v.vector, C.long(size))
 

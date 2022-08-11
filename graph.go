@@ -22,15 +22,13 @@ type Graph struct {
 	graph C.igraph_t
 }
 
-func (g *Graph) Destroy() {
+func (g *Graph) destroy() {
 	C.igraph_destroy(&g.graph)
 }
 
 func NewGraph() *Graph {
 	g := &Graph{}
-	runtime.SetFinalizer(g, func(g *Graph) {
-		g.Destroy()
-	})
+	runtime.SetFinalizer(g, (*Graph).destroy)
 	return g
 }
 
