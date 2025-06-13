@@ -8,6 +8,7 @@ import (
 	"errors"
 	"os"
 	"runtime"
+	"unsafe"
 )
 
 const (
@@ -38,7 +39,9 @@ func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool)
 }
 
 func (g *Graph) WriteEdgeList(file *os.File) error {
-	fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
+	mode := C.CString("w")
+	defer C.free(unsafe.Pointer(mode))
+	fstruct := C.fdopen(C.int(file.Fd()), mode)
 	if err := C.igraph_write_graph_edgelist(&g.graph, fstruct); err != 0 {
 		return errors.New("Write failed")
 	}
@@ -47,7 +50,9 @@ func (g *Graph) WriteEdgeList(file *os.File) error {
 }
 
 func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
-	fstruct := C.fdopen(C.int(file.Fd()), C.CString("w"))
+	mode := C.CString("w")
+	defer C.free(unsafe.Pointer(mode))
+	fstruct := C.fdopen(C.int(file.Fd()), mode)
 	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
 		return errors.New("Write failed")
 	}
