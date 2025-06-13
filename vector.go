@@ -1,7 +1,7 @@
 package igraph
 
 // #cgo pkg-config: igraph
-// #include <igraph.h>
+// #include <igraph/igraph.h>
 import "C"
 import (
 	"fmt"

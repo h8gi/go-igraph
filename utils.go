@@ -1,10 +1,12 @@
 package igraph
 
+// #cgo pkg-config: igraph libxml-2.0
+// #include <igraph/igraph.h>
 import "C"
 
-func booltoint(in bool) C.int {
+func booltoint(in bool) C.igraph_bool_t {
 	if in {
-		return C.int(1)
+		return C.igraph_bool_t(C.bool(true))
 	}
-	return C.int(0)
+	return C.igraph_bool_t(C.bool(false))
 }

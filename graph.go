@@ -2,7 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph libxml-2.0
 // #include <stdio.h>
-// #include <igraph.h>
+// #include <igraph/igraph.h>
 import "C"
 import (
 	"errors"
@@ -32,8 +32,17 @@ func NewGraph() *Graph {
 
 func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool) *Graph {
 	g := NewGraph()
-	C.igraph_lattice(&g.graph, &dim.vector, C.int(nei),
-		booltoint(directed), booltoint(mutual), booltoint(circular))
+
+	var dims C.igraph_vector_int_t
+	C.igraph_vector_int_init(&dims, C.igraph_integer_t(dim.size))
+	for i := 0; i < dim.size; i++ {
+		val, _ := dim.Get(i)
+		C.igraph_vector_int_set(&dims, C.igraph_integer_t(i), C.igraph_integer_t(val))
+	}
+	defer C.igraph_vector_int_destroy(&dims)
+
+	C.igraph_lattice(&g.graph, &dims, C.igraph_integer_t(nei),
+		C.igraph_bool_t(booltoint(directed)), C.igraph_bool_t(booltoint(mutual)), C.igraph_bool_t(booltoint(circular)))
 
 	return g
 }
@@ -53,7 +62,7 @@ func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
 	mode := C.CString("w")
 	defer C.free(unsafe.Pointer(mode))
 	fstruct := C.fdopen(C.int(file.Fd()), mode)
-	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
+	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, C.igraph_bool_t(booltoint(prefixattr))); err != 0 {
 		return errors.New("Write failed")
 	}
 	C.fflush(fstruct)
