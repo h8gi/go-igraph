@@ -2,6 +2,10 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+//
+// static igraph_real_t go_igraph_vector_get(const igraph_vector_t *vector, igraph_int_t pos) {
+//   return VECTOR(*vector)[pos];
+// }
 import "C"
 import (
 	"fmt"
@@ -21,7 +25,7 @@ func NewVector(size int) *Vector {
 	v := &Vector{size: size}
 	runtime.SetFinalizer(v, (*Vector).destroy)
 
-	C.igraph_vector_init(&v.vector, C.igraph_integer_t(size))
+	C.igraph_vector_init(&v.vector, C.igraph_int_t(size))
 
 	return v
 }
@@ -46,7 +50,7 @@ func (v *Vector) Set(pos int, value float64) error {
 	if pos > v.size-1 {
 		return fmt.Errorf("Illegal access: size %d", v.size)
 	}
-	C.igraph_vector_set(&v.vector, C.igraph_integer_t(pos), C.double(value))
+	C.igraph_vector_set(&v.vector, C.igraph_int_t(pos), C.double(value))
 	return nil
 }
 
@@ -54,5 +58,5 @@ func (v *Vector) Get(pos int) (float64, error) {
 	if pos > v.size-1 {
 		return 0, fmt.Errorf("Illegal access: size %d", v.size)
 	}
-	return float64(C.igraph_vector_e(&v.vector, C.igraph_integer_t(pos))), nil
+	return float64(C.go_igraph_vector_get(&v.vector, C.igraph_int_t(pos))), nil
 }
