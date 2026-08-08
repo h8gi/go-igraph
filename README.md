@@ -1,3 +1,4 @@
+pyenv: cannot rehash: /Users/yagi/.pyenv/shims isn't writable
 # go-igraph
 
 Go bindings for [igraph](https://igraph.org/).
@@ -21,8 +22,9 @@ Check that the committed report is current:
 make coverage-check
 ```
 
-GitHub Actions checks Go formatting, runs the tool's unit tests, and runs
-`make coverage-check` for every pull request and for pushes to `main`.
+GitHub Actions checks Go formatting, runs `go vet` and the Go and coverage-tool
+tests, and runs `make coverage-check` for every pull request and for pushes to
+`main`.
 
 For an offline run, point the tool at an already extracted igraph source tree:
 
