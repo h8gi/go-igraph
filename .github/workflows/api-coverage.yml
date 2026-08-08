@@ -1,0 +1,32 @@
+name: API coverage
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check generated report
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Run coverage tool tests
+        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
+
+      - name: Check generated API coverage report
+        run: make coverage-check
