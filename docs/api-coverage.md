@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **24**
+- Internal dependencies: **29**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -531,13 +531,13 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_all_between` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_as_vector` | `igraph_iterators.h` | Missing | — |
+| `igraph_es_as_vector` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_es_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_destroy` | `igraph_iterators.h` | Missing | — |
+| `igraph_es_destroy` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_es_incident` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_none` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_pairs` | `igraph_iterators.h` | Missing | — |
+| `igraph_es_pairs` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_es_pairs_small` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_path` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_path_small` | `igraph_iterators.h` | Missing | — |
@@ -547,10 +547,10 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_vector_copy` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_1` | `igraph_iterators.h` | Missing | — |
-| `igraph_ess_all` | `igraph_iterators.h` | Missing | — |
+| `igraph_ess_all` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_ess_none` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_range` | `igraph_iterators.h` | Missing | — |
-| `igraph_ess_vector` | `igraph_iterators.h` | Missing | — |
+| `igraph_ess_vector` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_establishment_game` | `igraph_games.h` | Missing | — |
 | `igraph_eulerian_cycle` | `igraph_eulerian.h` | Missing | — |
 | `igraph_eulerian_path` | `igraph_eulerian.h` | Missing | — |
