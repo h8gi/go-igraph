@@ -19,6 +19,8 @@ const (
 	IGRAPH_UNDIRECTED = C.IGRAPH_UNDIRECTED
 )
 
+// Graph is a mutable graph that owns a C resource. Call Close when the graph is
+// no longer needed. Its methods are safe for concurrent use.
 type Graph struct {
 	mu     sync.Mutex
 	graph  C.igraph_t
@@ -263,9 +265,6 @@ func (g *Graph) Clone() (*Graph, error) {
 // edges produce repeated IDs.
 //
 //igraph:bind igraph_neighbors
-//igraph:internal igraph_vector_int_init
-//igraph:internal igraph_vector_int_size
-//igraph:internal igraph_vector_int_destroy
 func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
@@ -563,6 +562,9 @@ func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
 	return nil
 }
 
+// Close releases the graph's C resource. It is safe to call more than once or
+// on a nil receiver.
+//
 //igraph:internal igraph_destroy
 func (g *Graph) Close() error {
 	if g == nil {

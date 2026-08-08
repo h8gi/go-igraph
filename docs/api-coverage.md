@@ -518,8 +518,8 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_eigen_matrix_symmetric` | `igraph_eigen.h` | Missing | — |
 | `igraph_eigenvector_centrality` | `igraph_centrality.h` | Missing | — |
 | `igraph_eit_as_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_eit_create` | `igraph_iterators.h` | Internal | `SelectedEdgeIDs` |
-| `igraph_eit_destroy` | `igraph_iterators.h` | Internal | `SelectedEdgeIDs` |
+| `igraph_eit_create` | `igraph_iterators.h` | Internal | `newCEdgeIterator` |
+| `igraph_eit_destroy` | `igraph_iterators.h` | Internal | `close` |
 | `igraph_empty` | `igraph_interface.h` | User-facing | `NewGraph` |
 | `igraph_empty_attrs` | `igraph_interface.h` | Missing | — |
 | `igraph_enter_safelocale` | `igraph_foreign.h` | Missing | — |
@@ -533,7 +533,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_all_between` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_as_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_destroy` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_es_destroy` | `igraph_iterators.h` | Internal | `close` |
 | `igraph_es_incident` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_none` | `igraph_iterators.h` | Missing | — |
@@ -545,9 +545,9 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_size` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_type` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_vector_copy` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_es_vector_copy` | `igraph_iterators.h` | Internal | `newCEdgeSelector` |
 | `igraph_ess_1` | `igraph_iterators.h` | Missing | — |
-| `igraph_ess_all` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_ess_all` | `igraph_iterators.h` | Internal | `newCEdgeSelector` |
 | `igraph_ess_none` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_range` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_vector` | `igraph_iterators.h` | Missing | — |
@@ -1801,7 +1801,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_contains_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_copy_to` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_cumsum` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_destroy` | `igraph_adjlist.h (generated)` | Internal | `Close` |
+| `igraph_vector_destroy` | `igraph_adjlist.h (generated)` | Internal | `close` |
 | `igraph_vector_difference_and_intersection_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_difference_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_div` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1844,7 +1844,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_int_contains_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_copy_to` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_cumsum` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_destroy` | `igraph_adjlist.h (generated)` | Internal | `Neighbors` |
+| `igraph_vector_int_destroy` | `igraph_adjlist.h (generated)` | Internal | `close` |
 | `igraph_vector_int_difference_and_intersection_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_difference_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_div` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1857,7 +1857,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_int_get_ptr` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_index` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_index_in_place` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_init` | `igraph_adjlist.h (generated)` | Internal | `Neighbors` |
+| `igraph_vector_int_init` | `igraph_adjlist.h (generated)` | Internal | `newIntVector` |
 | `igraph_vector_int_init_array` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init_copy` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init_int` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1934,7 +1934,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_int_search` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_set` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_shuffle` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_size` | `igraph_adjlist.h (generated)` | Internal | `Neighbors` |
+| `igraph_vector_int_size` | `igraph_adjlist.h (generated)` | Internal | `slice` |
 | `igraph_vector_int_sort` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_sort_ind` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_sub` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -2047,7 +2047,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_search` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_set` | `igraph_adjlist.h (generated)` | User-facing | `Set` |
 | `igraph_vector_shuffle` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_size` | `igraph_adjlist.h (generated)` | Internal | `Get` |
+| `igraph_vector_size` | `igraph_adjlist.h (generated)` | Internal | `slice` |
 | `igraph_vector_sort` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_sort_ind` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_sub` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -2067,15 +2067,15 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vertex_disjoint_paths` | `igraph_flow.h` | Missing | — |
 | `igraph_vertex_path_from_edge_path` | `igraph_paths.h` | Missing | — |
 | `igraph_vit_as_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_vit_create` | `igraph_iterators.h` | Internal | `SelectedVertexIDs` |
-| `igraph_vit_destroy` | `igraph_iterators.h` | Internal | `SelectedVertexIDs` |
+| `igraph_vit_create` | `igraph_iterators.h` | Internal | `newCVertexIterator` |
+| `igraph_vit_destroy` | `igraph_iterators.h` | Internal | `close` |
 | `igraph_voronoi` | `igraph_paths.h` | Missing | — |
 | `igraph_vs_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_adj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_as_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_destroy` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vs_destroy` | `igraph_iterators.h` | Internal | `close` |
 | `igraph_vs_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_nonadj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_none` | `igraph_iterators.h` | Missing | — |
@@ -2083,12 +2083,12 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vs_size` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_type` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_vector_copy` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vs_vector_copy` | `igraph_iterators.h` | Internal | `newCVertexSelector` |
 | `igraph_vs_vector_small` | `igraph_iterators.h` | Missing | — |
 | `igraph_vss_1` | `igraph_iterators.h` | Missing | — |
-| `igraph_vss_all` | `igraph_iterators.h` | Internal | `vertexIDs` |
-| `igraph_vss_none` | `igraph_iterators.h` | Internal | `vertexIDs` |
-| `igraph_vss_range` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vss_all` | `igraph_iterators.h` | Internal | `newCVertexSelector` |
+| `igraph_vss_none` | `igraph_iterators.h` | Internal | `newCVertexSelector` |
+| `igraph_vss_range` | `igraph_iterators.h` | Internal | `newCVertexSelector` |
 | `igraph_vss_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_warning` | `igraph_error.h` | Missing | — |
 | `igraph_warningf` | `igraph_error.h` | Missing | — |

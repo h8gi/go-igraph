@@ -76,6 +76,10 @@ type cVertexSelector struct {
 	owned bool
 }
 
+//igraph:internal igraph_vss_all
+//igraph:internal igraph_vss_none
+//igraph:internal igraph_vs_vector_copy
+//igraph:internal igraph_vss_range
 func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 	result := &cVertexSelector{}
 	switch selector.kind {
@@ -105,6 +109,7 @@ func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_vs_destroy
 func (selector *cVertexSelector) close() {
 	if selector.owned {
 		C.igraph_vs_destroy(&selector.value)
@@ -113,12 +118,6 @@ func (selector *cVertexSelector) close() {
 
 // vertexIDs materializes a selector as an independently owned Go slice. It is
 // the common validation boundary for later algorithms that consume selectors.
-//
-//igraph:internal igraph_vss_all
-//igraph:internal igraph_vss_none
-//igraph:internal igraph_vs_vector_copy
-//igraph:internal igraph_vss_range
-//igraph:internal igraph_vs_destroy
 func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed

@@ -68,6 +68,12 @@ Completion criteria:
 
 Goal: provide reusable infrastructure needed by most algorithms.
 
+Status: complete. The public lifetime, copying, nil, and empty contracts are
+recorded in [Shared data ownership](shared-data-ownership.md). The generated
+inventory classifies the lifecycle functions used by the common wrappers, and
+`make verify` enforces formatting, vet, behavioral tests, statement coverage,
+inventory-tool tests, and report freshness in both local development and CI.
+
 Planned areas:
 
 - integer, real, boolean, and string conversions;
@@ -82,6 +88,17 @@ Completion criteria:
 - no API requires callers to handle C types;
 - conversion and ownership rules are documented and tested;
 - common helpers remove duplicated cgo code from later bindings.
+
+Implementation decisions:
+
+- temporary integer, real, boolean, and string vectors copy at the Go/C
+  boundary and return Go-owned slices;
+- `Matrix` is an immutable Go value and C matrices are temporary adapters;
+- selectors are reusable Go values that copy explicit input and retain no
+  graph or C resource;
+- selection is eagerly materialized into Go-owned slices so C iterators never
+  escape or outlive their graph lock;
+- only public `Graph` and `Vector` values require `Close`.
 
 ## Milestone 3: Fundamental algorithms
 

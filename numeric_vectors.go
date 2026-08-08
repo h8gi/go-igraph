@@ -34,6 +34,7 @@ type intVector struct {
 	value C.igraph_vector_int_t
 }
 
+//igraph:internal igraph_vector_int_init
 func newIntVector(values []int) (*intVector, error) {
 	size, err := intToIgraphInt(len(values), "integer vector length")
 	if err != nil {
@@ -59,6 +60,8 @@ func newIntVector(values []int) (*intVector, error) {
 
 // slice returns Go-owned storage that remains valid after close. Empty vectors
 // return a non-nil empty slice so callers never retain C-backed memory.
+//
+//igraph:internal igraph_vector_int_size
 func (v *intVector) slice() ([]int, error) {
 	size, err := igraphIntToInt(C.igraph_vector_int_size(&v.value), "integer vector length")
 	if err != nil {
@@ -77,6 +80,7 @@ func (v *intVector) slice() ([]int, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_vector_int_destroy
 func (v *intVector) close() {
 	C.igraph_vector_int_destroy(&v.value)
 }
@@ -87,14 +91,22 @@ type realVector struct {
 	value C.igraph_vector_t
 }
 
-func newRealVector(values []float64) (*realVector, error) {
-	size, err := intToIgraphInt(len(values), "real vector length")
+func newRealVectorSize(size int) (*realVector, error) {
+	cSize, err := intToIgraphInt(size, "real vector length")
 	if err != nil {
 		return nil, err
 	}
 	vector := &realVector{}
-	if code := C.igraph_vector_init(&vector.value, size); code != C.IGRAPH_SUCCESS {
+	if code := C.igraph_vector_init(&vector.value, cSize); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize real vector", int(code))
+	}
+	return vector, nil
+}
+
+func newRealVector(values []float64) (*realVector, error) {
+	vector, err := newRealVectorSize(len(values))
+	if err != nil {
+		return nil, err
 	}
 	for i, value := range values {
 		C.go_igraph_vector_set_value(&vector.value, C.igraph_int_t(i), C.igraph_real_t(value))
@@ -103,6 +115,8 @@ func newRealVector(values []float64) (*realVector, error) {
 }
 
 // slice returns a Go-owned, non-nil slice that remains valid after close.
+//
+//igraph:internal igraph_vector_size
 func (v *realVector) slice() ([]float64, error) {
 	size, err := igraphIntToInt(C.igraph_vector_size(&v.value), "real vector length")
 	if err != nil {
@@ -115,6 +129,7 @@ func (v *realVector) slice() ([]float64, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_vector_destroy
 func (v *realVector) close() {
 	C.igraph_vector_destroy(&v.value)
 }

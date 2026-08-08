@@ -1,0 +1,78 @@
+# Shared data ownership
+
+The shared data layer is the boundary between ordinary Go values and the
+temporary C/igraph values used to call upstream APIs. Public APIs never expose
+C types, C-backed slices, or cleanup functions for internal values.
+
+## Public lifetime rules
+
+| Value | Storage | Caller action | Lifetime rule |
+| --- | --- | --- | --- |
+| `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods return `ErrClosed` afterwards |
+| `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods return `ErrClosed` afterwards |
+| `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
+| `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
+| `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
+| selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
+
+`Graph` and `Vector` install finalizers as a leak fallback, but deterministic
+code should still use `Close`, normally with `defer` or `t.Cleanup`.
+
+Selectors are reusable. Their graph-independent shape is validated when they
+are constructed, and bounds, missing endpoint pairs, and closed graphs are
+validated each time they are materialized. `SelectedVertexIDs` and
+`SelectedEdgeIDs` eagerly materialize a result while holding the graph lock;
+they do not return an iterator that borrows the graph.
+
+## Nil and empty values
+
+Nil and empty slices have the same meaning at the shared data boundary unless
+an API explicitly requires at least one value:
+
+- numeric, boolean, and string conversion helpers create valid zero-length C
+  vectors for either form;
+- `NewVectorFromSlice(nil)` creates a zero-length vector;
+- `NewMatrixFromRows(nil)` and `NewMatrixFromRows([][]float64{})` create a
+  0-by-0 matrix;
+- `VertexIDs()`, `EdgeIDs()`, and `EdgePairs(nil, directed)` select nothing;
+- `NoVertices` and `NoEdges` select nothing, including on an empty graph;
+- `NewGraphFromEdges(vertexCount, nil)` creates the requested isolated
+  vertices, and `AddEdges(nil)` is a no-op;
+- `NewLattice` is the exception: it rejects nil and empty dimensions because
+  a lattice needs at least one dimension.
+
+Every successful API that returns a collection returns a non-nil empty Go
+slice when the result has no elements. A zero selector value is intentionally
+different from an empty explicit selector: `VertexSelector{}` selects all
+vertices and `EdgeSelector{}` selects all edges.
+
+## Internal C ownership
+
+Temporary wrappers follow one rule: a successful initializer transfers one C
+resource to the wrapper, and the same stack frame arranges its destruction.
+Initialization failure does not create a resource that needs destruction.
+
+| Wrapper | Input and result boundary | Cleanup order |
+| --- | --- | --- |
+| integer, real, boolean vectors | Go input is copied into C; results are copied back into non-nil Go slices | destroy after the upstream call or result copy |
+| string vector | each validated Go string is copied by igraph; temporary `CString` values are freed immediately | destroy the vector on a partial set failure and after successful use |
+| matrix | Go matrix data is copied into C and copied back into a new `Matrix` | destroy after the upstream call or result copy |
+| explicit selector | backing vector is copied into a regular selector | destroy backing vector immediately; destroy the regular selector after its iterator |
+| immediate selector | contains no allocation | never call the regular-selector destroy function |
+| vertex or edge iterator | borrows its graph and selector only during eager materialization | destroy iterator first, then its owned selector, before releasing the graph lock |
+
+No C object retains a pointer into Go memory. All C/igraph error codes are
+converted to Go errors, and each constructor cleans up any successfully
+initialized dependency before returning an error.
+
+## Verification
+
+Run the same complete verification entry point used by CI:
+
+```sh
+make verify
+```
+
+It checks formatting, runs `go vet`, tests and the statement-coverage floor
+against the pinned igraph release in Docker, tests the inventory tool, and
+checks that the generated API coverage report is current.

@@ -6,12 +6,14 @@ import (
 )
 
 func TestNewVectorFromSlice(t *testing.T) {
-	want := []float64{1, 2.5, -3, 4}
-	v, err := NewVectorFromSlice(want)
+	values := []float64{1, 2.5, -3, 4}
+	v, err := NewVectorFromSlice(values)
 	if err != nil {
 		t.Fatalf("NewVectorFromSlice() error = %v", err)
 	}
 	t.Cleanup(func() { _ = v.Close() })
+	values[0] = 99
+	want := []float64{1, 2.5, -3, 4}
 	for i, expected := range want {
 		got, err := v.Get(i)
 		if err != nil {
@@ -20,6 +22,17 @@ func TestNewVectorFromSlice(t *testing.T) {
 		if got != expected {
 			t.Errorf("Get(%d) = %v, want %v", i, got, expected)
 		}
+	}
+}
+
+func TestNewVectorFromNilSlice(t *testing.T) {
+	v, err := NewVectorFromSlice(nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = v.Close() })
+	if _, err := v.Get(0); err == nil {
+		t.Error("Get(0) on zero-length vector error = nil")
 	}
 }
 
