@@ -68,13 +68,12 @@ func VertexRange(start, end int) (VertexSelector, error) {
 	return VertexSelector{kind: vertexSelectorRange, start: start, end: end}, nil
 }
 
-// cVertexSelector holds an immediate igraph_vs_t and, for explicit IDs, owns
-// the backing integer vector borrowed by that selector. Immediate selectors
-// must not be passed to igraph_vs_destroy; close releases only the backing
-// vector after the selector's final use.
+// cVertexSelector holds an immediate selector or an owned regular selector for
+// explicit IDs. The regular selector copies its backing vector into C-owned
+// memory so C iterators never retain a pointer into Go memory.
 type cVertexSelector struct {
-	value   C.igraph_vs_t
-	backing *intVector
+	value C.igraph_vs_t
+	owned bool
 }
 
 func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
@@ -89,8 +88,12 @@ func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 		if err != nil {
 			return nil, err
 		}
-		result.backing = backing
-		result.value = C.igraph_vss_vector(&backing.value)
+		code := C.igraph_vs_vector_copy(&result.value, &backing.value)
+		backing.close()
+		if code != C.IGRAPH_SUCCESS {
+			return nil, igraphError("copy explicit vertex selector", int(code))
+		}
+		result.owned = true
 	case vertexSelectorRange:
 		result.value = C.igraph_vss_range(
 			C.igraph_int_t(selector.start),
@@ -103,8 +106,8 @@ func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 }
 
 func (selector *cVertexSelector) close() {
-	if selector.backing != nil {
-		selector.backing.close()
+	if selector.owned {
+		C.igraph_vs_destroy(&selector.value)
 	}
 }
 
@@ -113,9 +116,9 @@ func (selector *cVertexSelector) close() {
 //
 //igraph:internal igraph_vss_all
 //igraph:internal igraph_vss_none
-//igraph:internal igraph_vss_vector
+//igraph:internal igraph_vs_vector_copy
 //igraph:internal igraph_vss_range
-//igraph:internal igraph_vs_as_vector
+//igraph:internal igraph_vs_destroy
 func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
@@ -149,18 +152,5 @@ func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 		return nil, fmt.Errorf("igraph: invalid vertex selector kind: %d", selector.kind)
 	}
 
-	cSelector, err := newCVertexSelector(selector)
-	if err != nil {
-		return nil, err
-	}
-	defer cSelector.close()
-	result, err := newIntVector(nil)
-	if err != nil {
-		return nil, err
-	}
-	defer result.close()
-	if code := C.igraph_vs_as_vector(&g.graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("materialize vertex selector", int(code))
-	}
-	return result.slice()
+	return materializeVertexIDs(&g.graph, selector)
 }

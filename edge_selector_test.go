@@ -127,6 +127,9 @@ func TestEdgeSelectorsOnEmptyGraph(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if !emptyPairs.empty() {
+		t.Error("empty pair selector is not empty")
+	}
 	for _, selector := range []EdgeSelector{AllEdges(), NoEdges(), emptyIDs, emptyPairs} {
 		got, err := graph.edgeIDs(selector)
 		if err != nil || got == nil || len(got) != 0 {

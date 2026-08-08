@@ -87,13 +87,12 @@ func (selector EdgeSelector) empty() bool {
 	}
 }
 
-// cEdgeSelector holds an igraph_es_t and owns its borrowed integer backing
-// vector. Pair selectors use the regular igraph_es_pairs constructor and must
-// be destroyed; the immediate all/none/vector selectors must not be destroyed.
+// cEdgeSelector holds an immediate all selector or an owned regular selector
+// containing a C-owned copy of explicit edge IDs. No C iterator retains a
+// pointer into Go memory.
 type cEdgeSelector struct {
-	value   C.igraph_es_t
-	backing *intVector
-	owned   bool
+	value C.igraph_es_t
+	owned bool
 }
 
 func newCEdgeSelector(selector EdgeSelector) (*cEdgeSelector, error) {
@@ -106,21 +105,10 @@ func newCEdgeSelector(selector EdgeSelector) (*cEdgeSelector, error) {
 		if err != nil {
 			return nil, err
 		}
-		result.backing = backing
-		result.value = C.igraph_ess_vector(&backing.value)
-	case edgeSelectorPairs:
-		endpoints := make([]int, 0, 2*len(selector.pairs))
-		for _, pair := range selector.pairs {
-			endpoints = append(endpoints, pair.From, pair.To)
-		}
-		backing, err := newIntVector(endpoints)
-		if err != nil {
-			return nil, err
-		}
-		result.backing = backing
-		if code := C.igraph_es_pairs(&result.value, &backing.value, booltoint(selector.directed)); code != C.IGRAPH_SUCCESS {
-			backing.close()
-			return nil, igraphError("initialize edge-pair selector", int(code))
+		code := C.igraph_es_vector_copy(&result.value, &backing.value)
+		backing.close()
+		if code != C.IGRAPH_SUCCESS {
+			return nil, igraphError("copy explicit edge selector", int(code))
 		}
 		result.owned = true
 	default:
@@ -133,19 +121,14 @@ func (selector *cEdgeSelector) close() {
 	if selector.owned {
 		C.igraph_es_destroy(&selector.value)
 	}
-	if selector.backing != nil {
-		selector.backing.close()
-	}
 }
 
 // edgeIDs materializes a selector as independently owned Go storage. It is the
 // common graph-specific validation boundary for later algorithm consumers.
 //
 //igraph:internal igraph_ess_all
-//igraph:internal igraph_ess_vector
-//igraph:internal igraph_es_pairs
+//igraph:internal igraph_es_vector_copy
 //igraph:internal igraph_es_destroy
-//igraph:internal igraph_es_as_vector
 func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
@@ -170,6 +153,7 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 			}
 		}
 	case edgeSelectorPairs:
+		resolved := make([]int, len(selector.pairs))
 		for index, pair := range selector.pairs {
 			if err := validateEdge(pair, vertexCount, index); err != nil {
 				return nil, err
@@ -191,7 +175,13 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 					index, pair.From, pair.To,
 				)
 			}
+			resolvedID, err := igraphIntToInt(edgeID, "resolved edge ID")
+			if err != nil {
+				return nil, err
+			}
+			resolved[index] = resolvedID
 		}
+		selector = EdgeSelector{kind: edgeSelectorIDs, ids: resolved}
 	default:
 		return nil, fmt.Errorf("igraph: invalid edge selector kind: %d", selector.kind)
 	}
@@ -199,18 +189,5 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 		return []int{}, nil
 	}
 
-	cSelector, err := newCEdgeSelector(selector)
-	if err != nil {
-		return nil, err
-	}
-	defer cSelector.close()
-	result, err := newIntVector(nil)
-	if err != nil {
-		return nil, err
-	}
-	defer result.close()
-	if code := C.igraph_es_as_vector(&g.graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("materialize edge selector", int(code))
-	}
-	return result.slice()
+	return materializeEdgeIDs(&g.graph, selector)
 }
