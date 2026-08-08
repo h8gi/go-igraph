@@ -29,6 +29,18 @@ package igraph
 //   igraph_vector_int_destroy(&integer_dimensions);
 //   return err;
 // }
+//
+// static igraph_error_t go_igraph_add_edges(
+//     igraph_t *graph, const igraph_int_t *endpoints, igraph_int_t endpoint_count) {
+//   igraph_vector_int_t edges;
+//   igraph_error_t err = igraph_vector_int_init_array(&edges, endpoints, endpoint_count);
+//   if (err != IGRAPH_SUCCESS) {
+//     return err;
+//   }
+//   err = igraph_add_edges(graph, &edges, NULL);
+//   igraph_vector_int_destroy(&edges);
+//   return err;
+// }
 import "C"
 import (
 	"errors"
@@ -48,6 +60,12 @@ type Graph struct {
 	mu     sync.Mutex
 	graph  C.igraph_t
 	closed bool
+}
+
+// Edge identifies an edge by its endpoint vertex IDs.
+type Edge struct {
+	From int
+	To   int
 }
 
 //igraph:bind igraph_empty
@@ -176,6 +194,98 @@ func (g *Graph) IsEmpty() (bool, error) {
 		return false, ErrClosed
 	}
 	return C.igraph_vcount(&g.graph) == 0, nil
+}
+
+// AddVertices appends count isolated vertices to the graph. A zero count is a
+// no-op. Negative counts return an error without modifying the graph.
+//
+//igraph:bind igraph_add_vertices
+func (g *Graph) AddVertices(count int) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+	if count < 0 {
+		return fmt.Errorf("igraph: vertex count must be non-negative: %d", count)
+	}
+	if count == 0 {
+		return nil
+	}
+	if code := C.igraph_add_vertices(&g.graph, C.igraph_int_t(count), nil); code != C.IGRAPH_SUCCESS {
+		return igraphError("add vertices", int(code))
+	}
+	return nil
+}
+
+// AddEdge appends one edge. Self-loops and parallel edges are allowed.
+//
+//igraph:bind igraph_add_edge
+func (g *Graph) AddEdge(from, to int) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+	if err := validateEdge(Edge{From: from, To: to}, int(C.igraph_vcount(&g.graph)), 0); err != nil {
+		return err
+	}
+	if code := C.igraph_add_edge(&g.graph, C.igraph_int_t(from), C.igraph_int_t(to)); code != C.IGRAPH_SUCCESS {
+		return igraphError("add edge", int(code))
+	}
+	return nil
+}
+
+// AddEdges appends a batch of edges atomically. Self-loops and parallel edges
+// are allowed, and an empty batch is a no-op. All endpoints are validated
+// before the graph is modified.
+//
+//igraph:bind igraph_add_edges
+//igraph:internal igraph_vector_int_init_array
+//igraph:internal igraph_vector_int_destroy
+func (g *Graph) AddEdges(edges []Edge) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+	if len(edges) == 0 {
+		return nil
+	}
+
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	endpoints := make([]C.igraph_int_t, 0, 2*len(edges))
+	for index, edge := range edges {
+		if err := validateEdge(edge, vertexCount, index); err != nil {
+			return err
+		}
+		endpoints = append(endpoints, C.igraph_int_t(edge.From), C.igraph_int_t(edge.To))
+	}
+	code := C.go_igraph_add_edges(&g.graph, &endpoints[0], C.igraph_int_t(len(endpoints)))
+	runtime.KeepAlive(endpoints)
+	if code != C.IGRAPH_SUCCESS {
+		return igraphError("add edges", int(code))
+	}
+	return nil
+}
+
+func validateEdge(edge Edge, vertexCount, index int) error {
+	if edge.From < 0 || edge.From >= vertexCount {
+		return fmt.Errorf("igraph: edge %d source vertex %d out of range [0, %d)", index, edge.From, vertexCount)
+	}
+	if edge.To < 0 || edge.To >= vertexCount {
+		return fmt.Errorf("igraph: edge %d target vertex %d out of range [0, %d)", index, edge.To, vertexCount)
+	}
+	return nil
 }
 
 //igraph:bind igraph_write_graph_edgelist

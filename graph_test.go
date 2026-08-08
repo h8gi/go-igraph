@@ -277,6 +277,133 @@ func TestNilGraphInspection(t *testing.T) {
 	}
 }
 
+func TestAddVertices(t *testing.T) {
+	for _, directed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("directed=%t", directed), func(t *testing.T) {
+			g := testLattice(t, directed)
+			if err := g.AddVertices(2); err != nil {
+				t.Fatalf("AddVertices(2) error = %v", err)
+			}
+			if got, err := g.VertexCount(); err != nil || got != 6 {
+				t.Errorf("VertexCount() = %d, %v, want 6, nil", got, err)
+			}
+			if err := g.AddVertices(0); err != nil {
+				t.Fatalf("AddVertices(0) error = %v", err)
+			}
+			if got, _ := g.VertexCount(); got != 6 {
+				t.Errorf("VertexCount() after no-op = %d, want 6", got)
+			}
+		})
+	}
+}
+
+func TestAddEdge(t *testing.T) {
+	for _, directed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("directed=%t", directed), func(t *testing.T) {
+			g := testLattice(t, directed)
+			before, _ := g.EdgeCount()
+			if err := g.AddEdge(3, 0); err != nil {
+				t.Fatalf("AddEdge() error = %v", err)
+			}
+			if got, err := g.EdgeCount(); err != nil || got != before+1 {
+				t.Errorf("EdgeCount() = %d, %v, want %d, nil", got, err, before+1)
+			}
+			from, to, err := g.EdgeEndpoints(before)
+			endpointsMatch := from == 3 && to == 0
+			if !directed {
+				endpointsMatch = endpointsMatch || from == 0 && to == 3
+			}
+			if err != nil || !endpointsMatch {
+				t.Errorf("EdgeEndpoints(%d) = (%d, %d), %v, want edge between 3 and 0", before, from, to, err)
+			}
+		})
+	}
+}
+
+func TestAddEdgesAllowsLoopsAndParallelEdges(t *testing.T) {
+	for _, directed := range []bool{false, true} {
+		t.Run(fmt.Sprintf("directed=%t", directed), func(t *testing.T) {
+			g := testLattice(t, directed)
+			before, _ := g.EdgeCount()
+			edges := []Edge{{From: 0, To: 0}, {From: 0, To: 1}, {From: 0, To: 1}}
+			if err := g.AddEdges(edges); err != nil {
+				t.Fatalf("AddEdges() error = %v", err)
+			}
+			if got, err := g.EdgeCount(); err != nil || got != before+len(edges) {
+				t.Errorf("EdgeCount() = %d, %v, want %d, nil", got, err, before+len(edges))
+			}
+			for index, want := range edges {
+				from, to, err := g.EdgeEndpoints(before + index)
+				if err != nil || from != want.From || to != want.To {
+					t.Errorf("EdgeEndpoints(%d) = (%d, %d), %v, want (%d, %d), nil", before+index, from, to, err, want.From, want.To)
+				}
+			}
+		})
+	}
+}
+
+func TestAddEdgesEmptyBatchIsNoOp(t *testing.T) {
+	g := testLattice(t, false)
+	before, _ := g.EdgeCount()
+	if err := g.AddEdges(nil); err != nil {
+		t.Fatalf("AddEdges(nil) error = %v", err)
+	}
+	if got, _ := g.EdgeCount(); got != before {
+		t.Errorf("EdgeCount() = %d, want %d", got, before)
+	}
+}
+
+func TestGraphMutationsRejectInvalidInputAtomically(t *testing.T) {
+	g := testLattice(t, false)
+	beforeVertices, _ := g.VertexCount()
+	beforeEdges, _ := g.EdgeCount()
+
+	if err := g.AddVertices(-1); err == nil {
+		t.Error("AddVertices(-1) error = nil")
+	}
+	if got, _ := g.VertexCount(); got != beforeVertices {
+		t.Errorf("VertexCount() after invalid addition = %d, want %d", got, beforeVertices)
+	}
+	for _, edge := range []Edge{{From: -1, To: 0}, {From: 0, To: beforeVertices}} {
+		if err := g.AddEdge(edge.From, edge.To); err == nil {
+			t.Errorf("AddEdge(%d, %d) error = nil", edge.From, edge.To)
+		}
+	}
+	if err := g.AddEdges([]Edge{{From: 0, To: 1}, {From: 1, To: beforeVertices}}); err == nil {
+		t.Error("AddEdges() with invalid endpoint error = nil")
+	}
+	if got, _ := g.EdgeCount(); got != beforeEdges {
+		t.Errorf("EdgeCount() after invalid additions = %d, want %d", got, beforeEdges)
+	}
+}
+
+func TestGraphMutationsRejectClosedAndNilGraphs(t *testing.T) {
+	g := testLattice(t, false)
+	if err := g.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if err := g.AddVertices(1); !errors.Is(err, ErrClosed) {
+		t.Errorf("AddVertices() error = %v, want %v", err, ErrClosed)
+	}
+	if err := g.AddEdge(0, 1); !errors.Is(err, ErrClosed) {
+		t.Errorf("AddEdge() error = %v, want %v", err, ErrClosed)
+	}
+	if err := g.AddEdges([]Edge{{From: 0, To: 1}}); !errors.Is(err, ErrClosed) {
+		t.Errorf("AddEdges() error = %v, want %v", err, ErrClosed)
+	}
+
+	var nilGraph *Graph
+	if err := nilGraph.AddVertices(1); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil AddVertices() error = %v, want %v", err, ErrClosed)
+	}
+	if err := nilGraph.AddEdge(0, 1); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil AddEdge() error = %v, want %v", err, ErrClosed)
+	}
+	if err := nilGraph.AddEdges(nil); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil AddEdges() error = %v, want %v", err, ErrClosed)
+	}
+}
+
 func testLattice(t *testing.T, directed bool) *Graph {
 	t.Helper()
 	g, err := NewLattice([]int{2, 2}, 1, directed, false, false)
