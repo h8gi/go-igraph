@@ -4,21 +4,6 @@ package igraph
 // #include <stdio.h>
 // #include <unistd.h>
 // #include <igraph.h>
-//
-// static igraph_error_t go_igraph_lattice(
-//     igraph_t *graph, const igraph_vector_int_t *dimensions,
-//     igraph_int_t nei, igraph_bool_t directed, igraph_bool_t mutual,
-//     igraph_bool_t circular) {
-//   igraph_vector_bool_t periodic;
-//   igraph_error_t err = igraph_vector_bool_init(&periodic, igraph_vector_int_size(dimensions));
-//   if (err != IGRAPH_SUCCESS) {
-//     return err;
-//   }
-//   igraph_vector_bool_fill(&periodic, circular);
-//   err = igraph_square_lattice(graph, dimensions, nei, directed, mutual, &periodic);
-//   igraph_vector_bool_destroy(&periodic);
-//   return err;
-// }
 import "C"
 import (
 	"errors"
@@ -143,15 +128,24 @@ func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool
 		return nil, err
 	}
 	defer cDimensions.close()
+	periodicValues := make([]bool, len(dimensions))
+	for i := range periodicValues {
+		periodicValues[i] = circular
+	}
+	periodic, err := newBoolVector(periodicValues)
+	if err != nil {
+		return nil, err
+	}
+	defer periodic.close()
 
 	g := &Graph{}
-	code := C.go_igraph_lattice(
+	code := C.igraph_square_lattice(
 		&g.graph,
 		&cDimensions.value,
 		C.igraph_int_t(neighbors),
 		booltoint(directed),
 		booltoint(mutual),
-		booltoint(circular),
+		&periodic.value,
 	)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize lattice", int(code))

@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **7**
+- Internal dependencies: **15**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -1517,11 +1517,11 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_strvector_append` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_capacity` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_clear` | `igraph_strvector.h` | Missing | — |
-| `igraph_strvector_destroy` | `igraph_strvector.h` | Missing | — |
+| `igraph_strvector_destroy` | `igraph_strvector.h` | Internal | `close` |
 | `igraph_strvector_fprint` | `igraph_strvector.h` | Missing | — |
-| `igraph_strvector_get` | `igraph_strvector.h` | Missing | — |
+| `igraph_strvector_get` | `igraph_strvector.h` | Internal | `slice` |
 | `igraph_strvector_index` | `igraph_strvector.h` | Missing | — |
-| `igraph_strvector_init` | `igraph_strvector.h` | Missing | — |
+| `igraph_strvector_init` | `igraph_strvector.h` | Internal | `newStringVector` |
 | `igraph_strvector_init_copy` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_merge` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_print` | `igraph_strvector.h` | Missing | — |
@@ -1532,9 +1532,9 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_strvector_reserve` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_resize` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_resize_min` | `igraph_strvector.h` | Missing | — |
-| `igraph_strvector_set` | `igraph_strvector.h` | Missing | — |
+| `igraph_strvector_set` | `igraph_strvector.h` | Internal | `newStringVector` |
 | `igraph_strvector_set_len` | `igraph_strvector.h` | Missing | — |
-| `igraph_strvector_size` | `igraph_strvector.h` | Missing | — |
+| `igraph_strvector_size` | `igraph_strvector.h` | Internal | `slice` |
 | `igraph_strvector_swap` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_swap_elements` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_update` | `igraph_strvector.h` | Missing | — |
@@ -1585,7 +1585,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_bool_contains` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_copy_to` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_cumsum` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_bool_destroy` | `igraph_adjlist.h (generated)` | Missing | — |
+| `igraph_vector_bool_destroy` | `igraph_adjlist.h (generated)` | Internal | `close` |
 | `igraph_vector_bool_div` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_empty` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_fill` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1595,7 +1595,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_bool_get_ptr` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_index` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_index_in_place` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_bool_init` | `igraph_adjlist.h (generated)` | Missing | — |
+| `igraph_vector_bool_init` | `igraph_adjlist.h (generated)` | Internal | `newBoolVector` |
 | `igraph_vector_bool_init_array` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_init_copy` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_init_int` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1627,7 +1627,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_bool_search` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_set` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_shuffle` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_bool_size` | `igraph_adjlist.h (generated)` | Missing | — |
+| `igraph_vector_bool_size` | `igraph_adjlist.h (generated)` | Internal | `slice` |
 | `igraph_vector_bool_sub` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_sum` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_bool_sumsq` | `igraph_adjlist.h (generated)` | Missing | — |
