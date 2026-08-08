@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **15**
+- Internal dependencies: **19**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -1067,7 +1067,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_matrix_complex_zapsmall` | `igraph_matrix.h` | Missing | — |
 | `igraph_matrix_contains` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_copy_to` | `igraph_arpack.h (generated)` | Missing | — |
-| `igraph_matrix_destroy` | `igraph_arpack.h (generated)` | Missing | — |
+| `igraph_matrix_destroy` | `igraph_arpack.h (generated)` | Internal | `close` |
 | `igraph_matrix_div_elements` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_empty` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_fill` | `igraph_arpack.h (generated)` | Missing | — |
@@ -1076,7 +1076,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_matrix_get_col` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_get_ptr` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_get_row` | `igraph_arpack.h (generated)` | Missing | — |
-| `igraph_matrix_init` | `igraph_arpack.h (generated)` | Missing | — |
+| `igraph_matrix_init` | `igraph_arpack.h (generated)` | Internal | `newCMatrix` |
 | `igraph_matrix_init_array` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_init_copy` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_int_add` | `igraph_arpack.h (generated)` | Missing | — |
@@ -1188,8 +1188,8 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_matrix_min` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_minmax` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_mul_elements` | `igraph_arpack.h (generated)` | Missing | — |
-| `igraph_matrix_ncol` | `igraph_arpack.h (generated)` | Missing | — |
-| `igraph_matrix_nrow` | `igraph_arpack.h (generated)` | Missing | — |
+| `igraph_matrix_ncol` | `igraph_arpack.h (generated)` | Internal | `matrix` |
+| `igraph_matrix_nrow` | `igraph_arpack.h (generated)` | Internal | `matrix` |
 | `igraph_matrix_null` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_permdelete_rows` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_print` | `igraph_arpack.h (generated)` | Missing | — |

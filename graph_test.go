@@ -83,6 +83,20 @@ func TestGraphWritersRejectInvalidFiles(t *testing.T) {
 	}
 }
 
+func TestOpenFileStreamRejectsReadOnlyDescriptor(t *testing.T) {
+	reader, writer, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		_ = reader.Close()
+		_ = writer.Close()
+	})
+	if stream, err := openFileStream(reader); stream != nil || err == nil {
+		t.Errorf("openFileStream(read-only pipe) = %v, %v, want nil, error", stream, err)
+	}
+}
+
 func TestGraphClose(t *testing.T) {
 	g := testLattice(t, false)
 	if err := g.Close(); err != nil {
