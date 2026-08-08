@@ -4,6 +4,9 @@ Go bindings for [igraph](https://igraph.org/).
 
 ## Upstream API coverage
 
+The [upstream API roadmap](docs/upstream-api-roadmap.md) defines the binding
+strategy, milestones, and completion criteria.
+
 The generated [API coverage report](docs/api-coverage.md) compares the functions
 exported by a pinned upstream igraph release with direct `C.igraph_*` calls in
 production Go files. This is an inventory for planning binding work, not a claim
