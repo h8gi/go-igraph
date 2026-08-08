@@ -1,4 +1,3 @@
-pyenv: cannot rehash: /Users/yagi/.pyenv/shims isn't writable
 package igraph
 
 // #cgo pkg-config: igraph
