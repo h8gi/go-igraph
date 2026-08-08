@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **25**
+- Internal dependencies: **24**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -2075,7 +2075,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vs_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_as_vector` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vs_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_destroy` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vs_destroy` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_nonadj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_none` | `igraph_iterators.h` | Missing | — |

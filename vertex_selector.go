@@ -68,9 +68,10 @@ func VertexRange(start, end int) (VertexSelector, error) {
 	return VertexSelector{kind: vertexSelectorRange, start: start, end: end}, nil
 }
 
-// cVertexSelector owns an initialized igraph_vs_t and, for explicit IDs, the
-// backing integer vector borrowed by that selector. close destroys the
-// selector before its backing vector.
+// cVertexSelector holds an immediate igraph_vs_t and, for explicit IDs, owns
+// the backing integer vector borrowed by that selector. Immediate selectors
+// must not be passed to igraph_vs_destroy; close releases only the backing
+// vector after the selector's final use.
 type cVertexSelector struct {
 	value   C.igraph_vs_t
 	backing *intVector
@@ -102,7 +103,6 @@ func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 }
 
 func (selector *cVertexSelector) close() {
-	C.igraph_vs_destroy(&selector.value)
 	if selector.backing != nil {
 		selector.backing.close()
 	}
@@ -115,7 +115,6 @@ func (selector *cVertexSelector) close() {
 //igraph:internal igraph_vss_none
 //igraph:internal igraph_vss_vector
 //igraph:internal igraph_vss_range
-//igraph:internal igraph_vs_destroy
 //igraph:internal igraph_vs_as_vector
 func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 	if g == nil {
