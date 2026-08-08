@@ -8,6 +8,7 @@ import json
 import re
 import os
 import subprocess
+import shutil
 import sys
 import tarfile
 import tempfile
@@ -41,26 +42,51 @@ def strip_comments(text: str) -> str:
 
 def discover_upstream_api(include_dir: Path) -> dict[str, str]:
     declarations: dict[str, str] = {}
-    for header in sorted(include_dir.rglob("*.h")):
+    headers = sorted(include_dir.rglob("*.h"))
+    for header in headers:
         text = strip_comments(header.read_text(encoding="utf-8", errors="replace"))
         for match in EXPORT_RE.finditer(text):
             declarations.setdefault(match.group(1), header.relative_to(include_dir).as_posix())
     # Several public API families (notably vectors) are instantiated from PMT
-    # headers. Parse the preprocessed umbrella header so those declarations are
-    # part of the inventory too; direct declarations above retain their more
-    # precise source header.
-    umbrella = include_dir / "igraph.h"
-    if umbrella.exists():
-        command = [os.environ.get("CC", "cc"), "-E", "-P", "-I", str(include_dir), str(umbrella)]
-        try:
-            process = subprocess.run(command, check=False, capture_output=True, text=True)
-            expanded = process.stdout
+    # headers. Source archives omit build-generated headers, so preprocess a
+    # private copy with neutral stubs. Keeping IGRAPH_EXPORT as a marker lets the
+    # same declaration parser distinguish public from private APIs afterwards.
+    with tempfile.TemporaryDirectory(prefix="go-igraph-headers-") as temp:
+        prepared = Path(temp) / "include"
+        shutil.copytree(include_dir, prepared)
+        (prepared / "igraph_export.h").write_text(
+            "#define IGRAPH_EXPORT IGRAPH_EXPORT\n"
+            "#define IGRAPH_NO_EXPORT IGRAPH_NO_EXPORT\n"
+            "#define IGRAPH_DEPRECATED IGRAPH_DEPRECATED\n",
+            encoding="utf-8",
+        )
+        for generated in ("igraph_config.h", "igraph_version.h"):
+            target = prepared / generated
+            if not target.exists():
+                target.write_text("/* neutral coverage-tool stub */\n", encoding="utf-8")
+        decls = prepared / "igraph_decls.h"
+        if decls.exists():
+            decls.write_text(
+                decls.read_text(encoding="utf-8").replace(
+                    "#define IGRAPH_PRIVATE_EXPORT IGRAPH_EXPORT",
+                    "#define IGRAPH_PRIVATE_EXPORT IGRAPH_PRIVATE_EXPORT",
+                ),
+                encoding="utf-8",
+            )
+        for header in headers:
+            relative = header.relative_to(include_dir)
+            if relative.as_posix() == "igraph.h":
+                continue
+            command = [os.environ.get("CC", "cc"), "-E", "-P", "-I", str(prepared), str(prepared / relative)]
+            try:
+                process = subprocess.run(command, check=False, capture_output=True, text=True)
+                expanded = process.stdout
+            except FileNotFoundError as error:
+                raise ValueError(f"could not run C preprocessor {command[0]}: {error}") from error
             if not expanded:
-                raise ValueError(process.stderr.strip() or "preprocessor produced no output")
-        except (FileNotFoundError, ValueError) as error:
-            raise ValueError(f"could not preprocess {umbrella}: {error}") from error
-        for match in EXPORT_RE.finditer(expanded):
-            declarations.setdefault(match.group(1), "igraph.h (generated)")
+                continue
+            for match in EXPORT_RE.finditer(expanded):
+                declarations.setdefault(match.group(1), f"{relative.as_posix()} (generated)")
     return declarations
 
 
