@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph libxml-2.0
 // #include <stdio.h>
+// #include <unistd.h>
 // #include <igraph.h>
 //
 // static igraph_error_t go_igraph_lattice(
@@ -64,24 +65,51 @@ func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool)
 }
 
 func (g *Graph) WriteEdgeList(file *os.File) error {
-	mode := C.CString("w")
-	defer C.free(unsafe.Pointer(mode))
-	fstruct := C.fdopen(C.int(file.Fd()), mode)
-	if err := C.igraph_write_graph_edgelist(&g.graph, fstruct); err != 0 {
-		return errors.New("Write failed")
+	fstruct, err := openFileStream(file)
+	if err != nil {
+		return err
 	}
-	C.fflush(fstruct)
+	defer C.fclose(fstruct)
+	if err := C.igraph_write_graph_edgelist(&g.graph, fstruct); err != 0 {
+		return errors.New("igraph: failed to write edge list")
+	}
+	if C.fflush(fstruct) != 0 {
+		return errors.New("igraph: failed to flush edge list")
+	}
 	return nil
 }
 
 func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
+	fstruct, err := openFileStream(file)
+	if err != nil {
+		return err
+	}
+	defer C.fclose(fstruct)
+	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
+		return errors.New("igraph: failed to write GraphML")
+	}
+	if C.fflush(fstruct) != 0 {
+		return errors.New("igraph: failed to flush GraphML")
+	}
+	return nil
+}
+
+func openFileStream(file *os.File) (*C.FILE, error) {
+	if file == nil {
+		return nil, errors.New("igraph: output file is nil")
+	}
+
+	fd := C.dup(C.int(file.Fd()))
+	if fd < 0 {
+		return nil, errors.New("igraph: failed to duplicate output file descriptor")
+	}
+
 	mode := C.CString("w")
 	defer C.free(unsafe.Pointer(mode))
-	fstruct := C.fdopen(C.int(file.Fd()), mode)
-	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
-		return errors.New("Write failed")
+	fstruct := C.fdopen(fd, mode)
+	if fstruct == nil {
+		C.close(fd)
+		return nil, errors.New("igraph: failed to open output stream")
 	}
-	C.fflush(fstruct)
-	return nil
-
+	return fstruct, nil
 }

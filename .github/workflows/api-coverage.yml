@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: Run Go checks with igraph 1.0.1
-        run: make docker-test
+        run: make docker-coverage-check
 
       - name: Run coverage tool tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v

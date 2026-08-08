@@ -47,6 +47,14 @@ Run the tests against the working tree and write `coverage.out` locally with:
 make docker-coverage
 ```
 
+CI also enforces a statement coverage floor, currently 85%:
+
+```sh
+make docker-coverage-check
+```
+
+Override `COVERAGE_MIN` to test a different threshold.
+
 Override `IGRAPH_VERSION` when validating a future upstream release.
 
 The pinned version and upstream URLs live in

@@ -47,16 +47,16 @@ func VectorView(s []float64) *Vector {
 }
 
 func (v *Vector) Set(pos int, value float64) error {
-	if pos > v.size-1 {
-		return fmt.Errorf("Illegal access: size %d", v.size)
+	if pos < 0 || pos >= v.size {
+		return fmt.Errorf("igraph: vector index %d out of range [0, %d)", pos, v.size)
 	}
 	C.igraph_vector_set(&v.vector, C.igraph_int_t(pos), C.double(value))
 	return nil
 }
 
 func (v *Vector) Get(pos int) (float64, error) {
-	if pos > v.size-1 {
-		return 0, fmt.Errorf("Illegal access: size %d", v.size)
+	if pos < 0 || pos >= v.size {
+		return 0, fmt.Errorf("igraph: vector index %d out of range [0, %d)", pos, v.size)
 	}
 	return float64(C.go_igraph_vector_get(&v.vector, C.igraph_int_t(pos))), nil
 }
