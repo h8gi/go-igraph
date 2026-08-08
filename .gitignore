@@ -107,3 +107,7 @@ Temporary Items
 go.work
 
 main
+
+# Python tooling caches
+__pycache__/
+*.py[cod]
