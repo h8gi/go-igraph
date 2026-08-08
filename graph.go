@@ -41,6 +41,19 @@ package igraph
 //   igraph_vector_int_destroy(&edges);
 //   return err;
 // }
+//
+// static igraph_error_t go_igraph_create(
+//     igraph_t *graph, const igraph_int_t *endpoints, igraph_int_t endpoint_count,
+//     igraph_int_t vertex_count, igraph_bool_t directed) {
+//   igraph_vector_int_t edges;
+//   igraph_error_t err = igraph_vector_int_init_array(&edges, endpoints, endpoint_count);
+//   if (err != IGRAPH_SUCCESS) {
+//     return err;
+//   }
+//   err = igraph_create(graph, &edges, vertex_count, directed);
+//   igraph_vector_int_destroy(&edges);
+//   return err;
+// }
 import "C"
 import (
 	"errors"
@@ -73,6 +86,52 @@ func NewGraph() (*Graph, error) {
 	g := &Graph{}
 	if code := C.igraph_empty(&g.graph, 0, booltoint(false)); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize graph", int(code))
+	}
+	runtime.SetFinalizer(g, (*Graph).finalize)
+	return g, nil
+}
+
+// NewGraphFromEdges constructs a graph with exactly vertexCount vertices.
+// Vertex IDs are zero-based and must be less than vertexCount. The vertex
+// count is never inferred from edges, so isolated vertices and empty graphs
+// are represented by the explicit vertexCount argument. Self-loops and
+// parallel edges are allowed.
+//
+//igraph:bind igraph_create
+func NewGraphFromEdges(vertexCount int, edges []Edge, directed bool) (*Graph, error) {
+	if vertexCount < 0 {
+		return nil, fmt.Errorf("igraph: vertex count must be non-negative: %d", vertexCount)
+	}
+	if int(C.igraph_int_t(vertexCount)) != vertexCount {
+		return nil, fmt.Errorf("igraph: vertex count is too large: %d", vertexCount)
+	}
+	if len(edges) > int(^uint(0)>>1)/2 {
+		return nil, errors.New("igraph: edge list is too large")
+	}
+
+	endpoints := make([]C.igraph_int_t, 0, 2*len(edges))
+	for index, edge := range edges {
+		if err := validateEdge(edge, vertexCount, index); err != nil {
+			return nil, err
+		}
+		endpoints = append(endpoints, C.igraph_int_t(edge.From), C.igraph_int_t(edge.To))
+	}
+
+	g := &Graph{}
+	var endpointData *C.igraph_int_t
+	if len(endpoints) != 0 {
+		endpointData = &endpoints[0]
+	}
+	code := C.go_igraph_create(
+		&g.graph,
+		endpointData,
+		C.igraph_int_t(len(endpoints)),
+		C.igraph_int_t(vertexCount),
+		booltoint(directed),
+	)
+	runtime.KeepAlive(endpoints)
+	if code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("create graph from edges", int(code))
 	}
 	runtime.SetFinalizer(g, (*Graph).finalize)
 	return g, nil
@@ -194,6 +253,28 @@ func (g *Graph) IsEmpty() (bool, error) {
 		return false, ErrClosed
 	}
 	return C.igraph_vcount(&g.graph) == 0, nil
+}
+
+// Clone returns an independently owned copy of the graph. Closing or mutating
+// either graph does not affect the other.
+//
+//igraph:bind igraph_copy
+func (g *Graph) Clone() (*Graph, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+
+	clone := &Graph{}
+	if code := C.igraph_copy(&clone.graph, &g.graph); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("clone graph", int(code))
+	}
+	runtime.SetFinalizer(clone, (*Graph).finalize)
+	return clone, nil
 }
 
 // AddVertices appends count isolated vertices to the graph. A zero count is a
