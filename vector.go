@@ -23,6 +23,7 @@ type Vector struct {
 	closed bool
 }
 
+//igraph:bind igraph_vector_init
 func NewVector(size int) (*Vector, error) {
 	if size < 0 {
 		return nil, fmt.Errorf("igraph: vector size must be non-negative: %d", size)
@@ -47,6 +48,7 @@ func NewVectorFromSlice(values []float64) (*Vector, error) {
 	return v, nil
 }
 
+//igraph:bind igraph_vector_set
 func (v *Vector) Set(pos int, value float64) error {
 	if v == nil {
 		return ErrClosed
@@ -78,6 +80,7 @@ func (v *Vector) Get(pos int) (float64, error) {
 	return float64(C.go_igraph_vector_get(&v.vector, C.igraph_int_t(pos))), nil
 }
 
+//igraph:internal igraph_vector_destroy
 func (v *Vector) Close() error {
 	if v == nil {
 		return nil
