@@ -138,6 +138,7 @@ func TestDeterministicConstructorsRejectInvalidInput(t *testing.T) {
 		{name: "empty star", construct: func() (*Graph, error) { return NewStar(0, 0, StarUndirected) }},
 		{name: "invalid star center", construct: func() (*Graph, error) { return NewStar(3, 3, StarUndirected) }},
 		{name: "invalid star mode", construct: func() (*Graph, error) { return NewStar(3, 0, StarMode(99)) }},
+		{name: "negative tree size", construct: func() (*Graph, error) { return NewKaryTree(-1, 2, TreeOut) }},
 		{name: "invalid child count", construct: func() (*Graph, error) { return NewKaryTree(3, 0, TreeOut) }},
 		{name: "invalid tree mode", construct: func() (*Graph, error) { return NewKaryTree(3, 2, TreeMode(99)) }},
 		{name: "negative hypercube dimension", construct: func() (*Graph, error) { return NewHypercube(-1, false) }},
@@ -148,6 +149,13 @@ func TestDeterministicConstructorsRejectInvalidInput(t *testing.T) {
 				t.Errorf("constructor = %v, %v, want nil, error", graph, err)
 			}
 		})
+	}
+}
+
+func TestFinishGraphConstructionPropagatesErrors(t *testing.T) {
+	graph, err := finishGraphConstruction(&Graph{}, "test construction", 1)
+	if graph != nil || err == nil {
+		t.Fatalf("finishGraphConstruction() = %v, %v, want nil, error", graph, err)
 	}
 }
 
