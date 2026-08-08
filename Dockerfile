@@ -31,6 +31,7 @@ WORKDIR /workspace
 
 COPY . .
 
-RUN go test ./...
+RUN go vet ./... \
+    && go test ./...
 
 CMD ["go", "test", "./...", "-coverprofile=coverage.out"]

@@ -34,7 +34,8 @@ python3 tools/api_coverage.py --source-dir /path/to/igraph-1.0.1
 ## Docker
 
 The Docker build pins both Go and the upstream C/igraph release, builds igraph
-from source, and runs the Go tests:
+from source, and runs `go vet` and the Go tests. CI uses this same image instead
+of the older igraph package from the Ubuntu repositories:
 
 ```sh
 make docker-test

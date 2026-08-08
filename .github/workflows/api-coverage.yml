@@ -35,9 +35,6 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      - name: Install igraph
-        run: sudo apt-get update && sudo apt-get install --yes libigraph-dev libxml2-dev
-
       - name: Check Go formatting
         shell: bash
         run: |
@@ -48,11 +45,8 @@ jobs:
             exit 1
           fi
 
-      - name: Run Go vet
-        run: go vet ./...
-
-      - name: Run Go tests
-        run: go test ./...
+      - name: Run Go checks with igraph 1.0.1
+        run: make docker-test
 
       - name: Run coverage tool tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
