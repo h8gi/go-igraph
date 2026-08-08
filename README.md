@@ -1,4 +1,3 @@
-pyenv: cannot rehash: /Users/yagi/.pyenv/shims isn't writable
 # go-igraph
 
 Go bindings for [igraph](https://igraph.org/).
