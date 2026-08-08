@@ -1,10 +1,17 @@
 package igraph
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestNewVectorFromSlice(t *testing.T) {
 	want := []float64{1, 2.5, -3, 4}
-	v := NewVectorFromSlice(want)
+	v, err := NewVectorFromSlice(want)
+	if err != nil {
+		t.Fatalf("NewVectorFromSlice() error = %v", err)
+	}
+	t.Cleanup(func() { _ = v.Close() })
 	for i, expected := range want {
 		got, err := v.Get(i)
 		if err != nil {
@@ -17,7 +24,11 @@ func TestNewVectorFromSlice(t *testing.T) {
 }
 
 func TestVectorSetAndGet(t *testing.T) {
-	v := NewVector(2)
+	v, err := NewVector(2)
+	if err != nil {
+		t.Fatalf("NewVector() error = %v", err)
+	}
+	t.Cleanup(func() { _ = v.Close() })
 	if err := v.Set(1, 42.5); err != nil {
 		t.Fatalf("Set() error = %v", err)
 	}
@@ -32,7 +43,11 @@ func TestVectorSetAndGet(t *testing.T) {
 
 func TestVectorRejectsOutOfRangeIndexes(t *testing.T) {
 	for _, size := range []int{0, 2} {
-		v := NewVector(size)
+		v, err := NewVector(size)
+		if err != nil {
+			t.Fatalf("NewVector(%d) error = %v", size, err)
+		}
+		t.Cleanup(func() { _ = v.Close() })
 		for _, index := range []int{-1, size} {
 			if err := v.Set(index, 1); err == nil {
 				t.Errorf("size %d: Set(%d) error = nil", size, index)
@@ -44,16 +59,51 @@ func TestVectorRejectsOutOfRangeIndexes(t *testing.T) {
 	}
 }
 
-func TestVectorViewCopiesInput(t *testing.T) {
-	values := []float64{1, 2}
-	v := VectorView(values)
-	values[0] = 99
-
-	got, err := v.Get(0)
-	if err != nil {
-		t.Fatalf("Get(0) error = %v", err)
+func TestNewVectorRejectsNegativeSize(t *testing.T) {
+	if _, err := NewVector(-1); err == nil {
+		t.Error("NewVector(-1) error = nil")
 	}
-	if got != 1 {
-		t.Errorf("Get(0) = %v after input mutation, want 1", got)
+}
+
+func TestVectorClose(t *testing.T) {
+	v, err := NewVector(1)
+	if err != nil {
+		t.Fatalf("NewVector() error = %v", err)
+	}
+	if err := v.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if err := v.Close(); err != nil {
+		t.Fatalf("second Close() error = %v", err)
+	}
+	if err := v.Set(0, 1); !errors.Is(err, ErrClosed) {
+		t.Errorf("Set() after Close error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := v.Get(0); !errors.Is(err, ErrClosed) {
+		t.Errorf("Get() after Close error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestNilVector(t *testing.T) {
+	var v *Vector
+	if err := v.Close(); err != nil {
+		t.Fatalf("nil Close() error = %v", err)
+	}
+	if err := v.Set(0, 1); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil Set() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := v.Get(0); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil Get() error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestVectorFinalizerFallback(t *testing.T) {
+	v, err := NewVector(1)
+	if err != nil {
+		t.Fatalf("NewVector() error = %v", err)
+	}
+	v.finalize()
+	if _, err := v.Get(0); !errors.Is(err, ErrClosed) {
+		t.Errorf("Get() after finalize error = %v, want %v", err, ErrClosed)
 	}
 }

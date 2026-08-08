@@ -6,19 +6,19 @@ package igraph
 // #include <igraph.h>
 //
 // static igraph_error_t go_igraph_lattice(
-//     igraph_t *graph, const igraph_vector_t *dimensions, igraph_int_t nei,
-//     igraph_bool_t directed, igraph_bool_t mutual, igraph_bool_t circular) {
-//   igraph_int_t size = igraph_vector_size(dimensions);
+//     igraph_t *graph, const igraph_int_t *dimensions, igraph_int_t dimension_count,
+//     igraph_int_t nei, igraph_bool_t directed, igraph_bool_t mutual,
+//     igraph_bool_t circular) {
 //   igraph_vector_int_t integer_dimensions;
-//   igraph_error_t err = igraph_vector_int_init(&integer_dimensions, size);
+//   igraph_error_t err = igraph_vector_int_init(&integer_dimensions, dimension_count);
 //   if (err != IGRAPH_SUCCESS) {
 //     return err;
 //   }
-//   for (igraph_int_t i = 0; i < size; ++i) {
-//     VECTOR(integer_dimensions)[i] = (igraph_int_t) VECTOR(*dimensions)[i];
+//   for (igraph_int_t i = 0; i < dimension_count; ++i) {
+//     VECTOR(integer_dimensions)[i] = dimensions[i];
 //   }
 //   igraph_vector_bool_t periodic;
-//   err = igraph_vector_bool_init(&periodic, size);
+//   err = igraph_vector_bool_init(&periodic, dimension_count);
 //   if (err != IGRAPH_SUCCESS) {
 //     igraph_vector_int_destroy(&integer_dimensions);
 //     return err;
@@ -32,8 +32,10 @@ package igraph
 import "C"
 import (
 	"errors"
+	"fmt"
 	"os"
 	"runtime"
+	"sync"
 	"unsafe"
 )
 
@@ -43,35 +45,71 @@ const (
 )
 
 type Graph struct {
-	graph C.igraph_t
+	mu     sync.Mutex
+	graph  C.igraph_t
+	closed bool
 }
 
-func (g *Graph) destroy() {
-	C.igraph_destroy(&g.graph)
-}
-
-func NewGraph() *Graph {
+func NewGraph() (*Graph, error) {
 	g := &Graph{}
-	runtime.SetFinalizer(g, (*Graph).destroy)
-	return g
+	if code := C.igraph_empty(&g.graph, 0, booltoint(false)); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize graph", int(code))
+	}
+	runtime.SetFinalizer(g, (*Graph).finalize)
+	return g, nil
 }
 
-func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool) *Graph {
-	g := NewGraph()
-	C.go_igraph_lattice(&g.graph, &dim.vector, C.igraph_int_t(nei),
-		booltoint(directed), booltoint(mutual), booltoint(circular))
+func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool) (*Graph, error) {
+	if len(dimensions) == 0 {
+		return nil, errors.New("igraph: lattice dimensions must not be empty")
+	}
+	if neighbors < 0 {
+		return nil, fmt.Errorf("igraph: lattice neighbor distance must be non-negative: %d", neighbors)
+	}
 
-	return g
+	cDimensions := make([]C.igraph_int_t, len(dimensions))
+	for i, dimension := range dimensions {
+		if dimension < 0 {
+			return nil, fmt.Errorf("igraph: lattice dimension %d must be non-negative: %d", i, dimension)
+		}
+		cDimensions[i] = C.igraph_int_t(dimension)
+	}
+
+	g := &Graph{}
+	code := C.go_igraph_lattice(
+		&g.graph,
+		&cDimensions[0],
+		C.igraph_int_t(len(cDimensions)),
+		C.igraph_int_t(neighbors),
+		booltoint(directed),
+		booltoint(mutual),
+		booltoint(circular),
+	)
+	runtime.KeepAlive(cDimensions)
+	if code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize lattice", int(code))
+	}
+	runtime.SetFinalizer(g, (*Graph).finalize)
+	return g, nil
 }
 
 func (g *Graph) WriteEdgeList(file *os.File) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+
 	fstruct, err := openFileStream(file)
 	if err != nil {
 		return err
 	}
 	defer C.fclose(fstruct)
-	if err := C.igraph_write_graph_edgelist(&g.graph, fstruct); err != 0 {
-		return errors.New("igraph: failed to write edge list")
+	if code := C.igraph_write_graph_edgelist(&g.graph, fstruct); code != C.IGRAPH_SUCCESS {
+		return igraphError("write edge list", int(code))
 	}
 	if C.fflush(fstruct) != 0 {
 		return errors.New("igraph: failed to flush edge list")
@@ -80,18 +118,46 @@ func (g *Graph) WriteEdgeList(file *os.File) error {
 }
 
 func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+
 	fstruct, err := openFileStream(file)
 	if err != nil {
 		return err
 	}
 	defer C.fclose(fstruct)
-	if err := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); err != 0 {
-		return errors.New("igraph: failed to write GraphML")
+	if code := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); code != C.IGRAPH_SUCCESS {
+		return igraphError("write GraphML", int(code))
 	}
 	if C.fflush(fstruct) != 0 {
 		return errors.New("igraph: failed to flush GraphML")
 	}
 	return nil
+}
+
+func (g *Graph) Close() error {
+	if g == nil {
+		return nil
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil
+	}
+	C.igraph_destroy(&g.graph)
+	g.closed = true
+	runtime.SetFinalizer(g, nil)
+	return nil
+}
+
+func (g *Graph) finalize() {
+	_ = g.Close()
 }
 
 func openFileStream(file *os.File) (*C.FILE, error) {

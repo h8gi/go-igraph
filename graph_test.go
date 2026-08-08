@@ -3,6 +3,7 @@ package igraph
 import (
 	"bufio"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -82,10 +83,82 @@ func TestGraphWritersRejectInvalidFiles(t *testing.T) {
 	}
 }
 
+func TestGraphClose(t *testing.T) {
+	g := testLattice(t, false)
+	if err := g.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+	if err := g.Close(); err != nil {
+		t.Fatalf("second Close() error = %v", err)
+	}
+	if err := g.WriteEdgeList(createTempOutput(t, "closed.edgelist")); !errors.Is(err, ErrClosed) {
+		t.Errorf("WriteEdgeList() after Close error = %v, want %v", err, ErrClosed)
+	}
+	if err := g.WriteGraphML(createTempOutput(t, "closed.graphml"), false); !errors.Is(err, ErrClosed) {
+		t.Errorf("WriteGraphML() after Close error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestNilGraph(t *testing.T) {
+	var g *Graph
+	if err := g.Close(); err != nil {
+		t.Fatalf("nil Close() error = %v", err)
+	}
+	if err := g.WriteEdgeList(createTempOutput(t, "nil.edgelist")); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil WriteEdgeList() error = %v, want %v", err, ErrClosed)
+	}
+	if err := g.WriteGraphML(createTempOutput(t, "nil.graphml"), false); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil WriteGraphML() error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestGraphFinalizerFallback(t *testing.T) {
+	g := testLattice(t, false)
+	g.finalize()
+	if err := g.WriteEdgeList(createTempOutput(t, "finalized.edgelist")); !errors.Is(err, ErrClosed) {
+		t.Errorf("WriteEdgeList() after finalize error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestGraphConstructorsRejectInvalidInput(t *testing.T) {
+	tests := []struct {
+		name       string
+		dimensions []int
+		neighbors  int
+	}{
+		{name: "empty dimensions", dimensions: nil, neighbors: 1},
+		{name: "negative dimension", dimensions: []int{2, -1}, neighbors: 1},
+		{name: "negative neighbors", dimensions: []int{2, 2}, neighbors: -1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if _, err := NewLattice(tt.dimensions, tt.neighbors, false, false, false); err == nil {
+				t.Error("NewLattice() error = nil")
+			}
+		})
+	}
+}
+
+func TestNewGraph(t *testing.T) {
+	g, err := NewGraph()
+	if err != nil {
+		t.Fatalf("NewGraph() error = %v", err)
+	}
+	t.Cleanup(func() { _ = g.Close() })
+	file := createTempOutput(t, "empty.edgelist")
+	if err := g.WriteEdgeList(file); err != nil {
+		t.Fatalf("WriteEdgeList() error = %v", err)
+	}
+}
+
 func testLattice(t *testing.T, directed bool) *Graph {
 	t.Helper()
-	dimensions := NewVectorFromSlice([]float64{2, 2})
-	return NewLattice(dimensions, 1, directed, false, false)
+	g, err := NewLattice([]int{2, 2}, 1, directed, false, false)
+	if err != nil {
+		t.Fatalf("NewLattice() error = %v", err)
+	}
+	t.Cleanup(func() { _ = g.Close() })
+	return g
 }
 
 func createTempOutput(t *testing.T, name string) *os.File {

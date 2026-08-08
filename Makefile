@@ -2,7 +2,7 @@
 
 IGRAPH_VERSION ?= 1.0.1
 DOCKER_IMAGE ?= go-igraph-test
-COVERAGE_MIN ?= 85.0
+COVERAGE_MIN ?= 90.0
 
 coverage:
 	python3 tools/api_coverage.py

@@ -47,7 +47,7 @@ Run the tests against the working tree and write `coverage.out` locally with:
 make docker-coverage
 ```
 
-CI also enforces a statement coverage floor, currently 85%:
+CI also enforces a statement coverage floor, currently 90%:
 
 ```sh
 make docker-coverage-check
