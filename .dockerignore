@@ -1,0 +1,4 @@
+.git
+coverage.out
+__pycache__/
+*.py[cod]

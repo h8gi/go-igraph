@@ -31,6 +31,23 @@ For an offline run, point the tool at an already extracted igraph source tree:
 python3 tools/api_coverage.py --source-dir /path/to/igraph-1.0.1
 ```
 
+## Docker
+
+The Docker build pins both Go and the upstream C/igraph release, builds igraph
+from source, and runs the Go tests:
+
+```sh
+make docker-test
+```
+
+Run the tests against the working tree and write `coverage.out` locally with:
+
+```sh
+make docker-coverage
+```
+
+Override `IGRAPH_VERSION` when validating a future upstream release.
+
 The pinned version and upstream URLs live in
 `tools/api_coverage_config.json`. Update the config and regenerate the report
 when changing the comparison baseline.

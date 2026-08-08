@@ -3,6 +3,31 @@ package igraph
 // #cgo pkg-config: igraph libxml-2.0
 // #include <stdio.h>
 // #include <igraph.h>
+//
+// static igraph_error_t go_igraph_lattice(
+//     igraph_t *graph, const igraph_vector_t *dimensions, igraph_int_t nei,
+//     igraph_bool_t directed, igraph_bool_t mutual, igraph_bool_t circular) {
+//   igraph_int_t size = igraph_vector_size(dimensions);
+//   igraph_vector_int_t integer_dimensions;
+//   igraph_error_t err = igraph_vector_int_init(&integer_dimensions, size);
+//   if (err != IGRAPH_SUCCESS) {
+//     return err;
+//   }
+//   for (igraph_int_t i = 0; i < size; ++i) {
+//     VECTOR(integer_dimensions)[i] = (igraph_int_t) VECTOR(*dimensions)[i];
+//   }
+//   igraph_vector_bool_t periodic;
+//   err = igraph_vector_bool_init(&periodic, size);
+//   if (err != IGRAPH_SUCCESS) {
+//     igraph_vector_int_destroy(&integer_dimensions);
+//     return err;
+//   }
+//   igraph_vector_bool_fill(&periodic, circular);
+//   err = igraph_square_lattice(graph, &integer_dimensions, nei, directed, mutual, &periodic);
+//   igraph_vector_bool_destroy(&periodic);
+//   igraph_vector_int_destroy(&integer_dimensions);
+//   return err;
+// }
 import "C"
 import (
 	"errors"
@@ -32,16 +57,7 @@ func NewGraph() *Graph {
 
 func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool) *Graph {
 	g := NewGraph()
-
-	var dimensions C.igraph_vector_int_t
-	C.igraph_vector_int_init(&dimensions, C.igraph_integer_t(dim.size))
-	defer C.igraph_vector_int_destroy(&dimensions)
-	for i := 0; i < dim.size; i++ {
-		value, _ := dim.Get(i)
-		C.igraph_vector_int_set(&dimensions, C.igraph_integer_t(i), C.igraph_integer_t(value))
-	}
-
-	C.igraph_lattice(&g.graph, &dimensions, C.igraph_integer_t(nei),
+	C.go_igraph_lattice(&g.graph, &dim.vector, C.igraph_int_t(nei),
 		booltoint(directed), booltoint(mutual), booltoint(circular))
 
 	return g
