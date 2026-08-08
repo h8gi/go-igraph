@@ -25,6 +25,16 @@ jobs:
         with:
           python-version: "3.11"
 
+      - name: Check Go formatting
+        shell: bash
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            echo "The following Go files need formatting:"
+            echo "$unformatted"
+            exit 1
+          fi
+
       - name: Run coverage tool tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
 
