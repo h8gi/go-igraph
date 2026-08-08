@@ -151,6 +151,132 @@ func TestNewGraph(t *testing.T) {
 	}
 }
 
+func TestGraphInspection(t *testing.T) {
+	tests := []struct {
+		name     string
+		directed bool
+	}{
+		{name: "undirected", directed: false},
+		{name: "directed", directed: true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g := testLattice(t, tt.directed)
+
+			if got, err := g.VertexCount(); err != nil || got != 4 {
+				t.Errorf("VertexCount() = %d, %v, want 4, nil", got, err)
+			}
+			if got, err := g.EdgeCount(); err != nil || got != 4 {
+				t.Errorf("EdgeCount() = %d, %v, want 4, nil", got, err)
+			}
+			if got, err := g.IsDirected(); err != nil || got != tt.directed {
+				t.Errorf("IsDirected() = %t, %v, want %t, nil", got, err, tt.directed)
+			}
+			if got, err := g.IsEmpty(); err != nil || got {
+				t.Errorf("IsEmpty() = %t, %v, want false, nil", got, err)
+			}
+
+			from, to, err := g.EdgeEndpoints(0)
+			if err != nil {
+				t.Fatalf("EdgeEndpoints(0) error = %v", err)
+			}
+			if from < 0 || from >= 4 || to < 0 || to >= 4 || from == to {
+				t.Errorf("EdgeEndpoints(0) = (%d, %d), want distinct valid vertices", from, to)
+			}
+		})
+	}
+}
+
+func TestEmptyGraphInspection(t *testing.T) {
+	g, err := NewGraph()
+	if err != nil {
+		t.Fatalf("NewGraph() error = %v", err)
+	}
+	t.Cleanup(func() { _ = g.Close() })
+
+	if got, err := g.VertexCount(); err != nil || got != 0 {
+		t.Errorf("VertexCount() = %d, %v, want 0, nil", got, err)
+	}
+	if got, err := g.EdgeCount(); err != nil || got != 0 {
+		t.Errorf("EdgeCount() = %d, %v, want 0, nil", got, err)
+	}
+	if got, err := g.IsDirected(); err != nil || got {
+		t.Errorf("IsDirected() = %t, %v, want false, nil", got, err)
+	}
+	if got, err := g.IsEmpty(); err != nil || !got {
+		t.Errorf("IsEmpty() = %t, %v, want true, nil", got, err)
+	}
+	if _, _, err := g.EdgeEndpoints(0); err == nil {
+		t.Error("EdgeEndpoints(0) error = nil")
+	}
+}
+
+func TestEdgelessGraphIsNotEmpty(t *testing.T) {
+	g, err := NewLattice([]int{1}, 1, false, false, false)
+	if err != nil {
+		t.Fatalf("NewLattice() error = %v", err)
+	}
+	t.Cleanup(func() { _ = g.Close() })
+
+	if got, err := g.EdgeCount(); err != nil || got != 0 {
+		t.Errorf("EdgeCount() = %d, %v, want 0, nil", got, err)
+	}
+	if got, err := g.IsEmpty(); err != nil || got {
+		t.Errorf("IsEmpty() = %t, %v, want false, nil", got, err)
+	}
+}
+
+func TestGraphInspectionRejectsInvalidEdgeIDs(t *testing.T) {
+	g := testLattice(t, false)
+	for _, edgeID := range []int{-1, 4} {
+		if _, _, err := g.EdgeEndpoints(edgeID); err == nil {
+			t.Errorf("EdgeEndpoints(%d) error = nil", edgeID)
+		}
+	}
+}
+
+func TestGraphInspectionRejectsClosedGraph(t *testing.T) {
+	g := testLattice(t, false)
+	if err := g.Close(); err != nil {
+		t.Fatalf("Close() error = %v", err)
+	}
+
+	if _, err := g.VertexCount(); !errors.Is(err, ErrClosed) {
+		t.Errorf("VertexCount() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.EdgeCount(); !errors.Is(err, ErrClosed) {
+		t.Errorf("EdgeCount() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.IsDirected(); !errors.Is(err, ErrClosed) {
+		t.Errorf("IsDirected() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.IsEmpty(); !errors.Is(err, ErrClosed) {
+		t.Errorf("IsEmpty() error = %v, want %v", err, ErrClosed)
+	}
+	if _, _, err := g.EdgeEndpoints(0); !errors.Is(err, ErrClosed) {
+		t.Errorf("EdgeEndpoints(0) error = %v, want %v", err, ErrClosed)
+	}
+}
+
+func TestNilGraphInspection(t *testing.T) {
+	var g *Graph
+	if _, err := g.VertexCount(); !errors.Is(err, ErrClosed) {
+		t.Errorf("VertexCount() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.EdgeCount(); !errors.Is(err, ErrClosed) {
+		t.Errorf("EdgeCount() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.IsDirected(); !errors.Is(err, ErrClosed) {
+		t.Errorf("IsDirected() error = %v, want %v", err, ErrClosed)
+	}
+	if _, err := g.IsEmpty(); !errors.Is(err, ErrClosed) {
+		t.Errorf("IsEmpty() error = %v, want %v", err, ErrClosed)
+	}
+	if _, _, err := g.EdgeEndpoints(0); !errors.Is(err, ErrClosed) {
+		t.Errorf("EdgeEndpoints(0) error = %v, want %v", err, ErrClosed)
+	}
+}
+
 func testLattice(t *testing.T, directed bool) *Graph {
 	t.Helper()
 	g, err := NewLattice([]int{2, 2}, 1, directed, false, false)

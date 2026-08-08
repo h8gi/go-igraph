@@ -95,6 +95,89 @@ func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool
 	return g, nil
 }
 
+// VertexCount returns the number of vertices in the graph.
+//
+//igraph:bind igraph_vcount
+func (g *Graph) VertexCount() (int, error) {
+	if g == nil {
+		return 0, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, ErrClosed
+	}
+	return int(C.igraph_vcount(&g.graph)), nil
+}
+
+// EdgeCount returns the number of edges in the graph.
+//
+//igraph:bind igraph_ecount
+func (g *Graph) EdgeCount() (int, error) {
+	if g == nil {
+		return 0, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, ErrClosed
+	}
+	return int(C.igraph_ecount(&g.graph)), nil
+}
+
+// IsDirected reports whether the graph is directed.
+//
+//igraph:bind igraph_is_directed
+func (g *Graph) IsDirected() (bool, error) {
+	if g == nil {
+		return false, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return false, ErrClosed
+	}
+	return C.igraph_is_directed(&g.graph) != booltoint(false), nil
+}
+
+// EdgeEndpoints returns the source and target vertices of an edge.
+// For undirected graphs, the returned order is the order stored by igraph.
+//
+//igraph:bind igraph_edge
+func (g *Graph) EdgeEndpoints(edgeID int) (from, to int, err error) {
+	if g == nil {
+		return 0, 0, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, 0, ErrClosed
+	}
+
+	edgeCount := int(C.igraph_ecount(&g.graph))
+	if edgeID < 0 || edgeID >= edgeCount {
+		return 0, 0, fmt.Errorf("igraph: edge ID %d out of range [0, %d)", edgeID, edgeCount)
+	}
+	var cFrom, cTo C.igraph_int_t
+	if code := C.igraph_edge(&g.graph, C.igraph_int_t(edgeID), &cFrom, &cTo); code != C.IGRAPH_SUCCESS {
+		return 0, 0, igraphError("get edge endpoints", int(code))
+	}
+	return int(cFrom), int(cTo), nil
+}
+
+// IsEmpty reports whether the graph has no vertices.
+func (g *Graph) IsEmpty() (bool, error) {
+	if g == nil {
+		return false, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return false, ErrClosed
+	}
+	return C.igraph_vcount(&g.graph) == 0, nil
+}
+
 //igraph:bind igraph_write_graph_edgelist
 func (g *Graph) WriteEdgeList(file *os.File) error {
 	if g == nil {
