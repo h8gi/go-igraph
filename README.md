@@ -21,6 +21,9 @@ Check that the committed report is current:
 make coverage-check
 ```
 
+GitHub Actions runs the tool's unit tests and `make coverage-check` for every
+pull request and for pushes to `main`.
+
 For an offline run, point the tool at an already extracted igraph source tree:
 
 ```sh
