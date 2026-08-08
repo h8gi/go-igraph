@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **19**
+- Internal dependencies: **25**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -2073,9 +2073,9 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vs_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_adj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_all` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_as_vector` | `igraph_iterators.h` | Missing | — |
+| `igraph_vs_as_vector` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vs_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_destroy` | `igraph_iterators.h` | Missing | — |
+| `igraph_vs_destroy` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vs_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_nonadj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_none` | `igraph_iterators.h` | Missing | — |
@@ -2086,10 +2086,10 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vs_vector_copy` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_vector_small` | `igraph_iterators.h` | Missing | — |
 | `igraph_vss_1` | `igraph_iterators.h` | Missing | — |
-| `igraph_vss_all` | `igraph_iterators.h` | Missing | — |
-| `igraph_vss_none` | `igraph_iterators.h` | Missing | — |
-| `igraph_vss_range` | `igraph_iterators.h` | Missing | — |
-| `igraph_vss_vector` | `igraph_iterators.h` | Missing | — |
+| `igraph_vss_all` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vss_none` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vss_range` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vss_vector` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_warning` | `igraph_error.h` | Missing | — |
 | `igraph_warningf` | `igraph_error.h` | Missing | — |
 | `igraph_watts_strogatz_game` | `igraph_games.h` | Missing | — |
