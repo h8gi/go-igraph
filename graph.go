@@ -6,58 +6,18 @@ package igraph
 // #include <igraph.h>
 //
 // static igraph_error_t go_igraph_lattice(
-//     igraph_t *graph, const igraph_int_t *dimensions, igraph_int_t dimension_count,
+//     igraph_t *graph, const igraph_vector_int_t *dimensions,
 //     igraph_int_t nei, igraph_bool_t directed, igraph_bool_t mutual,
 //     igraph_bool_t circular) {
-//   igraph_vector_int_t integer_dimensions;
-//   igraph_error_t err = igraph_vector_int_init(&integer_dimensions, dimension_count);
-//   if (err != IGRAPH_SUCCESS) {
-//     return err;
-//   }
-//   for (igraph_int_t i = 0; i < dimension_count; ++i) {
-//     VECTOR(integer_dimensions)[i] = dimensions[i];
-//   }
 //   igraph_vector_bool_t periodic;
-//   err = igraph_vector_bool_init(&periodic, dimension_count);
+//   igraph_error_t err = igraph_vector_bool_init(&periodic, igraph_vector_int_size(dimensions));
 //   if (err != IGRAPH_SUCCESS) {
-//     igraph_vector_int_destroy(&integer_dimensions);
 //     return err;
 //   }
 //   igraph_vector_bool_fill(&periodic, circular);
-//   err = igraph_square_lattice(graph, &integer_dimensions, nei, directed, mutual, &periodic);
+//   err = igraph_square_lattice(graph, dimensions, nei, directed, mutual, &periodic);
 //   igraph_vector_bool_destroy(&periodic);
-//   igraph_vector_int_destroy(&integer_dimensions);
 //   return err;
-// }
-//
-// static igraph_error_t go_igraph_add_edges(
-//     igraph_t *graph, const igraph_int_t *endpoints, igraph_int_t endpoint_count) {
-//   igraph_vector_int_t edges;
-//   igraph_error_t err = igraph_vector_int_init_array(&edges, endpoints, endpoint_count);
-//   if (err != IGRAPH_SUCCESS) {
-//     return err;
-//   }
-//   err = igraph_add_edges(graph, &edges, NULL);
-//   igraph_vector_int_destroy(&edges);
-//   return err;
-// }
-//
-// static igraph_error_t go_igraph_create(
-//     igraph_t *graph, const igraph_int_t *endpoints, igraph_int_t endpoint_count,
-//     igraph_int_t vertex_count, igraph_bool_t directed) {
-//   igraph_vector_int_t edges;
-//   igraph_error_t err = igraph_vector_int_init_array(&edges, endpoints, endpoint_count);
-//   if (err != IGRAPH_SUCCESS) {
-//     return err;
-//   }
-//   err = igraph_create(graph, &edges, vertex_count, directed);
-//   igraph_vector_int_destroy(&edges);
-//   return err;
-// }
-//
-// static igraph_int_t go_igraph_vector_int_get(
-//     const igraph_vector_int_t *vector, igraph_int_t pos) {
-//   return VECTOR(*vector)[pos];
 // }
 import "C"
 import (
@@ -137,27 +97,26 @@ func NewGraphFromEdges(vertexCount int, edges []Edge, directed bool) (*Graph, er
 		return nil, errors.New("igraph: edge list is too large")
 	}
 
-	endpoints := make([]C.igraph_int_t, 0, 2*len(edges))
+	endpoints := make([]int, 0, 2*len(edges))
 	for index, edge := range edges {
 		if err := validateEdge(edge, vertexCount, index); err != nil {
 			return nil, err
 		}
-		endpoints = append(endpoints, C.igraph_int_t(edge.From), C.igraph_int_t(edge.To))
+		endpoints = append(endpoints, edge.From, edge.To)
 	}
+	cEndpoints, err := newIntVector(endpoints)
+	if err != nil {
+		return nil, err
+	}
+	defer cEndpoints.close()
 
 	g := &Graph{}
-	var endpointData *C.igraph_int_t
-	if len(endpoints) != 0 {
-		endpointData = &endpoints[0]
-	}
-	code := C.go_igraph_create(
+	code := C.igraph_create(
 		&g.graph,
-		endpointData,
-		C.igraph_int_t(len(endpoints)),
+		&cEndpoints.value,
 		C.igraph_int_t(vertexCount),
 		booltoint(directed),
 	)
-	runtime.KeepAlive(endpoints)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("create graph from edges", int(code))
 	}
@@ -174,25 +133,26 @@ func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool
 		return nil, fmt.Errorf("igraph: lattice neighbor distance must be non-negative: %d", neighbors)
 	}
 
-	cDimensions := make([]C.igraph_int_t, len(dimensions))
 	for i, dimension := range dimensions {
 		if dimension < 0 {
 			return nil, fmt.Errorf("igraph: lattice dimension %d must be non-negative: %d", i, dimension)
 		}
-		cDimensions[i] = C.igraph_int_t(dimension)
 	}
+	cDimensions, err := newIntVector(dimensions)
+	if err != nil {
+		return nil, err
+	}
+	defer cDimensions.close()
 
 	g := &Graph{}
 	code := C.go_igraph_lattice(
 		&g.graph,
-		&cDimensions[0],
-		C.igraph_int_t(len(cDimensions)),
+		&cDimensions.value,
 		C.igraph_int_t(neighbors),
 		booltoint(directed),
 		booltoint(mutual),
 		booltoint(circular),
 	)
-	runtime.KeepAlive(cDimensions)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize lattice", int(code))
 	}
@@ -311,6 +271,7 @@ func (g *Graph) Clone() (*Graph, error) {
 //igraph:bind igraph_neighbors
 //igraph:internal igraph_vector_int_init
 //igraph:internal igraph_vector_int_size
+//igraph:internal igraph_vector_int_destroy
 func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
@@ -327,15 +288,15 @@ func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
 	if err := validateVertexID(vertex, int(C.igraph_vcount(&g.graph))); err != nil {
 		return nil, err
 	}
-	var result C.igraph_vector_int_t
-	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("initialize neighbor result", int(code))
+	result, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
 	}
-	defer C.igraph_vector_int_destroy(&result)
-	if code := C.igraph_neighbors(&g.graph, &result, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE, booltoint(true)); code != C.IGRAPH_SUCCESS {
+	defer result.close()
+	if code := C.igraph_neighbors(&g.graph, &result.value, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE, booltoint(true)); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("get neighbors", int(code))
 	}
-	return copyIntVector(&result), nil
+	return result.slice()
 }
 
 // IncidentEdges returns incident edge IDs in the requested direction. Loops
@@ -358,15 +319,15 @@ func (g *Graph) IncidentEdges(vertex int, mode DirectionMode) ([]int, error) {
 	if err := validateVertexID(vertex, int(C.igraph_vcount(&g.graph))); err != nil {
 		return nil, err
 	}
-	var result C.igraph_vector_int_t
-	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("initialize incident edge result", int(code))
+	result, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
 	}
-	defer C.igraph_vector_int_destroy(&result)
-	if code := C.igraph_incident(&g.graph, &result, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE); code != C.IGRAPH_SUCCESS {
+	defer result.close()
+	if code := C.igraph_incident(&g.graph, &result.value, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("get incident edges", int(code))
 	}
-	return copyIntVector(&result), nil
+	return result.slice()
 }
 
 // AreAdjacent reports whether an edge exists from the first vertex to the
@@ -438,15 +399,18 @@ func (g *Graph) Edges() ([]Edge, error) {
 	if g.closed {
 		return nil, ErrClosed
 	}
-	var result C.igraph_vector_int_t
-	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("initialize edge list result", int(code))
+	result, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
 	}
-	defer C.igraph_vector_int_destroy(&result)
-	if code := C.igraph_get_edgelist(&g.graph, &result, booltoint(false)); code != C.IGRAPH_SUCCESS {
+	defer result.close()
+	if code := C.igraph_get_edgelist(&g.graph, &result.value, booltoint(false)); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("get edge list", int(code))
 	}
-	values := copyIntVector(&result)
+	values, err := result.slice()
+	if err != nil {
+		return nil, err
+	}
 	edges := make([]Edge, len(values)/2)
 	for i := range edges {
 		edges[i] = Edge{From: values[2*i], To: values[2*i+1]}
@@ -459,14 +423,6 @@ func validateVertexID(vertex, vertexCount int) error {
 		return fmt.Errorf("igraph: vertex ID %d out of range [0, %d)", vertex, vertexCount)
 	}
 	return nil
-}
-
-func copyIntVector(vector *C.igraph_vector_int_t) []int {
-	result := make([]int, int(C.igraph_vector_int_size(vector)))
-	for i := range result {
-		result[i] = int(C.go_igraph_vector_int_get(vector, C.igraph_int_t(i)))
-	}
-	return result
 }
 
 // AddVertices appends count isolated vertices to the graph. A zero count is a
@@ -520,8 +476,6 @@ func (g *Graph) AddEdge(from, to int) error {
 // before the graph is modified.
 //
 //igraph:bind igraph_add_edges
-//igraph:internal igraph_vector_int_init_array
-//igraph:internal igraph_vector_int_destroy
 func (g *Graph) AddEdges(edges []Edge) error {
 	if g == nil {
 		return ErrClosed
@@ -536,15 +490,19 @@ func (g *Graph) AddEdges(edges []Edge) error {
 	}
 
 	vertexCount := int(C.igraph_vcount(&g.graph))
-	endpoints := make([]C.igraph_int_t, 0, 2*len(edges))
+	endpoints := make([]int, 0, 2*len(edges))
 	for index, edge := range edges {
 		if err := validateEdge(edge, vertexCount, index); err != nil {
 			return err
 		}
-		endpoints = append(endpoints, C.igraph_int_t(edge.From), C.igraph_int_t(edge.To))
+		endpoints = append(endpoints, edge.From, edge.To)
 	}
-	code := C.go_igraph_add_edges(&g.graph, &endpoints[0], C.igraph_int_t(len(endpoints)))
-	runtime.KeepAlive(endpoints)
+	cEndpoints, err := newIntVector(endpoints)
+	if err != nil {
+		return err
+	}
+	defer cEndpoints.close()
+	code := C.igraph_add_edges(&g.graph, &cEndpoints.value, nil)
 	if code != C.IGRAPH_SUCCESS {
 		return igraphError("add edges", int(code))
 	}

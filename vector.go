@@ -65,6 +65,7 @@ func (v *Vector) Set(pos int, value float64) error {
 	return nil
 }
 
+//igraph:internal igraph_vector_size
 func (v *Vector) Get(pos int) (float64, error) {
 	if v == nil {
 		return 0, ErrClosed

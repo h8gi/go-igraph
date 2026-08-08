@@ -1844,7 +1844,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_int_contains_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_copy_to` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_cumsum` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_destroy` | `igraph_adjlist.h (generated)` | Internal | `AddEdges` |
+| `igraph_vector_int_destroy` | `igraph_adjlist.h (generated)` | Internal | `Neighbors` |
 | `igraph_vector_int_difference_and_intersection_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_difference_sorted` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_div` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1858,7 +1858,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_int_index` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_index_in_place` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init` | `igraph_adjlist.h (generated)` | Internal | `Neighbors` |
-| `igraph_vector_int_init_array` | `igraph_adjlist.h (generated)` | Internal | `AddEdges` |
+| `igraph_vector_int_init_array` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init_copy` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init_int` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_init_int_end` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -2047,7 +2047,7 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vector_search` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_set` | `igraph_adjlist.h (generated)` | User-facing | `Set` |
 | `igraph_vector_shuffle` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_size` | `igraph_adjlist.h (generated)` | Missing | — |
+| `igraph_vector_size` | `igraph_adjlist.h (generated)` | Internal | `Get` |
 | `igraph_vector_sort` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_sort_ind` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_sub` | `igraph_adjlist.h (generated)` | Missing | — |
