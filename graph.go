@@ -54,6 +54,11 @@ package igraph
 //   igraph_vector_int_destroy(&edges);
 //   return err;
 // }
+//
+// static igraph_int_t go_igraph_vector_int_get(
+//     const igraph_vector_int_t *vector, igraph_int_t pos) {
+//   return VECTOR(*vector)[pos];
+// }
 import "C"
 import (
 	"errors"
@@ -79,6 +84,29 @@ type Graph struct {
 type Edge struct {
 	From int
 	To   int
+}
+
+// DirectionMode controls how edge directions are interpreted by topology
+// queries. On undirected graphs all modes are equivalent.
+type DirectionMode uint8
+
+const (
+	DirectionOut DirectionMode = iota
+	DirectionIn
+	DirectionAll
+)
+
+func (mode DirectionMode) cValue() (C.igraph_neimode_t, error) {
+	switch mode {
+	case DirectionOut:
+		return C.IGRAPH_OUT, nil
+	case DirectionIn:
+		return C.IGRAPH_IN, nil
+	case DirectionAll:
+		return C.IGRAPH_ALL, nil
+	default:
+		return 0, fmt.Errorf("igraph: invalid direction mode: %d", mode)
+	}
 }
 
 //igraph:bind igraph_empty
@@ -275,6 +303,170 @@ func (g *Graph) Clone() (*Graph, error) {
 	}
 	runtime.SetFinalizer(clone, (*Graph).finalize)
 	return clone, nil
+}
+
+// Neighbors returns adjacent vertex IDs in the requested direction. Parallel
+// edges produce repeated IDs.
+//
+//igraph:bind igraph_neighbors
+//igraph:internal igraph_vector_int_init
+//igraph:internal igraph_vector_int_size
+func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	cMode, err := mode.cValue()
+	if err != nil {
+		return nil, err
+	}
+	if err := validateVertexID(vertex, int(C.igraph_vcount(&g.graph))); err != nil {
+		return nil, err
+	}
+	var result C.igraph_vector_int_t
+	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize neighbor result", int(code))
+	}
+	defer C.igraph_vector_int_destroy(&result)
+	if code := C.igraph_neighbors(&g.graph, &result, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE, booltoint(true)); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("get neighbors", int(code))
+	}
+	return copyIntVector(&result), nil
+}
+
+// IncidentEdges returns incident edge IDs in the requested direction. Loops
+// are included once with DirectionAll.
+//
+//igraph:bind igraph_incident
+func (g *Graph) IncidentEdges(vertex int, mode DirectionMode) ([]int, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	cMode, err := mode.cValue()
+	if err != nil {
+		return nil, err
+	}
+	if err := validateVertexID(vertex, int(C.igraph_vcount(&g.graph))); err != nil {
+		return nil, err
+	}
+	var result C.igraph_vector_int_t
+	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize incident edge result", int(code))
+	}
+	defer C.igraph_vector_int_destroy(&result)
+	if code := C.igraph_incident(&g.graph, &result, C.igraph_int_t(vertex), cMode, C.IGRAPH_LOOPS_ONCE); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("get incident edges", int(code))
+	}
+	return copyIntVector(&result), nil
+}
+
+// AreAdjacent reports whether an edge exists from the first vertex to the
+// second. Undirected graphs ignore endpoint order.
+//
+//igraph:bind igraph_are_adjacent
+func (g *Graph) AreAdjacent(from, to int) (bool, error) {
+	if g == nil {
+		return false, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return false, ErrClosed
+	}
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	if err := validateVertexID(from, vertexCount); err != nil {
+		return false, err
+	}
+	if err := validateVertexID(to, vertexCount); err != nil {
+		return false, err
+	}
+	var result C.igraph_bool_t
+	if code := C.igraph_are_adjacent(&g.graph, C.igraph_int_t(from), C.igraph_int_t(to), &result); code != C.IGRAPH_SUCCESS {
+		return false, igraphError("check adjacency", int(code))
+	}
+	return result != booltoint(false), nil
+}
+
+// EdgeID finds one edge between two vertices. Endpoint order is significant
+// when directed is true. found is false when no such edge exists.
+//
+//igraph:bind igraph_get_eid
+func (g *Graph) EdgeID(from, to int, directed bool) (edgeID int, found bool, err error) {
+	if g == nil {
+		return 0, false, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, false, ErrClosed
+	}
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	if err := validateVertexID(from, vertexCount); err != nil {
+		return 0, false, err
+	}
+	if err := validateVertexID(to, vertexCount); err != nil {
+		return 0, false, err
+	}
+	var result C.igraph_integer_t
+	if code := C.igraph_get_eid(&g.graph, &result, C.igraph_int_t(from), C.igraph_int_t(to), booltoint(directed), booltoint(false)); code != C.IGRAPH_SUCCESS {
+		return 0, false, igraphError("find edge", int(code))
+	}
+	if result < 0 {
+		return 0, false, nil
+	}
+	return int(result), true, nil
+}
+
+// Edges returns all edges in edge ID order.
+//
+//igraph:bind igraph_get_edgelist
+func (g *Graph) Edges() ([]Edge, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	var result C.igraph_vector_int_t
+	if code := C.igraph_vector_int_init(&result, 0); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize edge list result", int(code))
+	}
+	defer C.igraph_vector_int_destroy(&result)
+	if code := C.igraph_get_edgelist(&g.graph, &result, booltoint(false)); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("get edge list", int(code))
+	}
+	values := copyIntVector(&result)
+	edges := make([]Edge, len(values)/2)
+	for i := range edges {
+		edges[i] = Edge{From: values[2*i], To: values[2*i+1]}
+	}
+	return edges, nil
+}
+
+func validateVertexID(vertex, vertexCount int) error {
+	if vertex < 0 || vertex >= vertexCount {
+		return fmt.Errorf("igraph: vertex ID %d out of range [0, %d)", vertex, vertexCount)
+	}
+	return nil
+}
+
+func copyIntVector(vector *C.igraph_vector_int_t) []int {
+	result := make([]int, int(C.igraph_vector_int_size(vector)))
+	for i := range result {
+		result[i] = int(C.go_igraph_vector_int_get(vector, C.igraph_int_t(i)))
+	}
+	return result
 }
 
 // AddVertices appends count isolated vertices to the graph. A zero count is a
