@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **26 / 2015 (1.29%)**
-- Internal dependencies: **29**
+- Internal dependencies: **31**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -518,8 +518,8 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_eigen_matrix_symmetric` | `igraph_eigen.h` | Missing | — |
 | `igraph_eigenvector_centrality` | `igraph_centrality.h` | Missing | — |
 | `igraph_eit_as_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_eit_create` | `igraph_iterators.h` | Missing | — |
-| `igraph_eit_destroy` | `igraph_iterators.h` | Missing | — |
+| `igraph_eit_create` | `igraph_iterators.h` | Internal | `SelectedEdgeIDs` |
+| `igraph_eit_destroy` | `igraph_iterators.h` | Internal | `SelectedEdgeIDs` |
 | `igraph_empty` | `igraph_interface.h` | User-facing | `NewGraph` |
 | `igraph_empty_attrs` | `igraph_interface.h` | Missing | — |
 | `igraph_enter_safelocale` | `igraph_foreign.h` | Missing | — |
@@ -531,13 +531,13 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_all_between` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_as_vector` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_es_as_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_copy` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_destroy` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_es_incident` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_none` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_pairs` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_es_pairs` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_pairs_small` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_path` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_path_small` | `igraph_iterators.h` | Missing | — |
@@ -545,12 +545,12 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_es_size` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_type` | `igraph_iterators.h` | Missing | — |
 | `igraph_es_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_es_vector_copy` | `igraph_iterators.h` | Missing | — |
+| `igraph_es_vector_copy` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_ess_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_all` | `igraph_iterators.h` | Internal | `edgeIDs` |
 | `igraph_ess_none` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_range` | `igraph_iterators.h` | Missing | — |
-| `igraph_ess_vector` | `igraph_iterators.h` | Internal | `edgeIDs` |
+| `igraph_ess_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_establishment_game` | `igraph_games.h` | Missing | — |
 | `igraph_eulerian_cycle` | `igraph_eulerian.h` | Missing | — |
 | `igraph_eulerian_path` | `igraph_eulerian.h` | Missing | — |
@@ -2067,15 +2067,15 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vertex_disjoint_paths` | `igraph_flow.h` | Missing | — |
 | `igraph_vertex_path_from_edge_path` | `igraph_paths.h` | Missing | — |
 | `igraph_vit_as_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_vit_create` | `igraph_iterators.h` | Missing | — |
-| `igraph_vit_destroy` | `igraph_iterators.h` | Missing | — |
+| `igraph_vit_create` | `igraph_iterators.h` | Internal | `SelectedVertexIDs` |
+| `igraph_vit_destroy` | `igraph_iterators.h` | Internal | `SelectedVertexIDs` |
 | `igraph_voronoi` | `igraph_paths.h` | Missing | — |
 | `igraph_vs_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_adj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_all` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_as_vector` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vs_as_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_copy` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_destroy` | `igraph_iterators.h` | Missing | — |
+| `igraph_vs_destroy` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vs_is_all` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_nonadj` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_none` | `igraph_iterators.h` | Missing | — |
@@ -2083,13 +2083,13 @@ Coverage is based on explicit `//igraph:bind` annotations on exported Go declara
 | `igraph_vs_size` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_type` | `igraph_iterators.h` | Missing | — |
 | `igraph_vs_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_vs_vector_copy` | `igraph_iterators.h` | Missing | — |
+| `igraph_vs_vector_copy` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vs_vector_small` | `igraph_iterators.h` | Missing | — |
 | `igraph_vss_1` | `igraph_iterators.h` | Missing | — |
 | `igraph_vss_all` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vss_none` | `igraph_iterators.h` | Internal | `vertexIDs` |
 | `igraph_vss_range` | `igraph_iterators.h` | Internal | `vertexIDs` |
-| `igraph_vss_vector` | `igraph_iterators.h` | Internal | `vertexIDs` |
+| `igraph_vss_vector` | `igraph_iterators.h` | Missing | — |
 | `igraph_warning` | `igraph_error.h` | Missing | — |
 | `igraph_warningf` | `igraph_error.h` | Missing | — |
 | `igraph_watts_strogatz_game` | `igraph_games.h` | Missing | — |
