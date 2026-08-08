@@ -2,6 +2,25 @@
 
 Go bindings for [igraph](https://igraph.org/).
 
+## Ownership and shared data
+
+Public APIs use Go values and never require callers to handle C types. `Graph`
+and `Vector` own C resources and should be closed; matrices, selectors, and
+returned slices are Go-owned and need no cleanup. The
+[shared data ownership contract](docs/shared-data-ownership.md) documents
+lifetime, copying, nil, empty, and failure-path behavior in detail.
+
+## Verification
+
+Run the full local equivalent of the required CI job with:
+
+```sh
+make verify
+```
+
+This checks formatting, `go vet`, tests, the statement-coverage floor, the
+coverage-tool tests, and the generated upstream API inventory.
+
 ## Upstream API coverage
 
 The [upstream API roadmap](docs/upstream-api-roadmap.md) defines the binding
@@ -25,8 +44,7 @@ Check that the committed report is current:
 make coverage-check
 ```
 
-GitHub Actions checks Go formatting, runs `go vet` and the Go and coverage-tool
-tests, and runs `make coverage-check` for every pull request and for pushes to
+GitHub Actions runs `make verify` for every pull request and for pushes to
 `main`.
 
 For an offline run, point the tool at an already extracted igraph source tree:

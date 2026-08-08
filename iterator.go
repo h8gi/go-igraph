@@ -34,9 +34,6 @@ import "C"
 // storage. Selection errors are reported before return. The graph mutex and all
 // C iterator resources are held only while this method materializes the slice,
 // so callers may stop iterating early or retain the result after graph closure.
-//
-//igraph:internal igraph_vit_create
-//igraph:internal igraph_vit_destroy
 func (g *Graph) SelectedVertexIDs(selector VertexSelector) ([]int, error) {
 	return g.vertexIDs(selector)
 }
@@ -44,9 +41,6 @@ func (g *Graph) SelectedVertexIDs(selector VertexSelector) ([]int, error) {
 // SelectedEdgeIDs returns the selected edge IDs as independent Go-owned
 // storage. Its eager error, ownership, and locking behavior matches
 // SelectedVertexIDs.
-//
-//igraph:internal igraph_eit_create
-//igraph:internal igraph_eit_destroy
 func (g *Graph) SelectedEdgeIDs(selector EdgeSelector) ([]int, error) {
 	return g.edgeIDs(selector)
 }
@@ -56,6 +50,7 @@ type cVertexIterator struct {
 	selector *cVertexSelector
 }
 
+//igraph:internal igraph_vit_create
 func newCVertexIterator(graph *C.igraph_t, selector VertexSelector) (*cVertexIterator, error) {
 	cSelector, err := newCVertexSelector(selector)
 	if err != nil {
@@ -86,6 +81,7 @@ func (iterator *cVertexIterator) IDs() ([]int, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_vit_destroy
 func (iterator *cVertexIterator) close() {
 	C.igraph_vit_destroy(&iterator.value)
 	iterator.selector.close()
@@ -105,6 +101,7 @@ type cEdgeIterator struct {
 	selector *cEdgeSelector
 }
 
+//igraph:internal igraph_eit_create
 func newCEdgeIterator(graph *C.igraph_t, selector EdgeSelector) (*cEdgeIterator, error) {
 	cSelector, err := newCEdgeSelector(selector)
 	if err != nil {
@@ -135,6 +132,7 @@ func (iterator *cEdgeIterator) IDs() ([]int, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_eit_destroy
 func (iterator *cEdgeIterator) close() {
 	C.igraph_eit_destroy(&iterator.value)
 	iterator.selector.close()

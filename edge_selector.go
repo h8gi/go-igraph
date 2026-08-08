@@ -95,6 +95,8 @@ type cEdgeSelector struct {
 	owned bool
 }
 
+//igraph:internal igraph_ess_all
+//igraph:internal igraph_es_vector_copy
 func newCEdgeSelector(selector EdgeSelector) (*cEdgeSelector, error) {
 	result := &cEdgeSelector{}
 	switch selector.kind {
@@ -117,6 +119,7 @@ func newCEdgeSelector(selector EdgeSelector) (*cEdgeSelector, error) {
 	return result, nil
 }
 
+//igraph:internal igraph_es_destroy
 func (selector *cEdgeSelector) close() {
 	if selector.owned {
 		C.igraph_es_destroy(&selector.value)
@@ -125,10 +128,6 @@ func (selector *cEdgeSelector) close() {
 
 // edgeIDs materializes a selector as independently owned Go storage. It is the
 // common graph-specific validation boundary for later algorithm consumers.
-//
-//igraph:internal igraph_ess_all
-//igraph:internal igraph_es_vector_copy
-//igraph:internal igraph_es_destroy
 func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed

@@ -35,21 +35,5 @@ jobs:
           go-version-file: go.mod
           cache: false
 
-      - name: Check Go formatting
-        shell: bash
-        run: |
-          unformatted="$(gofmt -l .)"
-          if [[ -n "$unformatted" ]]; then
-            echo "The following Go files need formatting:"
-            echo "$unformatted"
-            exit 1
-          fi
-
-      - name: Run Go checks with igraph 1.0.1
-        run: make docker-coverage-check
-
-      - name: Run coverage tool tests
-        run: python3 -m unittest discover -s tools -p 'test_*.py' -v
-
-      - name: Check generated API coverage report
-        run: make coverage-check
+      - name: Run complete verification
+        run: make verify

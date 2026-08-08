@@ -24,16 +24,39 @@ func TestSelectedIDsFollowSelectorOrder(t *testing.T) {
 }
 
 func TestSelectedIDsEmpty(t *testing.T) {
-	graph, err := NewGraph()
+	graph, err := NewGraphFromEdges(2, []Edge{{0, 1}}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = graph.Close() })
-	if got, err := graph.SelectedVertexIDs(NoVertices()); err != nil || got == nil || len(got) != 0 {
-		t.Errorf("SelectedVertexIDs(none) = %#v, %v", got, err)
+	emptyVertices, err := VertexIDs()
+	if err != nil {
+		t.Fatal(err)
 	}
-	if got, err := graph.SelectedEdgeIDs(NoEdges()); err != nil || got == nil || len(got) != 0 {
-		t.Errorf("SelectedEdgeIDs(none) = %#v, %v", got, err)
+	emptyEdges, err := EdgeIDs()
+	if err != nil {
+		t.Fatal(err)
+	}
+	emptyPairs, err := EdgePairs(nil, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for name, selector := range map[string]VertexSelector{
+		"none": NoVertices(),
+		"IDs":  emptyVertices,
+	} {
+		if got, err := graph.SelectedVertexIDs(selector); err != nil || got == nil || len(got) != 0 {
+			t.Errorf("SelectedVertexIDs(%s) = %#v, %v", name, got, err)
+		}
+	}
+	for name, selector := range map[string]EdgeSelector{
+		"none":  NoEdges(),
+		"IDs":   emptyEdges,
+		"pairs": emptyPairs,
+	} {
+		if got, err := graph.SelectedEdgeIDs(selector); err != nil || got == nil || len(got) != 0 {
+			t.Errorf("SelectedEdgeIDs(%s) = %#v, %v", name, got, err)
+		}
 	}
 }
 

@@ -83,10 +83,12 @@ func TestMatrixAtRejectsInvalidIndexes(t *testing.T) {
 }
 
 func TestMatrixRowsOwnTheirStorage(t *testing.T) {
-	matrix, err := NewMatrixFromRows([][]float64{{1, 2}})
+	input := [][]float64{{1, 2}}
+	matrix, err := NewMatrixFromRows(input)
 	if err != nil {
 		t.Fatal(err)
 	}
+	input[0][0] = 8
 	rows := matrix.Rows()
 	rows[0][0] = 9
 	if got, _ := matrix.At(0, 0); got != 1 {
