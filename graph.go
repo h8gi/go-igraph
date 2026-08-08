@@ -32,7 +32,16 @@ func NewGraph() *Graph {
 
 func NewLattice(dim *Vector, nei int, directed bool, mutual bool, circular bool) *Graph {
 	g := NewGraph()
-	C.igraph_lattice(&g.graph, &dim.vector, C.int(nei),
+
+	var dimensions C.igraph_vector_int_t
+	C.igraph_vector_int_init(&dimensions, C.igraph_integer_t(dim.size))
+	defer C.igraph_vector_int_destroy(&dimensions)
+	for i := 0; i < dim.size; i++ {
+		value, _ := dim.Get(i)
+		C.igraph_vector_int_set(&dimensions, C.igraph_integer_t(i), C.igraph_integer_t(value))
+	}
+
+	C.igraph_lattice(&g.graph, &dimensions, C.igraph_integer_t(nei),
 		booltoint(directed), booltoint(mutual), booltoint(circular))
 
 	return g

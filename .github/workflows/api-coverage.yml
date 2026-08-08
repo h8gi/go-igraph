@@ -1,4 +1,4 @@
-name: API coverage
+name: CI
 
 on:
   pull_request:
@@ -10,9 +10,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   check:
-    name: Check generated report
+    name: Test and verify
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
@@ -24,6 +28,31 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Install igraph
+        run: sudo apt-get update && sudo apt-get install --yes libigraph-dev libxml2-dev
+
+      - name: Check Go formatting
+        shell: bash
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [[ -n "$unformatted" ]]; then
+            echo "The following Go files need formatting:"
+            echo "$unformatted"
+            exit 1
+          fi
+
+      - name: Run Go vet
+        run: go vet ./...
+
+      - name: Run Go tests
+        run: go test ./...
 
       - name: Run coverage tool tests
         run: python3 -m unittest discover -s tools -p 'test_*.py' -v
