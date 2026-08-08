@@ -8,9 +8,10 @@ The [upstream API roadmap](docs/upstream-api-roadmap.md) defines the binding
 strategy, milestones, and completion criteria.
 
 The generated [API coverage report](docs/api-coverage.md) compares the functions
-exported by a pinned upstream igraph release with direct `C.igraph_*` calls in
-production Go files. This is an inventory for planning binding work, not a claim
-of behavioral compatibility.
+exported by a pinned upstream igraph release with explicit `//igraph:bind` and
+`//igraph:internal` annotations in production Go files. Unknown, duplicate, and
+unclassified bindings fail the coverage check. This is an inventory for
+planning binding work, not a claim of behavioral compatibility.
 
 Regenerate the report (downloads the configured upstream source archive):
 

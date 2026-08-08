@@ -50,6 +50,7 @@ type Graph struct {
 	closed bool
 }
 
+//igraph:bind igraph_empty
 func NewGraph() (*Graph, error) {
 	g := &Graph{}
 	if code := C.igraph_empty(&g.graph, 0, booltoint(false)); code != C.IGRAPH_SUCCESS {
@@ -59,6 +60,7 @@ func NewGraph() (*Graph, error) {
 	return g, nil
 }
 
+//igraph:bind igraph_square_lattice
 func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool) (*Graph, error) {
 	if len(dimensions) == 0 {
 		return nil, errors.New("igraph: lattice dimensions must not be empty")
@@ -93,6 +95,7 @@ func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool
 	return g, nil
 }
 
+//igraph:bind igraph_write_graph_edgelist
 func (g *Graph) WriteEdgeList(file *os.File) error {
 	if g == nil {
 		return ErrClosed
@@ -117,6 +120,7 @@ func (g *Graph) WriteEdgeList(file *os.File) error {
 	return nil
 }
 
+//igraph:bind igraph_write_graph_graphml
 func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
 	if g == nil {
 		return ErrClosed
@@ -141,6 +145,7 @@ func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
 	return nil
 }
 
+//igraph:internal igraph_destroy
 func (g *Graph) Close() error {
 	if g == nil {
 		return nil

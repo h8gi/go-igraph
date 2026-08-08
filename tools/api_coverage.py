@@ -1,16 +1,20 @@
 #!/usr/bin/env python3
-"""Compare upstream igraph's exported C API with calls made by go-igraph."""
+"""Build and validate the explicit go-igraph upstream binding inventory."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import re
+import os
+import subprocess
+import shutil
 import sys
 import tarfile
 import tempfile
 import urllib.request
 from collections import Counter
+from dataclasses import dataclass
 from pathlib import Path
 
 EXPORT_RE = re.compile(
@@ -19,6 +23,17 @@ EXPORT_RE = re.compile(
     re.MULTILINE | re.DOTALL,
 )
 CALL_RE = re.compile(r"\bC\.(igraph_[A-Za-z0-9_]+)\s*\(")
+ANNOTATION_RE = re.compile(r"^\s*//igraph:(bind|internal)\s+(igraph_[A-Za-z0-9_]+)\s*$")
+DECL_RE = re.compile(r"^\s*(?:func|type|var|const)\s+(?:\([^)]*\)\s*)?([A-Za-z_][A-Za-z0-9_]*)")
+
+
+@dataclass(frozen=True)
+class Annotation:
+    kind: str
+    upstream: str
+    go_symbol: str
+    path: str
+    line: int
 
 
 def strip_comments(text: str) -> str:
@@ -27,10 +42,51 @@ def strip_comments(text: str) -> str:
 
 def discover_upstream_api(include_dir: Path) -> dict[str, str]:
     declarations: dict[str, str] = {}
-    for header in sorted(include_dir.rglob("*.h")):
+    headers = sorted(include_dir.rglob("*.h"))
+    for header in headers:
         text = strip_comments(header.read_text(encoding="utf-8", errors="replace"))
         for match in EXPORT_RE.finditer(text):
             declarations.setdefault(match.group(1), header.relative_to(include_dir).as_posix())
+    # Several public API families (notably vectors) are instantiated from PMT
+    # headers. Source archives omit build-generated headers, so preprocess a
+    # private copy with neutral stubs. Keeping IGRAPH_EXPORT as a marker lets the
+    # same declaration parser distinguish public from private APIs afterwards.
+    with tempfile.TemporaryDirectory(prefix="go-igraph-headers-") as temp:
+        prepared = Path(temp) / "include"
+        shutil.copytree(include_dir, prepared)
+        (prepared / "igraph_export.h").write_text(
+            "#define IGRAPH_EXPORT IGRAPH_EXPORT\n"
+            "#define IGRAPH_NO_EXPORT IGRAPH_NO_EXPORT\n"
+            "#define IGRAPH_DEPRECATED IGRAPH_DEPRECATED\n",
+            encoding="utf-8",
+        )
+        for generated in ("igraph_config.h", "igraph_version.h"):
+            target = prepared / generated
+            if not target.exists():
+                target.write_text("/* neutral coverage-tool stub */\n", encoding="utf-8")
+        decls = prepared / "igraph_decls.h"
+        if decls.exists():
+            decls.write_text(
+                decls.read_text(encoding="utf-8").replace(
+                    "#define IGRAPH_PRIVATE_EXPORT IGRAPH_EXPORT",
+                    "#define IGRAPH_PRIVATE_EXPORT IGRAPH_PRIVATE_EXPORT",
+                ),
+                encoding="utf-8",
+            )
+        for header in headers:
+            relative = header.relative_to(include_dir)
+            if relative.as_posix() == "igraph.h":
+                continue
+            command = [os.environ.get("CC", "cc"), "-E", "-P", "-I", str(prepared), str(prepared / relative)]
+            try:
+                process = subprocess.run(command, check=False, capture_output=True, text=True)
+                expanded = process.stdout
+            except FileNotFoundError as error:
+                raise ValueError(f"could not run C preprocessor {command[0]}: {error}") from error
+            if not expanded:
+                continue
+            for match in EXPORT_RE.finditer(expanded):
+                declarations.setdefault(match.group(1), f"{relative.as_posix()} (generated)")
     return declarations
 
 
@@ -44,8 +100,52 @@ def production_go_files(repo: Path) -> list[Path]:
 def discover_go_calls(repo: Path) -> set[str]:
     calls: set[str] = set()
     for path in production_go_files(repo):
-        calls.update(CALL_RE.findall(path.read_text(encoding="utf-8")))
+        calls.update(name for name in CALL_RE.findall(path.read_text(encoding="utf-8")) if not name.endswith("_t"))
     return calls
+
+
+def discover_annotations(repo: Path) -> list[Annotation]:
+    annotations: list[Annotation] = []
+    for path in production_go_files(repo):
+        pending: list[tuple[str, str, int]] = []
+        for number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+            match = ANNOTATION_RE.match(line)
+            if match:
+                pending.append((match.group(1), match.group(2), number))
+                continue
+            declaration = DECL_RE.match(line)
+            if declaration and pending:
+                symbol = declaration.group(1)
+                annotations.extend(
+                    Annotation(kind, upstream, symbol, path.relative_to(repo).as_posix(), source_line)
+                    for kind, upstream, source_line in pending
+                )
+                pending = []
+                continue
+            if pending and line.strip() and not line.lstrip().startswith("//"):
+                raise ValueError(f"{path}:{pending[0][2]}: annotation is not attached to a Go declaration")
+        if pending:
+            raise ValueError(f"{path}:{pending[0][2]}: annotation is not attached to a Go declaration")
+    return annotations
+
+
+def validate_inventory(
+    declarations: dict[str, str], calls: set[str], annotations: list[Annotation], unsupported: set[str]
+) -> None:
+    errors: list[str] = []
+    known = set(declarations)
+    for annotation in annotations:
+        if annotation.upstream not in known:
+            errors.append(f"{annotation.path}:{annotation.line}: unknown upstream symbol {annotation.upstream}")
+        if annotation.kind == "bind" and not annotation.go_symbol[:1].isupper():
+            errors.append(f"{annotation.path}:{annotation.line}: binding target {annotation.go_symbol} is not exported")
+    by_upstream = Counter(item.upstream for item in annotations)
+    errors.extend(f"duplicate annotation for {name}" for name, count in sorted(by_upstream.items()) if count > 1)
+    errors.extend(f"unknown intentionally unsupported symbol {name}" for name in sorted(unsupported - known))
+    classified = {item.upstream for item in annotations} | unsupported
+    errors.extend(f"unclassified production C call {name}" for name in sorted(calls - classified))
+    if errors:
+        raise ValueError("invalid binding inventory:\n- " + "\n- ".join(errors))
 
 
 def locate_include(source: Path) -> Path:
@@ -71,48 +171,39 @@ def download_source(url: str, destination: Path) -> Path:
     return destination
 
 
-def render(config: dict[str, str], declarations: dict[str, str], calls: set[str]) -> str:
-    covered = sorted(calls & declarations.keys())
-    unknown = sorted(calls - declarations.keys())
+def render(config: dict, declarations: dict[str, str], annotations: list[Annotation]) -> str:
+    bindings = {item.upstream: item for item in annotations if item.kind == "bind"}
+    internal = {item.upstream: item for item in annotations if item.kind == "internal"}
+    unsupported = set(config.get("intentionally_unsupported", []))
     total = len(declarations)
-    percent = 100 * len(covered) / total if total else 0
+    percent = 100 * len(bindings) / total if total else 0
     by_header = Counter(declarations.values())
-    covered_by_header = Counter(declarations[name] for name in covered)
-
+    bound_by_header = Counter(declarations[name] for name in bindings)
     lines = [
-        "# Upstream igraph API coverage",
-        "",
-        "> Generated by `tools/api_coverage.py`; do not edit by hand.",
-        "",
+        "# Upstream igraph API coverage", "",
+        "> Generated by `tools/api_coverage.py`; do not edit by hand.", "",
         f"- Upstream: [{config['upstream']} {config['version']}]({config['release_url']})",
-        f"- Covered exported functions: **{len(covered)} / {total} ({percent:.2f}%)**",
-        "- Coverage means that production Go code directly calls the exported C function.",
-        "  It does not measure API quality, behavioral parity, constants, types, or macros.",
-        "",
-        "## Summary by header",
-        "",
-        "| Header | Covered | Total | Coverage |",
+        f"- User-facing bindings: **{len(bindings)} / {total} ({percent:.2f}%)**",
+        f"- Internal dependencies: **{len(internal)}**",
+        f"- Intentionally unsupported: **{len(unsupported)}**", "",
+        "Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.", "",
+        "## Summary by header", "", "| Header | Bound | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",
     ]
     for header in sorted(by_header):
-        count = covered_by_header[header]
-        header_total = by_header[header]
+        count, header_total = bound_by_header[header], by_header[header]
         lines.append(f"| `{header}` | {count} | {header_total} | {100 * count / header_total:.2f}% |")
-
-    lines += ["", "## Function inventory", "", "| Function | Header | Status |", "| --- | --- | --- |"]
+    lines += ["", "## Function inventory", "", "| Function | Header | Status | Go API |", "| --- | --- | --- | --- |"]
     for name in sorted(declarations):
-        status = "Covered" if name in calls else "Missing"
-        lines.append(f"| `{name}` | `{declarations[name]}` | {status} |")
-
-    lines += ["", "## Calls not declared as exported functions in this upstream version", ""]
-    if unknown:
-        lines += [
-            "These may have been removed or renamed, or may be generated by macros/templates:",
-            "",
-            *[f"- `{name}`" for name in unknown],
-        ]
-    else:
-        lines.append("None.")
+        if name in bindings:
+            status, owner = "User-facing", f"`{bindings[name].go_symbol}`"
+        elif name in internal:
+            status, owner = "Internal", f"`{internal[name].go_symbol}`"
+        elif name in unsupported:
+            status, owner = "Intentionally unsupported", "—"
+        else:
+            status, owner = "Missing", "—"
+        lines.append(f"| `{name}` | `{declarations[name]}` | {status} | {owner} |")
     lines.append("")
     return "\n".join(lines)
 
@@ -131,13 +222,16 @@ def main() -> int:
     repo = Path(__file__).resolve().parents[1]
     config = json.loads(args.config.read_text(encoding="utf-8"))
     output = args.output if args.output.is_absolute() else repo / args.output
-    calls = discover_go_calls(repo)
-
+    calls, annotations = discover_go_calls(repo), discover_annotations(repo)
     with tempfile.TemporaryDirectory(prefix="go-igraph-coverage-") as temp:
         source = args.source_dir or download_source(config["source_archive_url"], Path(temp))
         declarations = discover_upstream_api(locate_include(source))
-        report = render(config, declarations, calls)
-
+        try:
+            validate_inventory(declarations, calls, annotations, set(config.get("intentionally_unsupported", [])))
+        except ValueError as error:
+            print(error, file=sys.stderr)
+            return 1
+        report = render(config, declarations, annotations)
     if args.check:
         if not output.exists() or output.read_text(encoding="utf-8") != report:
             print(f"{output} is out of date; run make coverage", file=sys.stderr)
@@ -145,7 +239,7 @@ def main() -> int:
         return 0
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(report, encoding="utf-8")
-    print(f"wrote {output}: {len(calls & declarations.keys())}/{len(declarations)} covered")
+    print(f"wrote {output}: {sum(a.kind == 'bind' for a in annotations)}/{len(declarations)} user-facing bindings")
     return 0
 
 

@@ -12,6 +12,7 @@ func booltoint(in bool) C.igraph_bool_t {
 	return C.go_igraph_bool(0)
 }
 
+//igraph:internal igraph_strerror
 func igraphError(operation string, code int) error {
 	description := C.GoString(C.igraph_strerror(C.igraph_error_t(code)))
 	return fmt.Errorf("igraph: %s: %s (code %d)", operation, description, code)

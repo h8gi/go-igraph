@@ -23,8 +23,9 @@ execution of the work described here.
 
 ## Coverage semantics
 
-The current report discovers direct `C.igraph_*` calls. This is useful as a
-low-level inventory, but it does not reliably represent user-facing coverage:
+The report uses explicit annotations instead of treating every direct
+`C.igraph_*` call as user-facing coverage. This avoids the earlier problems
+where:
 
 - calls inside cgo C helpers are not discovered;
 - lifecycle plumbing can increase the count without adding user-visible
@@ -32,9 +33,10 @@ low-level inventory, but it does not reliably represent user-facing coverage:
 - one Go API may intentionally compose several upstream functions;
 - an upstream function may be intentionally unsupported or internal-only.
 
-Before using the percentage as a project KPI, the report should support an
-explicit mapping from exported Go symbols to upstream functions, for example
-with `//igraph:bind` annotations. The report should distinguish:
+An exported Go declaration uses `//igraph:bind` to claim a user-facing upstream
+function. `//igraph:internal` marks implementation dependencies, while the tool
+configuration records deliberately unsupported functions. The report
+distinguishes:
 
 - user-facing bindings;
 - internal implementation dependencies;
