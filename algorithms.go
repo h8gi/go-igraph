@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 //
 // static igraph_int_t go_igraph_vector_int_list_size(
 //     const igraph_vector_int_list_t *list) {
@@ -67,7 +68,7 @@ func (g *Graph) Degree(vertices VertexSelector, options DegreeOptions) ([]int, e
 	if options.CountLoops {
 		loops = C.igraph_loops_t(C.IGRAPH_LOOPS)
 	}
-	if code := C.igraph_degree(&g.graph, &result.value, selector.value, mode, loops); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_degree(&g.graph, &result.value, selector.value, mode, loops); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("calculate degree", int(code))
 	}
 	return result.slice()
@@ -113,7 +114,7 @@ func (g *Graph) NeighborhoodSizes(vertices VertexSelector, options NeighborhoodO
 	}
 	defer result.close()
 
-	if code := C.igraph_neighborhood_size(
+	if code := C.go_igraph_neighborhood_size(
 		&g.graph, &result.value, selector.value, order, mode, minDistance,
 	); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("calculate neighborhood sizes", int(code))
@@ -150,7 +151,7 @@ func (g *Graph) Neighborhoods(vertices VertexSelector, options NeighborhoodOptio
 	}
 	defer result.close()
 
-	if code := C.igraph_neighborhood(
+	if code := C.go_igraph_neighborhood(
 		&g.graph, &result.value, selector.value, order, mode, minDistance,
 	); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("calculate neighborhoods", int(code))
@@ -200,7 +201,7 @@ type intVectorList struct {
 //igraph:internal igraph_vector_int_list_init
 func newIntVectorList() (*intVectorList, error) {
 	result := &intVectorList{}
-	if code := C.igraph_vector_int_list_init(&result.value, 0); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_vector_int_list_init(&result.value, 0); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize integer vector list", int(code))
 	}
 	return result, nil

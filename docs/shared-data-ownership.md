@@ -14,6 +14,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `Path` | Go-owned result value | none | vertex and edge slices remain valid after the graph is closed; an unreachable target has `Found == false` and non-nil empty slices |
 | `DiameterResult` | Go-owned result value | none | scalar fields and its `Path` remain valid after the graph is closed; when no diameter path exists, endpoint IDs are -1 and path slices are non-nil empty slices |
 | `AveragePathLengthResult` | Go-owned result value | none | contains scalar length and unreachable ordered-pair count; retains no graph or C resource |
+| transitivity and density results | Go-owned scalar or slice | none | scalar results retain no resource; local-transitivity slices remain valid and mutable after graph closure |
 | `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
@@ -42,9 +43,15 @@ follow the materialized source and target selector order, including duplicates,
 and represent unreachable pairs as positive infinity. Path slices and matrices
 remain valid after their source graph is closed.
 
+A non-nil empty weight slice therefore represents a weighted call only for a
+graph with no edges; it is not interchangeable with `nil` on a graph that has
+edges. Path algorithms support finite negative weights and report reachable
+negative cycles as upstream errors. Whole-graph diameter and average-path
+summaries reject negative weights upstream, while density accepts them.
+
 Density and whole-graph distance-summary options use the same optional weight
-contract. Density accepts any finite weights. Diameter and average path length
-delegate negative-weight rejection to their upstream shortest-path algorithm.
+contract. Diameter and average path length delegate negative-weight rejection
+to their upstream shortest-path algorithm.
 `IgnoreUnreachable` restricts summaries to reachable pairs; otherwise a
 disconnected summary length is positive infinity. Diameter vertex and edge
 paths, local transitivity slices, and all other structural metric results are
@@ -97,6 +104,16 @@ Initialization failure does not create a resource that needs destruction.
 No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully
 initialized dependency before returning an error.
+
+All fallible Milestone 3 calls, including temporary integer/real vector,
+matrix, vector-list, selector, and iterator initialization, pass through
+central C wrappers. A wrapper installs igraph's non-aborting error and warning
+handlers, performs exactly one upstream operation, and restores the prior
+handlers before the cgo call returns. The pinned thread-safe igraph build keeps
+handler state thread-local, so installation and restoration occur on the same
+OS thread without a process-wide Go mutex. Initialization failure transfers no
+resource; partial Go constructors destroy every dependency whose initializer
+already succeeded.
 
 ## Verification
 

@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 //
 // static igraph_bool_t go_igraph_vit_end(const igraph_vit_t *iterator) {
 //   return IGRAPH_VIT_END(*iterator);
@@ -57,7 +58,7 @@ func newCVertexIterator(graph *C.igraph_t, selector VertexSelector) (*cVertexIte
 		return nil, err
 	}
 	result := &cVertexIterator{selector: cSelector}
-	if code := C.igraph_vit_create(graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_vit_create(graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
 		cSelector.close()
 		return nil, igraphError("initialize vertex iterator", int(code))
 	}
@@ -108,7 +109,7 @@ func newCEdgeIterator(graph *C.igraph_t, selector EdgeSelector) (*cEdgeIterator,
 		return nil, err
 	}
 	result := &cEdgeIterator{selector: cSelector}
-	if code := C.igraph_eit_create(graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_eit_create(graph, cSelector.value, &result.value); code != C.IGRAPH_SUCCESS {
 		cSelector.close()
 		return nil, igraphError("initialize edge iterator", int(code))
 	}

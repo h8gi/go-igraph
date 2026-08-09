@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 import "C"
 
 import "fmt"
@@ -92,7 +93,7 @@ func newCVertexSelector(selector VertexSelector) (*cVertexSelector, error) {
 		if err != nil {
 			return nil, err
 		}
-		code := C.igraph_vs_vector_copy(&result.value, &backing.value)
+		code := C.go_igraph_vs_vector_copy(&result.value, &backing.value)
 		backing.close()
 		if code != C.IGRAPH_SUCCESS {
 			return nil, igraphError("copy explicit vertex selector", int(code))

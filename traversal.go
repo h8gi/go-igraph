@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 import "C"
 
 import "fmt"
@@ -109,7 +110,7 @@ func (g *Graph) BreadthFirstSearch(options BFSOptions) (BFSResult, error) {
 	}
 	defer closeIntVectors(outputs)
 
-	if code := C.igraph_bfs(
+	if code := C.go_igraph_bfs(
 		&g.graph,
 		0,
 		&inputs[0].value,
@@ -168,7 +169,7 @@ func (g *Graph) DepthFirstSearch(options DFSOptions) (DFSResult, error) {
 	}
 	defer closeIntVectors(outputs)
 
-	if code := C.igraph_dfs(
+	if code := C.go_igraph_dfs(
 		&g.graph,
 		C.igraph_int_t(options.Root),
 		cMode,

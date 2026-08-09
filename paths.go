@@ -2,46 +2,13 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
-//
-// static igraph_error_t go_igraph_distances(
-//     const igraph_t *graph, const igraph_vector_t *weights,
-//     igraph_matrix_t *result, igraph_vs_t sources, igraph_vs_t targets,
-//     igraph_neimode_t mode) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code =
-//       igraph_distances(graph, weights, result, sources, targets, mode);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_get_shortest_path(
-//     const igraph_t *graph, const igraph_vector_t *weights,
-//     igraph_vector_int_t *vertices, igraph_vector_int_t *edges,
-//     igraph_int_t source, igraph_int_t target, igraph_neimode_t mode) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_get_shortest_path(
-//       graph, weights, vertices, edges, source, target, mode);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
+// #include "algorithm_cgo.h"
 import "C"
 
 import (
 	"fmt"
 	"math"
 )
-
-// The pinned thread-safe igraph build stores handlers in thread-local state.
-// Each C wrapper installs and restores its handlers within one cgo call, so
-// handler state remains on the same OS thread without a Go-side mutex.
 
 // PathOptions controls path and distance calculations. Direction is ignored
 // for undirected graphs. A nil Weights slice requests an unweighted
@@ -94,7 +61,7 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 	if err != nil {
 		return Matrix{}, fmt.Errorf("igraph: materialize target selector: %w", err)
 	}
-	uniqueTargetIDs, targetColumns := uniqueVertexIDs(targetIDs)
+	uniqueTargetIDs, targetColumns := deduplicateVertexIDs(targetIDs)
 	cTargetSelector := targets
 	if len(uniqueTargetIDs) != len(targetIDs) {
 		cTargetSelector, err = VertexIDs(uniqueTargetIDs...)
@@ -215,9 +182,10 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 	return Path{Vertices: vertexIDs, Edges: edgeIDs, Found: len(vertexIDs) != 0}, nil
 }
 
-// uniqueVertexIDs preserves first-occurrence order and returns, for every
-// original ID, the column containing that ID in the unique result.
-func uniqueVertexIDs(ids []int) ([]int, []int) {
+// deduplicateVertexIDs preserves first-occurrence order and returns, for every
+// original ID, its position in the unique result. This lets public selectors
+// preserve duplicates around upstream APIs that require unique vertex IDs.
+func deduplicateVertexIDs(ids []int) ([]int, []int) {
 	unique := make([]int, 0, len(ids))
 	columns := make([]int, len(ids))
 	seen := make(map[int]int, len(ids))
@@ -231,6 +199,14 @@ func uniqueVertexIDs(ids []int) ([]int, []int) {
 		columns[index] = column
 	}
 	return unique, columns
+}
+
+func expandByPositions[T any](values []T, positions []int) []T {
+	result := make([]T, len(positions))
+	for index, position := range positions {
+		result[index] = values[position]
+	}
+	return result
 }
 
 func expandDistanceColumns(distances Matrix, columns []int) (Matrix, error) {

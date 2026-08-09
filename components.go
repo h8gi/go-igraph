@@ -2,28 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
-//
-// static igraph_error_t go_igraph_connected_components(
-//     const igraph_t *graph, igraph_vector_int_t *membership,
-//     igraph_vector_int_t *sizes, igraph_int_t *count,
-//     igraph_connectedness_t mode) {
-//   igraph_error_handler_t *previous =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_error_t code = igraph_connected_components(
-//       graph, membership, sizes, count, mode);
-//   igraph_set_error_handler(previous);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_is_connected(
-//     const igraph_t *graph, igraph_bool_t *result,
-//     igraph_connectedness_t mode) {
-//   igraph_error_handler_t *previous =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_error_t code = igraph_is_connected(graph, result, mode);
-//   igraph_set_error_handler(previous);
-//   return code;
-// }
+// #include "algorithm_cgo.h"
 import "C"
 
 import "fmt"
@@ -31,7 +10,8 @@ import "fmt"
 // ConnectednessMode controls how edge directions are interpreted by
 // connected-component queries. Weak connectedness ignores edge directions;
 // strong connectedness requires directed reachability in both directions.
-// The distinction is ignored for undirected graphs.
+// Its zero value is ConnectednessWeak. The distinction is ignored for
+// undirected graphs.
 type ConnectednessMode uint8
 
 const (

@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 //
 // static void go_igraph_vector_int_set(
 //     igraph_vector_int_t *vector, igraph_int_t pos, igraph_int_t value) {
@@ -11,15 +12,6 @@ package igraph
 // static igraph_int_t go_igraph_vector_int_get(
 //     const igraph_vector_int_t *vector, igraph_int_t pos) {
 //   return VECTOR(*vector)[pos];
-// }
-//
-// static igraph_error_t go_igraph_vector_int_init(
-//     igraph_vector_int_t *vector, igraph_int_t size) {
-//   igraph_error_handler_t *previous =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_error_t code = igraph_vector_int_init(vector, size);
-//   igraph_set_error_handler(previous);
-//   return code;
 // }
 //
 // static void go_igraph_vector_set_value(
@@ -105,13 +97,25 @@ type realVector struct {
 }
 
 func newRealVectorSize(size int) (*realVector, error) {
-	cSize, err := intToIgraphInt(size, "real vector length")
+	return newRealVectorSizeWithInitializer(size, func(vector *realVector, size int) int {
+		return int(C.go_igraph_vector_init(&vector.value, C.igraph_int_t(size)))
+	})
+}
+
+func newRealVectorSizeWithInitializer(
+	size int,
+	initialize func(*realVector, int) int,
+) (*realVector, error) {
+	if size < 0 {
+		return nil, fmt.Errorf("igraph: real vector length must be non-negative: %d", size)
+	}
+	_, err := intToIgraphInt(size, "real vector length")
 	if err != nil {
 		return nil, err
 	}
 	vector := &realVector{}
-	if code := C.igraph_vector_init(&vector.value, cSize); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("initialize real vector", int(code))
+	if code := initialize(vector, size); code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("initialize real vector", code)
 	}
 	return vector, nil
 }
