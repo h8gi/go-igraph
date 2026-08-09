@@ -34,7 +34,7 @@ func TestSimplifyInPlaceOptions(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			graph := transformationGraph(t, 4, edges, true)
-			if err := graph.SimplifyInPlace(test.options); err != nil {
+			if _, err := graph.SimplifyInPlace(test.options); err != nil {
 				t.Fatal(err)
 			}
 			assertTransformationGraph(t, graph, 4, true, test.want)
@@ -44,20 +44,45 @@ func TestSimplifyInPlaceOptions(t *testing.T) {
 
 func TestSimplifyInPlaceUndirectedAndAllLoops(t *testing.T) {
 	graph := transformationGraph(t, 3, []Edge{{0, 1}, {1, 0}, {2, 2}, {2, 2}}, false)
-	if err := graph.SimplifyInPlace(SimplifyOptions{RemoveParallel: true}); err != nil {
+	if _, err := graph.SimplifyInPlace(SimplifyOptions{RemoveParallel: true}); err != nil {
 		t.Fatal(err)
 	}
 	assertTransformationGraph(t, graph, 3, false, []Edge{{0, 1}, {2, 2}})
-	if err := graph.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); err != nil {
+	if _, err := graph.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); err != nil {
 		t.Fatal(err)
 	}
 	assertTransformationGraph(t, graph, 3, false, []Edge{{0, 1}})
 
 	loops := transformationGraph(t, 2, []Edge{{0, 0}, {0, 0}, {1, 1}}, true)
-	if err := loops.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); err != nil {
+	if _, err := loops.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); err != nil {
 		t.Fatal(err)
 	}
 	assertTransformationGraph(t, loops, 2, true, []Edge{})
+}
+
+func TestSimplifyInPlaceMapping(t *testing.T) {
+	edges := []Edge{{0, 1}, {0, 1}, {1, 0}, {1, 1}, {1, 1}, {2, 2}, {2, 3}}
+	graph := transformationGraph(t, 4, edges, true)
+	result, err := graph.SimplifyInPlace(SimplifyOptions{RemoveParallel: true, RemoveLoops: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !result.EdgeMappingAvailable {
+		t.Fatal("edge mapping is unavailable")
+	}
+	assertIDMapping(t, result.Mapping.Vertices, []int{0, 1, 2, 3}, []int{0, 1, 2, 3})
+	assertIDMapping(
+		t, result.Mapping.Edges,
+		[]int{0, 0, 1, RemovedID, RemovedID, RemovedID, 2},
+		[]int{0, 2, 6},
+	)
+	if err := graph.Close(); err != nil {
+		t.Fatal(err)
+	}
+	result.Mapping.Edges.OldToNew[0] = 99
+	if result.Mapping.Edges.OldToNew[0] != 99 {
+		t.Error("mapping is not mutable after graph closure")
+	}
 }
 
 func TestConvertToDirectedInPlaceModes(t *testing.T) {
@@ -85,8 +110,14 @@ func TestConvertToDirectedInPlaceModes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			graph := transformationGraph(t, 3, edges, false)
-			if err := graph.ConvertToDirectedInPlace(test.mode); err != nil {
+			result, err := graph.ConvertToDirectedInPlace(test.mode)
+			if err != nil {
 				t.Fatal(err)
+			}
+			if test.mode == DirectedConversionMutual {
+				assertUnavailableEdgeMapping(t, result)
+			} else {
+				assertIDMapping(t, result.Mapping.Edges, []int{0, 1, 2, 3}, []int{0, 1, 2, 3})
 			}
 			if test.wantEdges != nil {
 				assertTransformationGraph(t, graph, 3, true, test.wantEdges)
@@ -97,6 +128,9 @@ func TestConvertToDirectedInPlaceModes(t *testing.T) {
 				}
 				if directed, _ := graph.IsDirected(); !directed || len(got) != test.wantCount {
 					t.Errorf("directed/count = %t/%d, want true/%d; edges=%v", directed, len(got), test.wantCount, got)
+				}
+				if normalized := normalizedEdges(got, false); !reflect.DeepEqual(normalized, normalizedEdges(edges, false)) {
+					t.Errorf("undirected endpoint multiset = %v, want %v", normalized, normalizedEdges(edges, false))
 				}
 			}
 		})
@@ -126,8 +160,20 @@ func TestConvertToUndirectedInPlaceModes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			graph := transformationGraph(t, 3, edges, true)
-			if err := graph.ConvertToUndirectedInPlace(test.mode); err != nil {
+			result, err := graph.ConvertToUndirectedInPlace(test.mode)
+			if err != nil {
 				t.Fatal(err)
+			}
+			if !result.EdgeMappingAvailable {
+				t.Fatal("edge mapping is unavailable")
+			}
+			switch test.mode {
+			case UndirectedConversionEach:
+				assertIDMapping(t, result.Mapping.Edges, []int{0, 1, 2, 3, 4, 5}, []int{0, 1, 2, 3, 4, 5})
+			case UndirectedConversionCollapse:
+				assertIDMapping(t, result.Mapping.Edges, []int{0, 0, 0, 1, 2, 2}, []int{0, 3, 4})
+			case UndirectedConversionMutual:
+				assertIDMapping(t, result.Mapping.Edges, []int{0, RemovedID, 0, RemovedID, 1, 2}, []int{0, 4, 5})
 			}
 			assertTransformationGraph(t, graph, 3, false, test.want)
 		})
@@ -137,53 +183,73 @@ func TestConvertToUndirectedInPlaceModes(t *testing.T) {
 func TestDirectionConversionIdentityEmptyAndEdgeless(t *testing.T) {
 	simpleEdges := []Edge{{0, 1}, {1, 2}}
 	simple := transformationGraph(t, 3, simpleEdges, false)
-	if err := simple.SimplifyInPlace(SimplifyOptions{RemoveParallel: true, RemoveLoops: true}); err != nil {
+	if _, err := simple.SimplifyInPlace(SimplifyOptions{RemoveParallel: true, RemoveLoops: true}); err != nil {
 		t.Fatal(err)
 	}
 	assertTransformationGraph(t, simple, 3, false, simpleEdges)
+	identity, err := simple.SimplifyInPlace(SimplifyOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertIDMapping(t, identity.Mapping.Edges, []int{0, 1}, []int{0, 1})
 
 	directedEdges := []Edge{{1, 0}, {1, 1}}
 	directed := transformationGraph(t, 2, directedEdges, true)
-	if err := directed.ConvertToDirectedInPlace(DirectedConversionMutual); err != nil {
+	identity, err = directed.ConvertToDirectedInPlace(DirectedConversionMutual)
+	if err != nil {
 		t.Fatal(err)
 	}
+	if !identity.EdgeMappingAvailable {
+		t.Error("already-directed no-op mapping is unavailable")
+	}
+	assertIDMapping(t, identity.Mapping.Edges, []int{0, 1}, []int{0, 1})
 	assertGraphState(t, directed, 2, true, directedEdges)
 
 	undirectedEdges := []Edge{{1, 0}, {1, 1}}
 	undirected := transformationGraph(t, 2, undirectedEdges, false)
 	undirectedBefore := captureGraphState(t, undirected)
-	if err := undirected.ConvertToUndirectedInPlace(UndirectedConversionMutual); err != nil {
+	if _, err := undirected.ConvertToUndirectedInPlace(UndirectedConversionMutual); err != nil {
 		t.Fatal(err)
 	}
 	assertCapturedGraphState(t, undirected, undirectedBefore)
 
 	for _, vertexCount := range []int{0, 3} {
 		graph := transformationGraph(t, vertexCount, nil, false)
-		if err := graph.SimplifyInPlace(SimplifyOptions{RemoveParallel: true, RemoveLoops: true}); err != nil {
+		if _, err := graph.SimplifyInPlace(SimplifyOptions{RemoveParallel: true, RemoveLoops: true}); err != nil {
 			t.Fatal(err)
 		}
-		if err := graph.ConvertToDirectedInPlace(DirectedConversionAcyclic); err != nil {
+		if _, err := graph.ConvertToDirectedInPlace(DirectedConversionAcyclic); err != nil {
 			t.Fatal(err)
 		}
 		assertTransformationGraph(t, graph, vertexCount, true, []Edge{})
-		if err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); err != nil {
+		if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); err != nil {
 			t.Fatal(err)
 		}
 		assertTransformationGraph(t, graph, vertexCount, false, []Edge{})
 	}
+
+	empty := transformationGraph(t, 0, nil, false)
+	emptyResult, err := empty.ConvertToDirectedInPlace(DirectedConversionMutual)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !emptyResult.EdgeMappingAvailable {
+		t.Error("empty mutual conversion mapping is unavailable")
+	}
+	assertIDMapping(t, emptyResult.Mapping.Edges, []int{}, []int{})
 }
 
 func TestGraphTransformationsRejectInvalidModesAndClosedGraphs(t *testing.T) {
 	graph := transformationGraph(t, 2, []Edge{{0, 1}}, false)
 	before := captureGraphState(t, graph)
-	if err := graph.ConvertToDirectedInPlace(DirectedConversionMode(99)); err == nil {
+	if _, err := graph.ConvertToDirectedInPlace(DirectedConversionMode(99)); err == nil {
 		t.Error("ConvertToDirectedInPlace(invalid) error = nil")
 	}
 	assertCapturedGraphState(t, graph, before)
 
 	directed := transformationGraph(t, 2, []Edge{{0, 1}}, true)
 	before = captureGraphState(t, directed)
-	if err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
+	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
 		t.Error("ConvertToUndirectedInPlace(invalid) error = nil")
 	}
 	assertCapturedGraphState(t, directed, before)
@@ -196,65 +262,144 @@ func TestGraphTransformationsRejectInvalidModesAndClosedGraphs(t *testing.T) {
 	assertTransformationClosed(t, nilGraph)
 }
 
-func TestExecuteAtomicTransformationFailureCleanup(t *testing.T) {
+func TestGraphTransformationAtomicReceiver(t *testing.T) {
 	forced := errors.New("forced failure")
+	edges := []Edge{{0, 1}, {0, 1}, {1, 1}, {2, 0}}
 	tests := []struct {
-		name        string
-		cloneError  bool
-		mutateError bool
-		wantDestroy int
-		wantCommit  int
+		name  string
+		stage graphTransformationStage
 	}{
-		{name: "clone initialization", cloneError: true},
-		{name: "upstream transformation", mutateError: true, wantDestroy: 1},
-		{name: "success", wantCommit: 1},
+		{name: "clone initialization", stage: graphTransformationAtClone},
+		{name: "upstream transformation", stage: graphTransformationAtTransform},
+		{name: "post-transformation conversion", stage: graphTransformationAfterTransform},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			destroyed := 0
-			committed := 0
-			source := "original"
-			replacement := "clone"
-			err := executeAtomicTransformation(
-				func() error {
-					if test.cloneError {
+			graph := transformationGraph(t, 3, edges, true)
+			before := captureGraphState(t, graph)
+			_, err := graph.simplifyInPlace(
+				SimplifyOptions{RemoveParallel: true, RemoveLoops: true},
+				func(stage graphTransformationStage) error {
+					if stage == test.stage {
 						return forced
 					}
 					return nil
-				},
-				func() error {
-					if test.mutateError {
-						return forced
-					}
-					return nil
-				},
-				func() {
-					destroyed++
-					replacement = "destroyed"
-				},
-				func() {
-					committed++
-					source = replacement
 				},
 			)
-			if test.cloneError || test.mutateError {
-				if !errors.Is(err, forced) {
-					t.Errorf("error = %v, want %v", err, forced)
-				}
-			} else if err != nil {
-				t.Errorf("error = %v, want nil", err)
+			if !errors.Is(err, forced) {
+				t.Errorf("error = %v, want %v", err, forced)
 			}
-			if destroyed != test.wantDestroy || committed != test.wantCommit {
-				t.Errorf("destroy/commit = %d/%d, want %d/%d", destroyed, committed, test.wantDestroy, test.wantCommit)
-			}
-			wantSource := "original"
-			if test.wantCommit == 1 {
-				wantSource = "clone"
-			}
-			if source != wantSource {
-				t.Errorf("source = %q, want %q", source, wantSource)
+			assertCapturedGraphState(t, graph, before)
+		})
+	}
+
+	graph := transformationGraph(t, 3, edges, true)
+	result, err := graph.simplifyInPlace(
+		SimplifyOptions{RemoveParallel: true, RemoveLoops: true}, nil,
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{0, 1}, {2, 0}})
+	assertIDMapping(t, result.Mapping.Edges, []int{0, 0, RemovedID, 1}, []int{0, 3})
+}
+
+func TestEdgeTransformationMappingValidation(t *testing.T) {
+	tests := []struct {
+		name string
+		run  func() error
+	}{
+		{
+			name: "one-to-one source without result",
+			run: func() error {
+				_, err := oneToOneEdgeMapping([]Edge{{0, 1}}, nil, true)
+				return err
+			},
+		},
+		{
+			name: "one-to-one result without source",
+			run: func() error {
+				_, err := oneToOneEdgeMapping(nil, []Edge{{0, 1}}, true)
+				return err
+			},
+		},
+		{
+			name: "many-to-one duplicate result",
+			run: func() error {
+				_, err := manyToOneEdgeMapping(nil, []Edge{{0, 1}, {0, 1}}, true, nil)
+				return err
+			},
+		},
+		{
+			name: "many-to-one source without result",
+			run: func() error {
+				_, err := manyToOneEdgeMapping([]Edge{{0, 1}}, []Edge{{1, 2}}, true, nil)
+				return err
+			},
+		},
+		{
+			name: "many-to-one result without source",
+			run: func() error {
+				_, err := manyToOneEdgeMapping([]Edge{{0, 1}}, []Edge{{0, 1}, {1, 2}}, true, nil)
+				return err
+			},
+		},
+		{
+			name: "mutual loop mismatch",
+			run: func() error {
+				_, err := mutualEdgeMapping([]Edge{{0, 0}}, nil)
+				return err
+			},
+		},
+		{
+			name: "mutual reciprocal mismatch",
+			run: func() error {
+				_, err := mutualEdgeMapping([]Edge{{0, 1}, {1, 0}}, nil)
+				return err
+			},
+		},
+		{
+			name: "mutual result without source",
+			run: func() error {
+				_, err := mutualEdgeMapping(nil, []Edge{{0, 1}})
+				return err
+			},
+		},
+		{
+			name: "mapping out of range",
+			run: func() error {
+				_, err := completeEdgeMapping([]int{1}, 1)
+				return err
+			},
+		},
+		{
+			name: "mapping result without source",
+			run: func() error {
+				_, err := completeEdgeMapping([]int{RemovedID}, 1)
+				return err
+			},
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.run(); err == nil {
+				t.Error("error = nil")
 			}
 		})
+	}
+}
+
+func assertUnavailableEdgeMapping(t *testing.T, result GraphTransformationResult) {
+	t.Helper()
+	if result.EdgeMappingAvailable {
+		t.Error("EdgeMappingAvailable = true, want false")
+	}
+	if result.Mapping.Edges.OldToNew == nil || result.Mapping.Edges.NewToOld == nil ||
+		len(result.Mapping.Edges.OldToNew) != 0 || len(result.Mapping.Edges.NewToOld) != 0 {
+		t.Errorf("unavailable edge mapping = %#v, want non-nil empty slices", result.Mapping.Edges)
+	}
+	if result.Mapping.Vertices.OldToNew == nil || result.Mapping.Vertices.NewToOld == nil {
+		t.Errorf("vertex identity mapping = %#v, want non-nil slices", result.Mapping.Vertices)
 	}
 }
 
@@ -270,13 +415,13 @@ func transformationGraph(t *testing.T, vertexCount int, edges []Edge, directed b
 
 func assertTransformationClosed(t *testing.T, graph *Graph) {
 	t.Helper()
-	if err := graph.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); !errors.Is(err, ErrClosed) {
+	if _, err := graph.SimplifyInPlace(SimplifyOptions{RemoveLoops: true}); !errors.Is(err, ErrClosed) {
 		t.Errorf("SimplifyInPlace() error = %v, want %v", err, ErrClosed)
 	}
-	if err := graph.ConvertToDirectedInPlace(DirectedConversionArbitrary); !errors.Is(err, ErrClosed) {
+	if _, err := graph.ConvertToDirectedInPlace(DirectedConversionArbitrary); !errors.Is(err, ErrClosed) {
 		t.Errorf("ConvertToDirectedInPlace() error = %v, want %v", err, ErrClosed)
 	}
-	if err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); !errors.Is(err, ErrClosed) {
+	if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); !errors.Is(err, ErrClosed) {
 		t.Errorf("ConvertToUndirectedInPlace() error = %v, want %v", err, ErrClosed)
 	}
 }

@@ -24,8 +24,9 @@
 // failures leave the original graph unchanged.
 // In-place simplification and direction conversion use the same clone-and-swap
 // atomicity: an error leaves the receiver unchanged. These transformations do
-// not return edge ID mappings because igraph does not expose complete
-// provenance for merged, duplicated, paired, or discarded edges.
+// return exact structural edge mappings when IDMapping can represent the
+// provenance. One-to-many mutual directed conversion explicitly marks its edge
+// mapping unavailable instead of inventing a correspondence.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined

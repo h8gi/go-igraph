@@ -26,6 +26,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `CentralizationResult` | Go-owned slice and scalars | none | generic score input is copied; specialized results retain no graph, solver, or C resource |
 | `IDMapping` | Go-owned slices | none | `OldToNew` is indexed by source ID; `NewToOld` is indexed by derived ID; both survive graph closure |
 | `GraphIDMapping` | two Go-owned `IDMapping` values | none | vertex and edge mappings follow the same direction, sentinel, and lifetime rules |
+| `GraphTransformationResult` | Go-owned mappings and availability flag | none | vertex mapping is identity; an unavailable one-to-many edge mapping has non-nil empty slices and must not be read as empty provenance |
 | `InducedSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | `EdgeSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
@@ -104,9 +105,15 @@ separately closable `Graph`.
 clones the receiver under its lock, completes the upstream transformation on
 the clone, and swaps it into the receiver only after success. Initialization or
 upstream failure destroys the clone and leaves the receiver unchanged. These
-APIs return no edge ID mapping: igraph 1.0.1 provides no complete provenance,
-and simplification, mutual direction conversion, collapsing, and reciprocal
-pairing can merge, duplicate, or discard edges without a one-to-one inverse.
+APIs construct structural source-to-result edge mappings from the source and
+completed replacement edge lists. Simplification and undirected collapse use
+the `IDMapping` many-to-one representative convention; undirected mutual maps
+both members of each reciprocal pair to one result and marks unmatched edges
+`RemovedID`. Per-edge undirected and non-mutual directed modes are one-to-one.
+Mutual directed conversion is one-to-many and cannot be represented by
+`IDMapping`, so `EdgeMappingAvailable` is false and both edge mapping slices
+are non-nil and empty. This explicit state must not be interpreted as an empty
+source graph. An identity or empty-to-empty operation has an available mapping.
 
 The package does not expose graph attributes or raw
 `igraph_attribute_combination_t` policies. Simplification passes no edge
