@@ -8,8 +8,8 @@ C types, C-backed slices, or cleanup functions for internal values.
 
 | Value | Storage | Caller action | Lifetime rule |
 | --- | --- | --- | --- |
-| `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods return `ErrClosed` afterwards |
-| `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods return `ErrClosed` afterwards |
+| `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods that require a live graph return `ErrClosed` afterwards |
+| `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |

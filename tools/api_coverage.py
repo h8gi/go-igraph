@@ -187,6 +187,9 @@ def render(config: dict, declarations: dict[str, str], annotations: list[Annotat
         f"- Internal dependencies: **{len(internal)}**",
         f"- Intentionally unsupported: **{len(unsupported)}**", "",
         "Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.", "",
+        "Headers marked `(generated)` are declaration-discovery locations. PMT-generated",
+        "APIs can appear through several public headers, so the report records the first",
+        "preprocessed header where each declaration is found rather than a canonical owner.", "",
         "## Summary by header", "", "| Header | Bound | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",
     ]

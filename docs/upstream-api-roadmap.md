@@ -47,7 +47,12 @@ distinguishes:
 
 Goal: create, inspect, and modify ordinary graphs without reaching into cgo.
 
-Planned areas:
+Status: complete. The graph API covers the planned inspection, mutation,
+lookup, copying, and deterministic-construction areas, and reached its initial
+target with 26 user-facing bindings. The binding inventory and behavioral
+checks are enforced in CI.
+
+Implemented areas:
 
 - graph counts and directionality;
 - add vertices and edges;
@@ -74,7 +79,7 @@ inventory classifies the lifecycle functions used by the common wrappers, and
 `make verify` enforces formatting, vet, behavioral tests, statement coverage,
 inventory-tool tests, and report freshness in both local development and CI.
 
-Planned areas:
+Implemented areas:
 
 - integer, real, boolean, and string conversions;
 - matrices;

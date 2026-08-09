@@ -114,6 +114,10 @@ class ApiCoverageTest(unittest.TestCase):
             "intentionally_unsupported": ["igraph_unsupported"],
         }
         report = render(config, declarations, annotations)
+        self.assertIn(
+            "Headers marked `(generated)` are declaration-discovery locations.",
+            report,
+        )
         self.assertIn("| `igraph_bound` | `b.h` | User-facing | `Bound` |", report)
         self.assertIn("| `igraph_internal` | `a.h` | Internal | `helper` |", report)
         self.assertIn("| `igraph_unsupported` | `b.h` | Intentionally unsupported | — |", report)
