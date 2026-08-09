@@ -128,13 +128,23 @@ func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 		return nil, ErrClosed
 	}
 
-	vertexCount := int(C.igraph_vcount(&g.graph))
+	if err := validateVertexSelector(selector, int(C.igraph_vcount(&g.graph))); err != nil {
+		return nil, err
+	}
+
+	return materializeVertexIDs(&g.graph, selector)
+}
+
+// validateVertexSelector checks the selector against a graph's current vertex
+// count. Callers that already hold the graph mutex use this helper to keep
+// selector validation and the C operation in the same critical section.
+func validateVertexSelector(selector VertexSelector, vertexCount int) error {
 	switch selector.kind {
 	case vertexSelectorAll, vertexSelectorNone:
 	case vertexSelectorIDs:
 		for index, id := range selector.ids {
 			if id >= vertexCount {
-				return nil, fmt.Errorf(
+				return fmt.Errorf(
 					"igraph: vertex ID at selector index %d is %d, outside [0, %d)",
 					index, id, vertexCount,
 				)
@@ -142,14 +152,13 @@ func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 		}
 	case vertexSelectorRange:
 		if selector.end > vertexCount {
-			return nil, fmt.Errorf(
+			return fmt.Errorf(
 				"igraph: vertex range [%d, %d) exceeds vertex count %d",
 				selector.start, selector.end, vertexCount,
 			)
 		}
 	default:
-		return nil, fmt.Errorf("igraph: invalid vertex selector kind: %d", selector.kind)
+		return fmt.Errorf("igraph: invalid vertex selector kind: %d", selector.kind)
 	}
-
-	return materializeVertexIDs(&g.graph, selector)
+	return nil
 }

@@ -63,14 +63,18 @@ func newIntVector(values []int) (*intVector, error) {
 //
 //igraph:internal igraph_vector_int_size
 func (v *intVector) slice() ([]int, error) {
-	size, err := igraphIntToInt(C.igraph_vector_int_size(&v.value), "integer vector length")
+	return intVectorSlice(&v.value)
+}
+
+func intVectorSlice(vector *C.igraph_vector_int_t) ([]int, error) {
+	size, err := igraphIntToInt(C.igraph_vector_int_size(vector), "integer vector length")
 	if err != nil {
 		return nil, err
 	}
 	result := make([]int, size)
 	for i := range result {
 		result[i], err = igraphIntToInt(
-			C.go_igraph_vector_int_get(&v.value, C.igraph_int_t(i)),
+			C.go_igraph_vector_int_get(vector, C.igraph_int_t(i)),
 			fmt.Sprintf("integer vector value at index %d", i),
 		)
 		if err != nil {
