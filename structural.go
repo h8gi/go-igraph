@@ -285,9 +285,11 @@ func (g *Graph) AveragePathLength(options DistanceSummaryOptions) (AveragePathLe
 	}, nil
 }
 
-// TransitivityMode controls how an undefined clustering coefficient is
-// represented. Its zero value, TransitivityNaN, preserves undefined values as
-// NaN; TransitivityZero substitutes zero.
+// TransitivityMode controls how undefined clustering coefficients are treated.
+// For global and per-vertex results, its zero value, TransitivityNaN, preserves
+// undefined values as NaN; TransitivityZero substitutes zero. For an average
+// local result, TransitivityNaN excludes undefined vertices from the mean and
+// TransitivityZero includes them with a zero coefficient.
 type TransitivityMode uint8
 
 const (
@@ -394,7 +396,10 @@ func (g *Graph) LocalTransitivity(vertices VertexSelector, mode TransitivityMode
 }
 
 // AverageLocalTransitivity returns the mean of vertex-level clustering
-// coefficients. Edge directions and multiplicities are ignored.
+// coefficients. With TransitivityNaN, vertices with fewer than two neighbors
+// are excluded from the mean, and the result is NaN if no vertex remains. With
+// TransitivityZero, those vertices are included with coefficient zero. Edge
+// directions and multiplicities are ignored.
 //
 //igraph:bind igraph_transitivity_avglocal_undirected
 func (g *Graph) AverageLocalTransitivity(mode TransitivityMode) (float64, error) {

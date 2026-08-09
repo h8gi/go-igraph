@@ -418,6 +418,20 @@ func assertFloat(t *testing.T, got, want float64) {
 		}
 		return
 	}
+	if math.IsNaN(got) {
+		t.Errorf("value = NaN, want %v", want)
+		return
+	}
+	if math.IsInf(want, 0) {
+		if got != want {
+			t.Errorf("value = %v, want %v", got, want)
+		}
+		return
+	}
+	if math.IsInf(got, 0) {
+		t.Errorf("value = %v, want %v", got, want)
+		return
+	}
 	if math.Abs(got-want) > 1e-12 {
 		t.Errorf("value = %.16g, want %.16g", got, want)
 	}
