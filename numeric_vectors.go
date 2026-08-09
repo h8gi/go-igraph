@@ -13,6 +13,15 @@ package igraph
 //   return VECTOR(*vector)[pos];
 // }
 //
+// static igraph_error_t go_igraph_vector_int_init(
+//     igraph_vector_int_t *vector, igraph_int_t size) {
+//   igraph_error_handler_t *previous =
+//       igraph_set_error_handler(&igraph_error_handler_ignore);
+//   igraph_error_t code = igraph_vector_int_init(vector, size);
+//   igraph_set_error_handler(previous);
+//   return code;
+// }
+//
 // static void go_igraph_vector_set_value(
 //     igraph_vector_t *vector, igraph_int_t pos, igraph_real_t value) {
 //   VECTOR(*vector)[pos] = value;
@@ -49,7 +58,7 @@ func newIntVector(values []int) (*intVector, error) {
 	}
 
 	vector := &intVector{}
-	if code := C.igraph_vector_int_init(&vector.value, size); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_vector_int_init(&vector.value, size); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize integer vector", int(code))
 	}
 	for i, value := range converted {

@@ -67,6 +67,27 @@ func TestDirectedWeaklyButNotStronglyConnected(t *testing.T) {
 	}
 }
 
+func TestDirectedStronglyConnected(t *testing.T) {
+	g, err := NewGraphFromEdges(3, []Edge{
+		{From: 0, To: 1},
+		{From: 1, To: 2},
+		{From: 2, To: 0},
+	}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = g.Close() })
+
+	strong, err := g.ConnectedComponents(ConnectednessStrong)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertComponents(t, strong, [][]int{{0, 1, 2}})
+	if connected, err := g.IsConnected(ConnectednessStrong); err != nil || !connected {
+		t.Errorf("IsConnected(strong) = %t, %v, want true, nil", connected, err)
+	}
+}
+
 func TestUndirectedConnectedComponents(t *testing.T) {
 	tests := []struct {
 		name       string
