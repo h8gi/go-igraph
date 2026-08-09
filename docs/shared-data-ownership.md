@@ -12,6 +12,8 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | `Path` | Go-owned result value | none | vertex and edge slices remain valid after the graph is closed; an unreachable target has `Found == false` and non-nil empty slices |
+| `DiameterResult` | Go-owned result value | none | scalar fields and its `Path` remain valid after the graph is closed; when no diameter path exists, endpoint IDs are -1 and path slices are non-nil empty slices |
+| `AveragePathLengthResult` | Go-owned result value | none | contains scalar length and unreachable ordered-pair count; retains no graph or C resource |
 | `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
@@ -39,6 +41,17 @@ temporary C storage; `nil` selects the unweighted operation. Distance matrices
 follow the materialized source and target selector order, including duplicates,
 and represent unreachable pairs as positive infinity. Path slices and matrices
 remain valid after their source graph is closed.
+
+Density and whole-graph distance-summary options use the same optional weight
+contract. Density accepts any finite weights. Diameter and average path length
+delegate negative-weight rejection to their upstream shortest-path algorithm.
+`IgnoreUnreachable` restricts summaries to reachable pairs; otherwise a
+disconnected summary length is positive infinity. Diameter vertex and edge
+paths, local transitivity slices, and all other structural metric results are
+copied into Go-owned values before temporary C resources are destroyed. Local
+transitivity follows materialized selector order, including duplicates; the
+binding only deduplicates internally where required by the upstream call and
+expands the result before returning it.
 
 ## Nil and empty values
 
