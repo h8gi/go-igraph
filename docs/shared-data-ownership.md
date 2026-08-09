@@ -26,6 +26,9 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `CentralizationResult` | Go-owned slice and scalars | none | generic score input is copied; specialized results retain no graph, solver, or C resource |
 | `IDMapping` | Go-owned slices | none | `OldToNew` is indexed by source ID; `NewToOld` is indexed by derived ID; both survive graph closure |
 | `GraphIDMapping` | two Go-owned `IDMapping` values | none | vertex and edge mappings follow the same direction, sentinel, and lifetime rules |
+| `InducedSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
+| `EdgeSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
+| decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -74,6 +77,27 @@ Go-owned mappings, and only then moves the completed clone into the public
 `Graph`. Validation, initialization, upstream, or post-mutation conversion
 failure destroys the clone and leaves the original graph unchanged. Successful
 mappings retain no graph or C storage and survive closing the mutated graph.
+
+Induced-subgraph selectors are materialized while the source graph is locked.
+Duplicate vertex IDs are considered once, selector order is ignored, and the
+result follows increasing source vertex ID order. Its vertex mapping is the
+exact mapping returned by upstream igraph. The binding does not infer an edge
+mapping because upstream does not return result edge-ID correspondence or a
+result edge-order mapping.
+
+Edge-subgraph selectors are likewise materialized before the upstream call.
+Duplicate edge IDs are retained once and IDs are supplied to upstream in
+increasing source-ID order. When isolated vertices are retained, vertex IDs do
+not change and the vertex mapping is identity. When isolated vertices are
+deleted, the binding first creates an independent edge subgraph containing all
+source vertices, so its initial vertex IDs remain identical to source IDs. It
+then deletes that result's isolated vertices and returns the exact mapping from
+upstream `igraph_delete_vertices_map` in Go-owned storage. No edge mapping is
+exposed because upstream does not return result edge-ID correspondence or a
+result edge-order mapping. Component decomposition also returns no inferred
+provenance: component ordering and vertex renumbering are upstream-defined.
+Every component is removed from its temporary graph list and adopted into a
+separately closable `Graph`.
 
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
@@ -147,6 +171,11 @@ an API explicitly requires at least one value:
   membership and size slices with a component count of zero;
 - cut-structure queries on empty or edgeless graphs return non-nil empty
   slices, including both outer component collections;
+- an empty induced-subgraph selector returns an independently owned empty graph
+  with a non-nil mapping; an empty edge selector either retains all isolated
+  vertices or returns a null graph according to its deletion option;
+- decomposition of a graph with no vertices returns a non-nil empty graph
+  slice;
 - breadth-first search requires at least one root and depth-first search
   requires one valid root, so traversal of an empty graph returns an error;
 - `NewLattice` is the exception: it rejects nil and empty dimensions because
