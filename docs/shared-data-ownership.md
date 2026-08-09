@@ -20,6 +20,8 @@ C types, C-backed slices, or cleanup functions for internal values.
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
 | `ConnectedComponents` | Go-owned value and slices | none | membership and sizes remain valid and mutable after the graph is closed |
 | `BFSResult`, `DFSResult` | Go-owned slices | none | traversal options are borrowed only during the call; results remain valid and mutable after the graph is closed |
+| centrality score/result values | Go-owned slices and scalars | none | selector, cutoff, reset, weight, and solver inputs are borrowed only for the call; returned scores and metadata remain valid after graph closure |
+| `CentralizationResult` | Go-owned slice and scalars | none | generic score input is copied; specialized results retain no graph, solver, or C resource |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -60,6 +62,27 @@ transitivity follows materialized selector order, including duplicates; the
 binding only deduplicates internally where required by the upstream call and
 expands the result before returning it.
 
+Centrality options use method-specific edge-weight validation. Closeness,
+harmonic centrality, and betweenness require one finite, strictly positive
+weight per edge. Eigenvector centrality, HITS, and PageRank allow finite
+non-negative weights. Every non-nil weight slice is borrowed only for the call
+and copied into a temporary C vector. A nil centrality cutoff means unlimited;
+a non-nil cutoff is borrowed and must be finite and non-negative.
+
+PageRank reset distributions are borrowed and copied into temporary C storage;
+reset selectors are borrowed and materialized while the graph lock is held.
+The two reset forms are mutually exclusive. Returned PageRank scores follow the
+materialized result-selector order, including duplicates. Solver option values
+are copied into stack-local upstream options for one call; no public value owns
+or exposes an upstream solver object.
+
+Graph centralization inputs and outputs are ordinary Go values. Generic
+centralization copies its score input into the returned result. Specialized
+centralization routines return Go-owned node scores and scalars. Raw empty-graph
+centralization uses non-nil empty scores, `NaN` value, and theoretical maximum
+zero; normalized empty or single-vertex calculations return an error rather
+than dividing by zero.
+
 ## Nil and empty values
 
 Nil and empty slices have the same meaning at the shared data boundary unless
@@ -79,7 +102,11 @@ an API explicitly requires at least one value:
 - breadth-first search requires at least one root and depth-first search
   requires one valid root, so traversal of an empty graph returns an error;
 - `NewLattice` is the exception: it rejects nil and empty dimensions because
-  a lattice needs at least one dimension.
+  a lattice needs at least one dimension;
+- empty centrality selectors return non-nil empty score slices; an empty graph
+  returns non-nil empty eigenvector, HITS, and PageRank score slices;
+- personalized PageRank reset distributions and reset selectors are exceptions
+  that must contain positive mass or select at least one vertex.
 
 Every successful API that returns a collection returns a non-nil empty Go
 slice when the result has no elements. A zero selector value is intentionally
@@ -105,7 +132,7 @@ No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully
 initialized dependency before returning an error.
 
-All fallible Milestone 3 calls, including temporary integer/real vector,
+All fallible Milestone 3 and 4 calls, including temporary integer/real vector,
 matrix, vector-list, selector, and iterator initialization, pass through
 central C wrappers. A wrapper installs igraph's non-aborting error and warning
 handlers, performs exactly one upstream operation, and restores the prior
@@ -113,7 +140,9 @@ handlers before the cgo call returns. The pinned thread-safe igraph build keeps
 handler state thread-local, so installation and restoration occur on the same
 OS thread without a process-wide Go mutex. Initialization failure transfers no
 resource; partial Go constructors destroy every dependency whose initializer
-already succeeded.
+already succeeded. Centrality output vectors, selectors, reset vectors, weight
+vectors, and stack-local solver options remain scoped to the graph lock and are
+destroyed on upstream error, warning paths, early return, and success.
 
 ## Verification
 
