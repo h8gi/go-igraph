@@ -59,6 +59,23 @@ igraph_error_t go_igraph_copy(igraph_t *to, const igraph_t *from) {
     GO_IGRAPH_CALL(igraph_copy(to, from));
 }
 
+igraph_error_t go_igraph_delete_edges(igraph_t *graph, igraph_es_t edges) {
+    GO_IGRAPH_CALL(igraph_delete_edges(graph, edges));
+}
+
+igraph_error_t go_igraph_delete_vertices_map(
+        igraph_t *graph, igraph_vs_t vertices, igraph_vector_int_t *map,
+        igraph_vector_int_t *invmap) {
+    GO_IGRAPH_CALL(igraph_delete_vertices_map(
+        graph, vertices, map, invmap));
+}
+
+igraph_error_t go_igraph_get_edgelist(
+        const igraph_t *graph, igraph_vector_int_t *edges,
+        igraph_bool_t by_column) {
+    GO_IGRAPH_CALL(igraph_get_edgelist(graph, edges, by_column));
+}
+
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *value,
                                         const igraph_vector_int_t *ids) {
     GO_IGRAPH_CALL(igraph_vs_vector_copy(value, ids));
