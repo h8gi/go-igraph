@@ -144,22 +144,54 @@ Completion evidence:
 - all fallible algorithm and temporary-resource calls use centralized C
   wrappers that install and restore non-aborting thread-local igraph handlers.
 
-## Milestone 4: Advanced algorithms
+## Milestone 4: Centrality algorithms
 
-Goal: expand into specialized analysis after the common abstractions are
-stable.
+Goal: deliver the first advanced-algorithm slice as a coherent centrality API
+over the selector, direction, weight, matrix, error, and ownership contracts
+established by Milestones 2 and 3.
 
-Planned areas:
+Status: planned. Work is tracked by
+[GitHub Milestone 4](https://github.com/h8gi/go-igraph/milestone/4) and is not
+complete until its implementation and contract-audit issues are closed.
 
-- centrality;
-- community detection;
-- layouts;
-- flows and cuts;
-- isomorphism;
-- random graph generators;
-- domain-specific modules such as spatial, bipartite, and motif APIs.
+Planned areas and execution order:
 
-These areas should be split into independent GitHub milestones when work begins.
+- closeness and harmonic centrality, including explicit cutoff and
+  reachability semantics ([#52](https://github.com/h8gi/go-igraph/issues/52));
+- vertex and edge betweenness, including normalization and cutoff behavior
+  ([#53](https://github.com/h8gi/go-igraph/issues/53));
+- eigenvector centrality, HITS, PageRank, and personalized PageRank behind a
+  Go-native solver boundary ([#54](https://github.com/h8gi/go-igraph/issues/54));
+- graph-level degree, betweenness, closeness, and eigenvector centralization
+  after their node-level contracts stabilize
+  ([#55](https://github.com/h8gi/go-igraph/issues/55));
+- a final integration, ownership, failure-path, and documentation audit
+  ([#56](https://github.com/h8gi/go-igraph/issues/56)).
+
+Completion criteria:
+
+- vertex and edge results preserve materialized selector order, including
+  duplicates, and every returned collection is a non-nil Go-owned value;
+- direction, directed-path, weight, cutoff, normalization, reachability,
+  reset-distribution, and undefined-value semantics are explicit and
+  consistent across the API;
+- ARPACK, PRPACK, and other upstream solver types do not appear in the public
+  API, and solver defaults, convergence, warnings, and errors have documented
+  Go behavior;
+- initialization failure, upstream errors, warning paths, early returns,
+  empty and degenerate graphs, disconnected graphs, invalid inputs, and use
+  after `Close` release all temporary C resources and have focused coverage;
+- known-answer or invariant-based tests cover directed and undirected,
+  weighted and unweighted, normalized and raw, cutoff and unlimited, and
+  personalized and non-personalized calculations;
+- public documentation states whether inputs are borrowed or copied and that
+  returned values are Go-owned; and
+- the binding inventory is regenerated and reviewed, statement coverage stays
+  above the CI threshold, and `make verify` passes.
+
+Community detection, layouts, flows and cuts, isomorphism, random graph
+generators, and domain-specific spatial, bipartite, and motif APIs remain
+candidates for separate future milestones. They are not part of Milestone 4.
 
 ## Definition of done for a binding
 
