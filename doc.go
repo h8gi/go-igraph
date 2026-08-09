@@ -30,6 +30,12 @@
 // mapping unavailable instead of inventing a correspondence. Equivalent
 // parallel edges use source/result edge-ID order as a deterministic structural
 // convention, not as attribute provenance.
+// Graph-returning transformations borrow their source graphs only for the
+// synchronous call and return independently closable graphs. Multi-graph
+// operators deduplicate repeated operands and acquire distinct graph locks in
+// stable order. Component graphs own separate C resources; ID mappings,
+// composition provenance, articulation points, bridges, and biconnected nested
+// collections are non-nil Go-owned values that survive source closure.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined
