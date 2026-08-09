@@ -113,7 +113,7 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 	}
 	defer cTargets.close()
 
-	weights, err := newPathWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
+	weights, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -128,7 +128,7 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 
 	code := C.go_igraph_distances(
 		&g.graph,
-		pathWeightPointer(weights),
+		edgeWeightPointer(weights),
 		&result.value,
 		cSources.value,
 		cTargets.value,
@@ -174,7 +174,7 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 	if err := validateVertexID(target, vertexCount); err != nil {
 		return Path{}, fmt.Errorf("igraph: invalid path target: %w", err)
 	}
-	weights, err := newPathWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
+	weights, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
 	if err != nil {
 		return Path{}, err
 	}
@@ -194,7 +194,7 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 
 	code := C.go_igraph_get_shortest_path(
 		&g.graph,
-		pathWeightPointer(weights),
+		edgeWeightPointer(weights),
 		&vertices.value,
 		&edges.value,
 		C.igraph_int_t(source),
@@ -248,7 +248,7 @@ func expandDistanceColumns(distances Matrix, columns []int) (Matrix, error) {
 	return result, nil
 }
 
-func newPathWeights(values []float64, edgeCount int) (*realVector, error) {
+func newOptionalEdgeWeights(values []float64, edgeCount int) (*realVector, error) {
 	if values == nil {
 		return nil, nil
 	}
@@ -268,7 +268,7 @@ func newPathWeights(values []float64, edgeCount int) (*realVector, error) {
 
 //igraph:internal igraph_set_error_handler
 //igraph:internal igraph_set_warning_handler
-func pathWeightPointer(weights *realVector) *C.igraph_vector_t {
+func edgeWeightPointer(weights *realVector) *C.igraph_vector_t {
 	if weights == nil {
 		return nil
 	}
