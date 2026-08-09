@@ -304,3 +304,68 @@ igraph_error_t go_igraph_pagerank(
         graph, weights, result, value, damping, directed, vertices, algorithm,
         &options));
 }
+
+igraph_error_t go_igraph_centralization_degree(
+    const igraph_t *graph, igraph_vector_t *result, igraph_neimode_t mode,
+    igraph_loops_t loops, igraph_real_t *centralization,
+    igraph_bool_t normalized) {
+    igraph_real_t ignored_theoretical_max;
+    GO_IGRAPH_CALL(igraph_centralization_degree(
+        graph, result, mode, loops, centralization,
+        &ignored_theoretical_max, normalized));
+}
+
+igraph_error_t go_igraph_centralization_degree_tmax(
+    const igraph_t *graph, igraph_real_t *result, igraph_neimode_t mode,
+    igraph_loops_t loops) {
+    GO_IGRAPH_CALL(igraph_centralization_degree_tmax(
+        graph, igraph_vcount(graph), mode, loops, result));
+}
+
+igraph_error_t go_igraph_centralization_betweenness(
+    const igraph_t *graph, igraph_vector_t *result, igraph_bool_t directed,
+    igraph_real_t *centralization, igraph_bool_t normalized) {
+    igraph_real_t ignored_theoretical_max;
+    GO_IGRAPH_CALL(igraph_centralization_betweenness(
+        graph, result, directed, centralization, &ignored_theoretical_max,
+        normalized));
+}
+
+igraph_error_t go_igraph_centralization_betweenness_tmax(
+    const igraph_t *graph, igraph_real_t *result, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_centralization_betweenness_tmax(
+        graph, igraph_vcount(graph), directed, result));
+}
+
+igraph_error_t go_igraph_centralization_closeness(
+    const igraph_t *graph, igraph_vector_t *result, igraph_neimode_t mode,
+    igraph_real_t *centralization, igraph_bool_t normalized) {
+    igraph_real_t ignored_theoretical_max;
+    GO_IGRAPH_CALL(igraph_centralization_closeness(
+        graph, result, mode, centralization, &ignored_theoretical_max,
+        normalized));
+}
+
+igraph_error_t go_igraph_centralization_closeness_tmax(
+    const igraph_t *graph, igraph_real_t *result, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_centralization_closeness_tmax(
+        graph, igraph_vcount(graph), mode, result));
+}
+
+igraph_error_t go_igraph_centralization_eigenvector(
+    const igraph_t *graph, igraph_vector_t *result, igraph_neimode_t mode,
+    int max_iterations, igraph_real_t tolerance,
+    igraph_real_t *centralization, igraph_bool_t normalized) {
+    igraph_arpack_options_t options;
+    igraph_real_t ignored_eigenvalue, ignored_theoretical_max;
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
+    GO_IGRAPH_CALL(igraph_centralization_eigenvector_centrality(
+        graph, result, &ignored_eigenvalue, mode, &options, centralization,
+        &ignored_theoretical_max, normalized));
+}
+
+igraph_error_t go_igraph_centralization_eigenvector_tmax(
+    const igraph_t *graph, igraph_real_t *result, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_centralization_eigenvector_centrality_tmax(
+        graph, igraph_vcount(graph), mode, result));
+}

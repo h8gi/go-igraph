@@ -87,5 +87,25 @@ igraph_error_t go_igraph_pagerank(
     igraph_real_t *, const igraph_vector_t *, igraph_vs_t, int,
     igraph_real_t, igraph_bool_t, igraph_vs_t, igraph_pagerank_algo_t,
     int, igraph_real_t);
+igraph_error_t go_igraph_centralization_degree(
+    const igraph_t *, igraph_vector_t *, igraph_neimode_t, igraph_loops_t,
+    igraph_real_t *, igraph_bool_t);
+igraph_error_t go_igraph_centralization_degree_tmax(
+    const igraph_t *, igraph_real_t *, igraph_neimode_t, igraph_loops_t);
+igraph_error_t go_igraph_centralization_betweenness(
+    const igraph_t *, igraph_vector_t *, igraph_bool_t, igraph_real_t *,
+    igraph_bool_t);
+igraph_error_t go_igraph_centralization_betweenness_tmax(
+    const igraph_t *, igraph_real_t *, igraph_bool_t);
+igraph_error_t go_igraph_centralization_closeness(
+    const igraph_t *, igraph_vector_t *, igraph_neimode_t, igraph_real_t *,
+    igraph_bool_t);
+igraph_error_t go_igraph_centralization_closeness_tmax(
+    const igraph_t *, igraph_real_t *, igraph_neimode_t);
+igraph_error_t go_igraph_centralization_eigenvector(
+    const igraph_t *, igraph_vector_t *, igraph_neimode_t, int,
+    igraph_real_t, igraph_real_t *, igraph_bool_t);
+igraph_error_t go_igraph_centralization_eigenvector_tmax(
+    const igraph_t *, igraph_real_t *, igraph_neimode_t);
 
 #endif
