@@ -11,6 +11,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods that require a live graph return `ErrClosed` afterwards |
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
+| `Path` | Go-owned result value | none | vertex and edge slices remain valid after the graph is closed; an unreachable target has `Found == false` and non-nil empty slices |
 | `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
@@ -31,6 +32,13 @@ Connected-component results are eagerly copied while holding the graph lock.
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
 and ordering come from upstream igraph. No result retains the source graph or
 any C storage.
+
+Path and distance options borrow a non-nil weight slice only for the duration
+of the call. The slice must contain one finite value per edge and is copied to
+temporary C storage; `nil` selects the unweighted operation. Distance matrices
+follow the materialized source and target selector order, including duplicates,
+and represent unreachable pairs as positive infinity. Path slices and matrices
+remain valid after their source graph is closed.
 
 ## Nil and empty values
 
