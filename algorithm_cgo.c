@@ -221,3 +221,29 @@ igraph_error_t go_igraph_harmonic_centrality(
     GO_IGRAPH_CALL(igraph_harmonic_centrality(
         graph, result, vertices, mode, weights, normalized));
 }
+
+igraph_error_t go_igraph_betweenness(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_vs_t vertices, igraph_bool_t directed,
+    igraph_bool_t normalized, igraph_bool_t has_cutoff,
+    igraph_real_t cutoff) {
+    if (has_cutoff) {
+        GO_IGRAPH_CALL(igraph_betweenness_cutoff(
+            graph, weights, result, vertices, directed, normalized, cutoff));
+    }
+    GO_IGRAPH_CALL(igraph_betweenness(
+        graph, weights, result, vertices, directed, normalized));
+}
+
+igraph_error_t go_igraph_edge_betweenness(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_es_t edges, igraph_bool_t directed,
+    igraph_bool_t normalized, igraph_bool_t has_cutoff,
+    igraph_real_t cutoff) {
+    if (has_cutoff) {
+        GO_IGRAPH_CALL(igraph_edge_betweenness_cutoff(
+            graph, weights, result, edges, directed, normalized, cutoff));
+    }
+    GO_IGRAPH_CALL(igraph_edge_betweenness(
+        graph, weights, result, edges, directed, normalized));
+}
