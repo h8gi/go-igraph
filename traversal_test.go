@@ -212,6 +212,7 @@ func TestTraversalsRejectInvalidOptions(t *testing.T) {
 		{Roots: []int{0}, Restriction: NoVertices()},
 		{Roots: []int{0}, Restriction: VertexSelector{kind: vertexSelectorKind(99)}},
 		{Roots: []int{0}, Restriction: VertexSelector{kind: vertexSelectorIDs, ids: []int{-1, 0}}},
+		{Roots: []int{0}, Restriction: VertexSelector{kind: vertexSelectorRange, start: -1, end: 0}},
 		{Roots: []int{0}, Restriction: VertexSelector{kind: vertexSelectorRange, start: 2, end: 1}},
 	}
 	for index, options := range bfsCases {
