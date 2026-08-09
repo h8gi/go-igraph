@@ -138,9 +138,14 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 	if g.closed {
 		return nil, ErrClosed
 	}
+	return materializeSelectedEdgeIDs(&g.graph, selector)
+}
 
-	edgeCount := int(C.igraph_ecount(&g.graph))
-	vertexCount := int(C.igraph_vcount(&g.graph))
+// materializeSelectedEdgeIDs validates and materializes an edge selector while
+// its caller holds the graph lock.
+func materializeSelectedEdgeIDs(graph *C.igraph_t, selector EdgeSelector) ([]int, error) {
+	edgeCount := int(C.igraph_ecount(graph))
+	vertexCount := int(C.igraph_vcount(graph))
 	switch selector.kind {
 	case edgeSelectorAll, edgeSelectorNone:
 	case edgeSelectorIDs:
@@ -160,7 +165,7 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 			}
 			var edgeID C.igraph_int_t
 			if code := C.go_igraph_get_eid(
-				&g.graph,
+				graph,
 				&edgeID,
 				C.igraph_int_t(pair.From),
 				C.igraph_int_t(pair.To),
@@ -189,5 +194,5 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 		return []int{}, nil
 	}
 
-	return materializeEdgeIDs(&g.graph, selector)
+	return materializeEdgeIDs(graph, selector)
 }

@@ -273,7 +273,7 @@ func (g *Graph) LocalTransitivity(vertices VertexSelector, mode TransitivityMode
 	if err != nil {
 		return nil, fmt.Errorf("igraph: materialize local transitivity selector: %w", err)
 	}
-	uniqueIDs, resultIndexes := deduplicateVertexIDs(vertexIDs)
+	uniqueIDs, resultIndexes := deduplicateIDs(vertexIDs)
 	cVertices := vertices
 	if len(uniqueIDs) != len(vertexIDs) {
 		cVertices, err = VertexIDs(uniqueIDs...)

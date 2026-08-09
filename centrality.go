@@ -183,7 +183,7 @@ func (g *Graph) prepareDistanceCentrality(
 		return 0, nil, 0, false, nil, VertexSelector{}, nil,
 			fmt.Errorf("igraph: materialize centrality selector: %w", err)
 	}
-	uniqueIDs, positions := deduplicateVertexIDs(selectedIDs)
+	uniqueIDs, positions := deduplicateIDs(selectedIDs)
 	uniqueVertices := vertices
 	if len(uniqueIDs) != len(selectedIDs) {
 		uniqueVertices, err = VertexIDs(uniqueIDs...)

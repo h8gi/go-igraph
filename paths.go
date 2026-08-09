@@ -61,7 +61,7 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 	if err != nil {
 		return Matrix{}, fmt.Errorf("igraph: materialize target selector: %w", err)
 	}
-	uniqueTargetIDs, targetColumns := deduplicateVertexIDs(targetIDs)
+	uniqueTargetIDs, targetColumns := deduplicateIDs(targetIDs)
 	cTargetSelector := targets
 	if len(uniqueTargetIDs) != len(targetIDs) {
 		cTargetSelector, err = VertexIDs(uniqueTargetIDs...)
@@ -182,10 +182,10 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 	return Path{Vertices: vertexIDs, Edges: edgeIDs, Found: len(vertexIDs) != 0}, nil
 }
 
-// deduplicateVertexIDs preserves first-occurrence order and returns, for every
+// deduplicateIDs preserves first-occurrence order and returns, for every
 // original ID, its position in the unique result. This lets public selectors
-// preserve duplicates around upstream APIs that require unique vertex IDs.
-func deduplicateVertexIDs(ids []int) ([]int, []int) {
+// preserve duplicates around upstream APIs that require unique IDs.
+func deduplicateIDs(ids []int) ([]int, []int) {
 	unique := make([]int, 0, len(ids))
 	columns := make([]int, len(ids))
 	seen := make(map[int]int, len(ids))
