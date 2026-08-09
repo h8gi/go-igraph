@@ -26,6 +26,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `CentralizationResult` | Go-owned slice and scalars | none | generic score input is copied; specialized results retain no graph, solver, or C resource |
 | `IDMapping` | Go-owned slices | none | `OldToNew` is indexed by source ID; `NewToOld` is indexed by derived ID; both survive graph closure |
 | `GraphIDMapping` | two Go-owned `IDMapping` values | none | vertex and edge mappings follow the same direction, sentinel, and lifetime rules |
+| `GraphTransformationResult` | Go-owned mappings and availability flag | none | vertex mapping is identity; an unavailable one-to-many edge mapping has non-nil empty slices and must not be read as empty provenance |
 | `InducedSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | `EdgeSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
@@ -99,6 +100,34 @@ provenance: component ordering and vertex renumbering are upstream-defined.
 Every component is removed from its temporary graph list and adopted into a
 separately closable `Graph`.
 
+`SimplifyInPlace`, `ConvertToDirectedInPlace`, and
+`ConvertToUndirectedInPlace` are explicit mutating transformations. Each one
+clones the receiver under its lock, completes the upstream transformation on
+the clone, and swaps it into the receiver only after success. Initialization or
+upstream failure destroys the clone and leaves the receiver unchanged. These
+APIs construct structural source-to-result edge mappings from the source and
+completed replacement edge lists. Simplification and undirected collapse use
+the `IDMapping` many-to-one representative convention; undirected mutual maps
+both members of each reciprocal pair to one result and marks unmatched edges
+`RemovedID`. Per-edge undirected and non-mutual directed modes are one-to-one.
+Mutual directed conversion is one-to-many and cannot be represented by
+`IDMapping`, so `EdgeMappingAvailable` is false and both edge mapping slices
+are non-nil and empty. This explicit state must not be interpreted as an empty
+source graph. An identity or empty-to-empty operation has an available mapping.
+For endpoint-equivalent parallel edges, one-to-one mappings pair edges in
+ascending source and result edge-ID order. Undirected mutual conversion pairs
+ascending source IDs from each direction and assigns ascending result IDs for
+that endpoint group. These are deterministic structural conventions, not
+attribute provenance.
+
+The package does not expose graph attributes or raw
+`igraph_attribute_combination_t` policies. Simplification passes no edge
+attribute combination and therefore discards edge attributes when it runs.
+Undirected collapse and mutual conversion likewise pass no combination and
+discard edge attributes; per-edge undirected conversion preserves them under
+upstream semantics. Directed conversion uses upstream attribute behavior with
+no configurable policy.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
@@ -167,6 +196,9 @@ an API explicitly requires at least one value:
 - empty deletion selectors are no-ops with non-nil identity mappings; deleting
   all edges retains all vertices, while deleting all vertices yields a valid
   zero-vertex, zero-edge graph and non-nil empty reverse mappings;
+- zero-option simplification and conversion to the graph's existing direction
+  are no-ops; empty and edgeless graphs remain valid while directedness changes
+  according to a requested conversion;
 - `ConnectedComponents` on a graph with no vertices returns non-nil, empty
   membership and size slices with a component count of zero;
 - cut-structure queries on empty or edgeless graphs return non-nil empty
@@ -206,7 +238,7 @@ Initialization failure does not create a resource that needs destruction.
 | vertex or edge iterator | borrows its graph and selector only during eager materialization | destroy iterator first, then its owned selector, before releasing the graph lock |
 | initialized graph result | ownership is moved, never copied from borrowed list storage, into exactly one public `Graph` | clear the moved-from value; the public `Graph.Close` performs the one destroy |
 | graph list | owns its container and every graph still stored in it | remove transfers one element; destroy the container on success and all remaining elements plus already adopted graphs on any failure or early return |
-| deletion replacement graph | source graph and selector are borrowed under one lock; mapping vectors and the clone are temporary owners | destroy the clone and temporaries on every failure; on success destroy the prior graph exactly once after moving in the clone |
+| mutating replacement graph | source graph and inputs are borrowed under one lock; mapping vectors, when used, and the clone are temporary owners | destroy the clone and temporaries on every failure; on success destroy the prior graph exactly once after moving in the clone |
 
 No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully

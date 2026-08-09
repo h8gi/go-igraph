@@ -76,6 +76,23 @@ igraph_error_t go_igraph_get_edgelist(
     GO_IGRAPH_CALL(igraph_get_edgelist(graph, edges, by_column));
 }
 
+igraph_error_t go_igraph_simplify(igraph_t *graph,
+                                  igraph_bool_t remove_multiple,
+                                  igraph_bool_t remove_loops) {
+    GO_IGRAPH_CALL(igraph_simplify(
+        graph, remove_multiple, remove_loops, NULL));
+}
+
+igraph_error_t go_igraph_to_directed(igraph_t *graph,
+                                     igraph_to_directed_t mode) {
+    GO_IGRAPH_CALL(igraph_to_directed(graph, mode));
+}
+
+igraph_error_t go_igraph_to_undirected(igraph_t *graph,
+                                       igraph_to_undirected_t mode) {
+    GO_IGRAPH_CALL(igraph_to_undirected(graph, mode, NULL));
+}
+
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *value,
                                         const igraph_vector_int_t *ids) {
     GO_IGRAPH_CALL(igraph_vs_vector_copy(value, ids));

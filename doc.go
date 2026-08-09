@@ -22,6 +22,13 @@
 // Destructive deletion APIs materialize selectors before mutation and use a
 // temporary graph so validation, initialization, upstream, and conversion
 // failures leave the original graph unchanged.
+// In-place simplification and direction conversion use the same clone-and-swap
+// atomicity: an error leaves the receiver unchanged. These transformations do
+// return exact structural edge mappings when IDMapping can represent the
+// provenance. One-to-many mutual directed conversion explicitly marks its edge
+// mapping unavailable instead of inventing a correspondence. Equivalent
+// parallel edges use source/result edge-ID order as a deterministic structural
+// convention, not as attribute provenance.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined
