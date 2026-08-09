@@ -210,11 +210,14 @@ func newIntVectorList() (*intVectorList, error) {
 //igraph:internal igraph_vector_int_list_size
 //igraph:internal igraph_vector_int_list_get_ptr
 func (list *intVectorList) slices() ([][]int, error) {
-	// The list has one entry per selected vertex, so its size was necessarily
-	// representable as a Go slice length at the selection boundary.
-	size := int(C.go_igraph_vector_int_list_size(&list.value))
+	size, err := igraphIntToInt(
+		C.go_igraph_vector_int_list_size(&list.value),
+		"integer vector list length",
+	)
+	if err != nil {
+		return nil, err
+	}
 	result := make([][]int, size)
-	var err error
 	for i := range result {
 		vector := C.go_igraph_vector_int_list_get(&list.value, C.igraph_int_t(i))
 		result[i], err = intVectorSlice(vector)

@@ -128,6 +128,26 @@ igraph_error_t go_igraph_is_connected(const igraph_t *graph,
     GO_IGRAPH_CALL(igraph_is_connected(graph, result, mode));
 }
 
+igraph_error_t go_igraph_articulation_points(
+    const igraph_t *graph, igraph_vector_int_t *result) {
+    GO_IGRAPH_CALL(igraph_articulation_points(graph, result));
+}
+
+igraph_error_t go_igraph_bridges(const igraph_t *graph,
+                                 igraph_vector_int_t *result) {
+    GO_IGRAPH_CALL(igraph_bridges(graph, result));
+}
+
+igraph_error_t go_igraph_biconnected_components(
+    const igraph_t *graph, igraph_int_t *count,
+    igraph_vector_int_list_t *component_edges,
+    igraph_vector_int_list_t *component_vertices,
+    igraph_vector_int_t *articulation_points) {
+    GO_IGRAPH_CALL(igraph_biconnected_components(
+        graph, count, NULL, component_edges, component_vertices,
+        articulation_points));
+}
+
 igraph_error_t go_igraph_bfs(
     const igraph_t *graph, igraph_int_t root,
     const igraph_vector_int_t *roots, igraph_neimode_t mode,

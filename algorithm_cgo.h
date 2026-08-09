@@ -33,6 +33,12 @@ igraph_error_t go_igraph_connected_components(
     igraph_int_t *, igraph_connectedness_t);
 igraph_error_t go_igraph_is_connected(const igraph_t *, igraph_bool_t *,
                                       igraph_connectedness_t);
+igraph_error_t go_igraph_articulation_points(const igraph_t *,
+                                             igraph_vector_int_t *);
+igraph_error_t go_igraph_bridges(const igraph_t *, igraph_vector_int_t *);
+igraph_error_t go_igraph_biconnected_components(
+    const igraph_t *, igraph_int_t *, igraph_vector_int_list_t *,
+    igraph_vector_int_list_t *, igraph_vector_int_t *);
 igraph_error_t go_igraph_bfs(
     const igraph_t *, igraph_int_t, const igraph_vector_int_t *,
     igraph_neimode_t, igraph_bool_t, const igraph_vector_int_t *,

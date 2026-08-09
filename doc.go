@@ -2,7 +2,8 @@
 //
 // Graph and Vector values own C resources and should be closed when they are
 // no longer needed. Close is idempotent, and methods on a closed resource
-// return ErrClosed. Selectors, Matrix, Path, ConnectedComponents, IDMapping,
+// return ErrClosed. Selectors, Matrix, Path, ConnectedComponents,
+// articulation-point and bridge slices, BiconnectedComponents, IDMapping,
 // GraphIDMapping, traversal results, structural results, centrality results,
 // and centralization results are Go-owned and never require Close. Every
 // returned slice, nested slice, matrix, and path remains valid after the source
