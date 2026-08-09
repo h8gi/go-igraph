@@ -159,8 +159,8 @@ func TestGraphListInitializationFailureAndEmptyResult(t *testing.T) {
 	}
 }
 
-func TestGraphListUpstreamAndPostAdoptFailuresCleanUp(t *testing.T) {
-	for _, stage := range []string{"upstream", "post-adopt"} {
+func TestGraphListPreRemoveAndPostAdoptFailuresCleanUp(t *testing.T) {
+	for _, stage := range []string{"pre-remove", "post-adopt"} {
 		t.Run(stage, func(t *testing.T) {
 			source := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
 			list, err := newGraphListFromCopies([]*Graph{source, source})
@@ -170,7 +170,7 @@ func TestGraphListUpstreamAndPostAdoptFailuresCleanUp(t *testing.T) {
 			injected := errors.New("injected failure")
 			var adopted *Graph
 			hooks := graphListExtractionHooks{}
-			if stage == "upstream" {
+			if stage == "pre-remove" {
 				hooks.beforeRemove = func(int) error { return injected }
 			} else {
 				hooks.afterAdopt = func(_ int, graph *Graph) error {

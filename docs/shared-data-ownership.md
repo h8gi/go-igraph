@@ -51,9 +51,11 @@ No returned graph shares a graph-list container or requires manual C cleanup.
 `RemovedID` (`-1`). `NewToOld` is indexed by derived ID and contains the lowest
 source ID that maps to it, or `RemovedID` for an element with no source. The
 lowest-ID rule makes many-to-one mappings deterministic. Identity mappings
-contain the index in both directions, and empty mappings contain non-nil empty
-slices. Both directions are copied into Go storage and remain valid and mutable
-after source and result graphs are closed.
+contain the index in both directions. For a many-to-one transformation,
+`NewToOld` is a deterministic representative mapping rather than a strict
+inverse of `OldToNew`. Empty mappings contain non-nil empty slices. Both
+directions are copied into Go storage and remain valid and mutable after source
+and result graphs are closed.
 
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is

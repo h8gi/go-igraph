@@ -23,6 +23,8 @@ const RemovedID = -1
 // source ID mapped to it, or RemovedID when the derived element has no source.
 // Choosing the lowest source ID makes NewToOld deterministic for many-to-one
 // transformations such as edge simplification.
+// In that case NewToOld is a representative mapping, not a strict inverse of
+// OldToNew.
 //
 // Both slices are non-nil, Go-owned values. An empty-to-empty mapping contains
 // two non-nil empty slices. An identity mapping stores ID i at index i in both
@@ -139,8 +141,8 @@ type graphListExtractionHooks struct {
 	afterAdopt   func(index int, graph *Graph) error
 }
 
-// takeGraphsWithHooks provides failure-injection seams for upstream removal
-// and fallible Go conversion around ownership adoption.
+// takeGraphsWithHooks provides failure-injection seams before removal and for
+// fallible Go conversion around ownership adoption.
 func (list *graphList) takeGraphsWithHooks(
 	hooks graphListExtractionHooks,
 ) (result []*Graph, err error) {
@@ -228,7 +230,9 @@ func (list *graphList) close() {
 // are acquired once per distinct graph in stable address order, so opposite
 // argument orders and repeated graph arguments cannot deadlock. The callback
 // receives graph pointers in the original argument order; they are valid only
-// until the callback returns and must not be retained or destroyed.
+// until the callback returns and must not be retained or destroyed. The
+// callback must not call Graph methods or otherwise attempt to reacquire any
+// of these graph locks.
 func withLockedGraphs(graphs []*Graph, operation func([]*C.igraph_t) error) error {
 	if operation == nil {
 		return errors.New("igraph: graph operation is nil")
