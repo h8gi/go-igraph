@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **63 / 2015 (3.13%)**
-- Internal dependencies: **37**
+- Internal dependencies: **42**
 - Intentionally unsupported: **0**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -614,13 +614,13 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_graph_count` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_graph_list_capacity` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_clear` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_destroy` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_destroy` | `igraph_components.h (generated)` | Internal | `close` |
 | `igraph_graph_list_discard` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_discard_back` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_discard_fast` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_empty` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_get_ptr` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_init` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_init` | `igraph_components.h (generated)` | Internal | `newGraphList` |
 | `igraph_graph_list_init_copy` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_insert` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_insert_copy` | `igraph_components.h (generated)` | Missing | — |
@@ -628,9 +628,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_graph_list_permute` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_pop_back` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_push_back` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_push_back_copy` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_push_back_copy` | `igraph_components.h (generated)` | Internal | `appendCopy` |
 | `igraph_graph_list_push_back_new` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_remove` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_remove` | `igraph_components.h (generated)` | Internal | `takeGraphs` |
 | `igraph_graph_list_remove_consecutive_duplicates` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_remove_fast` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_replace` | `igraph_components.h (generated)` | Missing | — |
@@ -638,7 +638,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_graph_list_resize` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_reverse` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_set` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_size` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_size` | `igraph_components.h (generated)` | Internal | `takeGraphs` |
 | `igraph_graph_list_sort` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_sort_ind` | `igraph_components.h (generated)` | Missing | — |
 | `igraph_graph_list_swap` | `igraph_components.h (generated)` | Missing | — |

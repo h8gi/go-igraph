@@ -4,6 +4,7 @@ package igraph
 // #include <stdio.h>
 // #include <unistd.h>
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 import "C"
 import (
 	"errors"
@@ -254,12 +255,11 @@ func (g *Graph) Clone() (*Graph, error) {
 		return nil, ErrClosed
 	}
 
-	clone := &Graph{}
-	if code := C.igraph_copy(&clone.graph, &g.graph); code != C.IGRAPH_SUCCESS {
+	var clone C.igraph_t
+	if code := C.go_igraph_copy(&clone, &g.graph); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("clone graph", int(code))
 	}
-	runtime.SetFinalizer(clone, (*Graph).finalize)
-	return clone, nil
+	return adoptInitializedGraph(&clone), nil
 }
 
 // Neighbors returns adjacent vertex IDs in the requested direction. Parallel

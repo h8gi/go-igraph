@@ -39,6 +39,26 @@ igraph_error_t go_igraph_vector_int_list_init(igraph_vector_int_list_t *value,
     GO_IGRAPH_CALL(igraph_vector_int_list_init(value, size));
 }
 
+igraph_error_t go_igraph_graph_list_init(igraph_graph_list_t *value,
+                                         igraph_int_t size) {
+    GO_IGRAPH_CALL(igraph_graph_list_init(value, size));
+}
+
+igraph_error_t go_igraph_graph_list_push_back_copy(igraph_graph_list_t *list,
+                                                   const igraph_t *graph) {
+    GO_IGRAPH_CALL(igraph_graph_list_push_back_copy(list, graph));
+}
+
+igraph_error_t go_igraph_graph_list_remove(igraph_graph_list_t *list,
+                                           igraph_int_t index,
+                                           igraph_t *graph) {
+    GO_IGRAPH_CALL(igraph_graph_list_remove(list, index, graph));
+}
+
+igraph_error_t go_igraph_copy(igraph_t *to, const igraph_t *from) {
+    GO_IGRAPH_CALL(igraph_copy(to, from));
+}
+
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *value,
                                         const igraph_vector_int_t *ids) {
     GO_IGRAPH_CALL(igraph_vs_vector_copy(value, ids));
