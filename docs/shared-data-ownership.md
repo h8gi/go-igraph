@@ -114,6 +114,11 @@ Mutual directed conversion is one-to-many and cannot be represented by
 `IDMapping`, so `EdgeMappingAvailable` is false and both edge mapping slices
 are non-nil and empty. This explicit state must not be interpreted as an empty
 source graph. An identity or empty-to-empty operation has an available mapping.
+For endpoint-equivalent parallel edges, one-to-one mappings pair edges in
+ascending source and result edge-ID order. Undirected mutual conversion pairs
+ascending source IDs from each direction and assigns ascending result IDs for
+that endpoint group. These are deterministic structural conventions, not
+attribute provenance.
 
 The package does not expose graph attributes or raw
 `igraph_attribute_combination_t` policies. Simplification passes no edge

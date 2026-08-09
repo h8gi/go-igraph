@@ -14,7 +14,10 @@ import (
 // EdgeMappingAvailable is true, Mapping.Edges maps source edge IDs to result
 // edge IDs and may be many-to-one. When it is false, Mapping.Edges contains
 // non-nil empty slices and must not be interpreted as an empty source graph.
-// All slices are Go-owned and remain valid after the graph is closed.
+// Endpoint-equivalent parallel edges use ascending source and result edge ID
+// order as a deterministic structural convention for one-to-one and reciprocal
+// pairing; this does not claim attribute provenance. All slices are Go-owned
+// and remain valid after the graph is closed.
 type GraphTransformationResult struct {
 	Mapping              GraphIDMapping
 	EdgeMappingAvailable bool
@@ -169,7 +172,7 @@ func (g *Graph) convertToDirectedInPlace(mode DirectedConversionMode, hook graph
 			mapping, err := newIDMapping([]int{}, 0)
 			return mapping, false, err
 		}
-		mapping, err := oneToOneEdgeMapping(before, after, false)
+		mapping, err := identityEndpointEdgeMapping(before, after, false)
 		return mapping, true, err
 	})
 }
@@ -177,12 +180,12 @@ func (g *Graph) convertToDirectedInPlace(mode DirectedConversionMode, hook graph
 // ConvertToUndirectedInPlace atomically converts a directed graph according to
 // mode. A graph that is already undirected is unchanged after mode validation.
 //
-// Each mode returns exact edge provenance: each is one-to-one, collapse is
-// many-to-one, and mutual maps reciprocal pairs together while marking
-// unmatched edges RemovedID. Vertex IDs remain unchanged. The binding passes
-// no attribute-combination policy; collapse and mutual therefore discard edge
-// attributes, while each preserves them. This package currently exposes no
-// graph, vertex, or edge attributes.
+// Each, collapse, and mutual return structural edge provenance. For equivalent
+// parallel edges, reciprocal pairing follows ascending source and result edge
+// ID order; it is an ID convention, not attribute lineage. Vertex IDs remain
+// unchanged. The binding passes no attribute-combination policy; collapse and
+// mutual therefore discard edge attributes, while each preserves them. This
+// package currently exposes no graph, vertex, or edge attributes.
 //
 //igraph:bind igraph_to_undirected
 func (g *Graph) ConvertToUndirectedInPlace(mode UndirectedConversionMode) (GraphTransformationResult, error) {
@@ -212,7 +215,7 @@ func (g *Graph) convertToUndirectedInPlace(mode UndirectedConversionMode, hook g
 		var err error
 		switch mode {
 		case UndirectedConversionEach:
-			mapping, err = oneToOneEdgeMapping(before, after, false)
+			mapping, err = identityEndpointEdgeMapping(before, after, false)
 		case UndirectedConversionCollapse:
 			mapping, err = manyToOneEdgeMapping(before, after, false, nil)
 		case UndirectedConversionMutual:
@@ -328,43 +331,45 @@ func simplifyEdgeMapping(before, after []Edge, directed bool, options SimplifyOp
 		mapping, err := manyToOneEdgeMapping(before, after, directed, eligible)
 		return mapping, true, err
 	}
-	mapping, err := oneToOneEligibleEdgeMapping(before, after, directed, eligible)
+	mapping, err := stableFilteredEdgeMapping(before, after, directed, eligible)
 	return mapping, true, err
 }
 
-func oneToOneEdgeMapping(before, after []Edge, directed bool) (IDMapping, error) {
-	return oneToOneEligibleEdgeMapping(before, after, directed, nil)
+func identityEndpointEdgeMapping(before, after []Edge, directed bool) (IDMapping, error) {
+	if len(before) != len(after) {
+		return IDMapping{}, fmt.Errorf("edge count changed from %d to %d", len(before), len(after))
+	}
+	for id := range before {
+		if endpointKey(before[id], directed) != endpointKey(after[id], directed) {
+			return IDMapping{}, fmt.Errorf("edge %d endpoints changed from %v to %v", id, endpointKey(before[id], directed), endpointKey(after[id], directed))
+		}
+	}
+	return identityIDMapping(len(before))
 }
 
-func oneToOneEligibleEdgeMapping(
+func stableFilteredEdgeMapping(
 	before, after []Edge,
 	directed bool,
 	eligible func(Edge) bool,
 ) (IDMapping, error) {
-	resultIDs := make(map[edgeEndpointKey][]int)
-	for resultID, edge := range after {
-		key := endpointKey(edge, directed)
-		resultIDs[key] = append(resultIDs[key], resultID)
-	}
-	next := make(map[edgeEndpointKey]int)
 	oldToNew := make([]int, len(before))
+	resultID := 0
 	for sourceID, edge := range before {
 		oldToNew[sourceID] = RemovedID
 		if eligible != nil && !eligible(edge) {
 			continue
 		}
-		key := endpointKey(edge, directed)
-		index := next[key]
-		if index >= len(resultIDs[key]) {
-			return IDMapping{}, fmt.Errorf("edge %d with endpoints %v has no result", sourceID, key)
+		if resultID >= len(after) {
+			return IDMapping{}, fmt.Errorf("edge %d has no result", sourceID)
 		}
-		oldToNew[sourceID] = resultIDs[key][index]
-		next[key] = index + 1
+		if endpointKey(edge, directed) != endpointKey(after[resultID], directed) {
+			return IDMapping{}, fmt.Errorf("edge %d endpoints %v do not match result %d endpoints %v", sourceID, endpointKey(edge, directed), resultID, endpointKey(after[resultID], directed))
+		}
+		oldToNew[sourceID] = resultID
+		resultID++
 	}
-	for key, ids := range resultIDs {
-		if next[key] != len(ids) {
-			return IDMapping{}, fmt.Errorf("result endpoints %v consumed %d of %d edges", key, next[key], len(ids))
-		}
+	if resultID != len(after) {
+		return IDMapping{}, fmt.Errorf("mapped %d of %d result edges", resultID, len(after))
 	}
 	return completeEdgeMapping(oldToNew, len(after))
 }

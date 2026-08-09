@@ -310,16 +310,30 @@ func TestEdgeTransformationMappingValidation(t *testing.T) {
 		run  func() error
 	}{
 		{
-			name: "one-to-one source without result",
+			name: "identity edge count mismatch",
 			run: func() error {
-				_, err := oneToOneEdgeMapping([]Edge{{0, 1}}, nil, true)
+				_, err := identityEndpointEdgeMapping([]Edge{{0, 1}}, nil, true)
 				return err
 			},
 		},
 		{
-			name: "one-to-one result without source",
+			name: "identity endpoint mismatch",
 			run: func() error {
-				_, err := oneToOneEdgeMapping(nil, []Edge{{0, 1}}, true)
+				_, err := identityEndpointEdgeMapping([]Edge{{0, 1}}, []Edge{{1, 0}}, true)
+				return err
+			},
+		},
+		{
+			name: "stable filter source without result",
+			run: func() error {
+				_, err := stableFilteredEdgeMapping([]Edge{{0, 1}}, nil, true, nil)
+				return err
+			},
+		},
+		{
+			name: "stable filter result without source",
+			run: func() error {
+				_, err := stableFilteredEdgeMapping(nil, []Edge{{0, 1}}, true, nil)
 				return err
 			},
 		},
