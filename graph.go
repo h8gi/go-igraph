@@ -23,7 +23,7 @@ const (
 // Graph is a mutable graph that owns a C resource. Call Close when the graph is
 // no longer needed. Its methods are safe for concurrent use.
 type Graph struct {
-	mu     sync.Mutex
+	mu     sync.RWMutex
 	graph  C.igraph_t
 	closed bool
 }
@@ -584,6 +584,13 @@ func (g *Graph) Close() error {
 
 func (g *Graph) finalize() {
 	_ = g.Close()
+}
+
+func (g *Graph) checkClosed() error {
+	if g == nil || g.closed {
+		return ErrClosed
+	}
+	return nil
 }
 
 func openFileStream(file *os.File) (*C.FILE, error) {
