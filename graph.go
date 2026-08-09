@@ -33,8 +33,9 @@ type Edge struct {
 	To   int
 }
 
-// DirectionMode controls how edge directions are interpreted by topology
-// queries. On undirected graphs all modes are equivalent.
+// DirectionMode controls how edge directions are interpreted by topology and
+// path queries. Its zero value is DirectionOut. On undirected graphs all modes
+// are equivalent.
 type DirectionMode uint8
 
 const (

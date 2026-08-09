@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 //
 // static void go_igraph_matrix_set_value(
 //     igraph_matrix_t *matrix, igraph_int_t row, igraph_int_t column,
@@ -128,7 +129,7 @@ func newCMatrix(matrix Matrix) (*cMatrix, error) {
 		return nil, err
 	}
 	result := &cMatrix{}
-	if code := C.igraph_matrix_init(&result.value, cRows, cColumns); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_matrix_init(&result.value, cRows, cColumns); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("initialize matrix", int(code))
 	}
 	for row := 0; row < matrix.rows; row++ {

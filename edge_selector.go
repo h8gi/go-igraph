@@ -2,6 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "algorithm_cgo.h"
 import "C"
 
 import "fmt"
@@ -107,7 +108,7 @@ func newCEdgeSelector(selector EdgeSelector) (*cEdgeSelector, error) {
 		if err != nil {
 			return nil, err
 		}
-		code := C.igraph_es_vector_copy(&result.value, &backing.value)
+		code := C.go_igraph_es_vector_copy(&result.value, &backing.value)
 		backing.close()
 		if code != C.IGRAPH_SUCCESS {
 			return nil, igraphError("copy explicit edge selector", int(code))
@@ -158,7 +159,7 @@ func (g *Graph) edgeIDs(selector EdgeSelector) ([]int, error) {
 				return nil, err
 			}
 			var edgeID C.igraph_int_t
-			if code := C.igraph_get_eid(
+			if code := C.go_igraph_get_eid(
 				&g.graph,
 				&edgeID,
 				C.igraph_int_t(pair.From),

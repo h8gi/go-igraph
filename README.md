@@ -26,6 +26,12 @@ coverage-tool tests, and the generated upstream API inventory.
 The [upstream API roadmap](docs/upstream-api-roadmap.md) defines the binding
 strategy, milestones, and completion criteria.
 
+Milestone 3's fundamental algorithms include degree and neighborhoods,
+components, BFS/DFS, shortest paths and distance matrices, density, diameter,
+average path length, and transitivity. Executable examples in the package
+documentation demonstrate selector-ordered weighted distances and restricted
+traversal.
+
 The generated [API coverage report](docs/api-coverage.md) compares the functions
 exported by a pinned upstream igraph release with explicit `//igraph:bind` and
 `//igraph:internal` annotations in production Go files. Unknown, duplicate, and

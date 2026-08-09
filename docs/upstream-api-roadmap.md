@@ -110,7 +110,13 @@ Implementation decisions:
 Goal: cover the graph analysis operations expected from a general-purpose
 igraph binding.
 
-Planned areas:
+Status: complete. The fundamental algorithm layer provides 15 user-facing
+bindings over the Milestone 2 selector, conversion, and ownership primitives.
+The algorithms share direction and weight validation, preserve public selector
+order and duplicates, convert upstream failures to Go errors, and copy every
+result out of temporary C storage while the graph lock is held.
+
+Implemented areas:
 
 - degree and neighborhood queries;
 - connected components;
@@ -123,6 +129,20 @@ Completion criteria:
 - scalar, slice, and matrix results have stable Go representations;
 - invalid selectors and disconnected graphs are tested;
 - behavior is checked against small graphs with known answers.
+
+Completion evidence:
+
+- scalar undefined values use documented `NaN` or positive-infinity
+  conventions, collection results are non-nil Go-owned slices, paths use an
+  explicit `Found` flag, and dense distances use the immutable Go `Matrix`;
+- focused and cross-feature tests cover invalid and duplicate selectors, empty
+  selections, directed and undirected graphs, loops, weighted and unweighted
+  calls, disconnected graphs, upstream failures, and calls after `Close`;
+- known-answer tests cover every implemented area, including weak versus
+  strong components, traversal forests, weighted shortest paths, and
+  transitivity's undefined-value modes;
+- all fallible algorithm and temporary-resource calls use centralized C
+  wrappers that install and restore non-aborting thread-local igraph handlers.
 
 ## Milestone 4: Advanced algorithms
 

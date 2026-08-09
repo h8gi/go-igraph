@@ -49,6 +49,18 @@ func TestRealVectorRoundTrip(t *testing.T) {
 	}
 }
 
+func TestRealVectorInitializationFailureReturnsError(t *testing.T) {
+	vector, err := newRealVectorSizeWithInitializer(1, func(*realVector, int) int {
+		return 2 // IGRAPH_ENOMEM
+	})
+	if err == nil || vector != nil {
+		t.Fatalf("failed real vector initialization = %#v, %v", vector, err)
+	}
+	if vector, err := newRealVectorSize(-1); err == nil || vector != nil {
+		t.Fatalf("negative real vector initialization = %#v, %v", vector, err)
+	}
+}
+
 func TestNumericVectorResultsOwnTheirStorage(t *testing.T) {
 	integers, err := newIntVector([]int{1, 2})
 	if err != nil {

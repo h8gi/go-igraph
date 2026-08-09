@@ -2,92 +2,7 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
-//
-// static igraph_error_t go_igraph_density(
-//     const igraph_t *graph, const igraph_vector_t *weights,
-//     igraph_real_t *result, igraph_bool_t loops) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_density(graph, weights, result, loops);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_diameter(
-//     const igraph_t *graph, const igraph_vector_t *weights,
-//     igraph_real_t *length, igraph_int_t *from, igraph_int_t *to,
-//     igraph_vector_int_t *vertices, igraph_vector_int_t *edges,
-//     igraph_bool_t directed, igraph_bool_t unconnected) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_diameter(
-//       graph, weights, length, from, to, vertices, edges,
-//       directed, unconnected);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_average_path_length(
-//     const igraph_t *graph, const igraph_vector_t *weights,
-//     igraph_real_t *result, igraph_real_t *unconnected_pairs,
-//     igraph_bool_t directed, igraph_bool_t unconnected) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_average_path_length(
-//       graph, weights, result, unconnected_pairs, directed, unconnected);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_transitivity_undirected(
-//     const igraph_t *graph, igraph_real_t *result,
-//     igraph_transitivity_mode_t mode) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_transitivity_undirected(graph, result, mode);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_transitivity_local_undirected(
-//     const igraph_t *graph, igraph_vector_t *result, igraph_vs_t vertices,
-//     igraph_transitivity_mode_t mode) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_transitivity_local_undirected(
-//       graph, result, vertices, mode);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
-//
-// static igraph_error_t go_igraph_transitivity_avglocal_undirected(
-//     const igraph_t *graph, igraph_real_t *result,
-//     igraph_transitivity_mode_t mode) {
-//   igraph_error_handler_t *old_error =
-//       igraph_set_error_handler(&igraph_error_handler_ignore);
-//   igraph_warning_handler_t *old_warning =
-//       igraph_set_warning_handler(&igraph_warning_handler_ignore);
-//   igraph_error_t code = igraph_transitivity_avglocal_undirected(
-//       graph, result, mode);
-//   igraph_set_warning_handler(old_warning);
-//   igraph_set_error_handler(old_error);
-//   return code;
-// }
+// #include "algorithm_cgo.h"
 import "C"
 
 import "fmt"
@@ -358,7 +273,7 @@ func (g *Graph) LocalTransitivity(vertices VertexSelector, mode TransitivityMode
 	if err != nil {
 		return nil, fmt.Errorf("igraph: materialize local transitivity selector: %w", err)
 	}
-	uniqueIDs, resultIndexes := uniqueVertexIDs(vertexIDs)
+	uniqueIDs, resultIndexes := deduplicateVertexIDs(vertexIDs)
 	cVertices := vertices
 	if len(uniqueIDs) != len(vertexIDs) {
 		cVertices, err = VertexIDs(uniqueIDs...)
@@ -388,11 +303,7 @@ func (g *Graph) LocalTransitivity(vertices VertexSelector, mode TransitivityMode
 	if len(uniqueIDs) == len(vertexIDs) {
 		return values, nil
 	}
-	expanded := make([]float64, len(resultIndexes))
-	for index, resultIndex := range resultIndexes {
-		expanded[index] = values[resultIndex]
-	}
-	return expanded, nil
+	return expandByPositions(values, resultIndexes), nil
 }
 
 // AverageLocalTransitivity returns the mean of vertex-level clustering
