@@ -22,6 +22,8 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `BFSResult`, `DFSResult` | Go-owned slices | none | traversal options are borrowed only during the call; results remain valid and mutable after the graph is closed |
 | centrality score/result values | Go-owned slices and scalars | none | selector, cutoff, reset, weight, and solver inputs are borrowed only for the call; returned scores and metadata remain valid after graph closure |
 | `CentralizationResult` | Go-owned slice and scalars | none | generic score input is copied; specialized results retain no graph, solver, or C resource |
+| `IDMapping` | Go-owned slices | none | `OldToNew` is indexed by source ID; `NewToOld` is indexed by derived ID; both survive graph closure |
+| `GraphIDMapping` | two Go-owned `IDMapping` values | none | vertex and edge mappings follow the same direction, sentinel, and lifetime rules |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -31,6 +33,27 @@ are constructed, and bounds, missing endpoint pairs, and closed graphs are
 validated each time they are materialized. `SelectedVertexIDs` and
 `SelectedEdgeIDs` eagerly materialize a result while holding the graph lock;
 they do not return an iterator that borrows the graph.
+
+Derived-graph operations borrow every source graph only for the synchronous
+call. They materialize selectors while the corresponding source lock is held,
+before any source mutation can begin. Operations with multiple graph inputs
+deduplicate repeated graph pointers, acquire all distinct locks in stable
+address order, verify closure only after all locks are held, and unlock in
+reverse order. Supplying the same graph more than once therefore cannot
+self-deadlock, while a nil or closed input returns `ErrClosed`.
+
+Every successfully returned derived `Graph` owns exactly one independently
+initialized `igraph_t`. It remains usable after all source graphs are closed;
+closing it repeatedly or in any order relative to sibling results is safe.
+No returned graph shares a graph-list container or requires manual C cleanup.
+
+`IDMapping.OldToNew` is indexed by source ID and contains the derived ID or
+`RemovedID` (`-1`). `NewToOld` is indexed by derived ID and contains the lowest
+source ID that maps to it, or `RemovedID` for an element with no source. The
+lowest-ID rule makes many-to-one mappings deterministic. Identity mappings
+contain the index in both directions, and empty mappings contain non-nil empty
+slices. Both directions are copied into Go storage and remain valid and mutable
+after source and result graphs are closed.
 
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
@@ -127,6 +150,8 @@ Initialization failure does not create a resource that needs destruction.
 | explicit selector | backing vector is copied into a regular selector | destroy backing vector immediately; destroy the regular selector after its iterator |
 | immediate selector | contains no allocation | never call the regular-selector destroy function |
 | vertex or edge iterator | borrows its graph and selector only during eager materialization | destroy iterator first, then its owned selector, before releasing the graph lock |
+| initialized graph result | ownership is moved, never copied from borrowed list storage, into exactly one public `Graph` | clear the moved-from value; the public `Graph.Close` performs the one destroy |
+| graph list | owns its container and every graph still stored in it | remove transfers one element; destroy the container on success and all remaining elements plus already adopted graphs on any failure or early return |
 
 No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully
@@ -143,6 +168,11 @@ resource; partial Go constructors destroy every dependency whose initializer
 already succeeded. Centrality output vectors, selectors, reset vectors, weight
 vectors, and stack-local solver options remain scoped to the graph lock and are
 destroyed on upstream error, warning paths, early return, and success.
+Graph-list initialization, insertion, and removal use the same non-aborting C
+wrapper contract. Initialization failure transfers no list ownership. During
+extraction, removed elements are either immediately adopted or destroyed;
+conversion failure closes all previously adopted graphs and list destruction
+cleans every element that has not yet been removed.
 
 ## Verification
 
