@@ -5,12 +5,15 @@ package igraph
 // #include "algorithm_cgo.h"
 import "C"
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-// ArticulationPoints returns the zero-based vertex IDs whose removal increases the
-// number of weakly connected components. Edge directions are ignored. Loops
-// do not affect the result, and parallel edges are preserved when deciding
-// connectivity. The order is defined by upstream igraph.
+// ArticulationPoints returns the zero-based vertex IDs whose removal increases
+// the number of weakly connected components. Edge directions are ignored.
+// Loops do not affect the result, and parallel edges are preserved when
+// deciding connectivity. The order is defined by upstream igraph.
 //
 // The returned non-nil slice is Go-owned and remains valid after the graph is
 // closed. Empty, singleton, and edgeless graphs have no articulation points.
@@ -22,10 +25,10 @@ func (g *Graph) ArticulationPoints() ([]int, error) {
 	})
 }
 
-// Bridges returns the zero-based edge IDs whose removal increases the number of weakly
-// connected components. Edge directions are ignored. Loops are never bridges,
-// and neither edge in a parallel pair is a bridge. The order is defined by
-// upstream igraph.
+// Bridges returns the zero-based edge IDs whose removal increases the number
+// of weakly connected components. Edge directions are ignored. Loops are never
+// bridges, and neither edge in a parallel pair is a bridge. The order is
+// defined by upstream igraph.
 //
 // The returned non-nil slice is Go-owned and remains valid after the graph is
 // closed. Empty and edgeless graphs have no bridges.
@@ -49,15 +52,36 @@ func (g *Graph) cutStructureIDs(
 	if g.closed {
 		return nil, ErrClosed
 	}
-	result, err := newIntVector(nil)
+	return collectCutStructureIDs(cutStructureOperations{
+		newVector: func() (*intVector, error) { return newIntVector(nil) },
+		close:     (*intVector).close,
+		query: func(result *intVector) error {
+			if code := query(&g.graph, &result.value); code != C.IGRAPH_SUCCESS {
+				return igraphError(action, int(code))
+			}
+			return nil
+		},
+		slice: func(result *intVector) ([]int, error) { return result.slice() },
+	})
+}
+
+type cutStructureOperations struct {
+	newVector func() (*intVector, error)
+	close     func(*intVector)
+	query     func(*intVector) error
+	slice     func(*intVector) ([]int, error)
+}
+
+func collectCutStructureIDs(operations cutStructureOperations) ([]int, error) {
+	result, err := operations.newVector()
 	if err != nil {
 		return nil, err
 	}
-	defer result.close()
-	if code := query(&g.graph, &result.value); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError(action, int(code))
+	defer operations.close(result)
+	if err := operations.query(result); err != nil {
+		return nil, err
 	}
-	return result.slice()
+	return operations.slice(result)
 }
 
 // BiconnectedComponents is a Go-owned decomposition into maximal
@@ -67,11 +91,11 @@ func (g *Graph) cutStructureIDs(
 //
 // Component order, edge order, vertex order, and articulation-point order are
 // defined by upstream igraph. Edge and vertex IDs are zero-based indexes into
-// the source graph. Each
-// non-loop edge belongs to exactly one component; vertices may occur in more
-// than one component. Isolated vertices and loops are not components. A single
-// non-loop edge is a degenerate biconnected component under igraph's convention.
-// Every slice, including empty inner and outer slices, is non-nil and Go-owned.
+// the source graph. Each non-loop edge belongs to exactly one component;
+// vertices may occur in more than one component. Isolated vertices and loops
+// are not components. A single non-loop edge is a degenerate biconnected
+// component under igraph's convention. Every slice, including empty inner and
+// outer slices, is non-nil and Go-owned.
 type BiconnectedComponents struct {
 	Count              int
 	ComponentEdges     [][]int
@@ -165,6 +189,15 @@ func collectBiconnectedComponents(vertexCount, edgeCount int, operations biconne
 }
 
 func validateBiconnectedComponents(result BiconnectedComponents, vertexCount, edgeCount int) error {
+	if result.ComponentEdges == nil {
+		return errors.New("igraph: biconnected component edge collection is nil")
+	}
+	if result.ComponentVertices == nil {
+		return errors.New("igraph: biconnected component vertex collection is nil")
+	}
+	if result.ArticulationPoints == nil {
+		return errors.New("igraph: biconnected articulation-point collection is nil")
+	}
 	if result.Count != len(result.ComponentEdges) || result.Count != len(result.ComponentVertices) {
 		return fmt.Errorf(
 			"igraph: biconnected component count %d does not match edge-list length %d and vertex-list length %d",

@@ -179,16 +179,71 @@ func TestCutStructureRejectsClosedGraph(t *testing.T) {
 
 func TestValidateBiconnectedComponentsRejectsInvalidResults(t *testing.T) {
 	tests := []BiconnectedComponents{
-		{Count: 1},
-		{Count: 1, ComponentEdges: [][]int{{}}, ComponentVertices: [][]int{nil}},
-		{Count: 1, ComponentEdges: [][]int{{1}}, ComponentVertices: [][]int{{0}}},
-		{Count: 1, ComponentEdges: [][]int{{0}}, ComponentVertices: [][]int{{1}}},
+		{ComponentVertices: [][]int{}, ArticulationPoints: []int{}},
+		{ComponentEdges: [][]int{}, ArticulationPoints: []int{}},
+		{ComponentEdges: [][]int{}, ComponentVertices: [][]int{}},
+		{Count: 1, ComponentEdges: [][]int{}, ComponentVertices: [][]int{}, ArticulationPoints: []int{}},
+		{Count: 1, ComponentEdges: [][]int{{}}, ComponentVertices: [][]int{nil}, ArticulationPoints: []int{}},
+		{Count: 1, ComponentEdges: [][]int{{1}}, ComponentVertices: [][]int{{0}}, ArticulationPoints: []int{}},
+		{Count: 1, ComponentEdges: [][]int{{0}}, ComponentVertices: [][]int{{1}}, ArticulationPoints: []int{}},
 		{ComponentEdges: [][]int{}, ComponentVertices: [][]int{}, ArticulationPoints: []int{1}},
 	}
 	for i, result := range tests {
 		if err := validateBiconnectedComponents(result, 1, 1); err == nil {
 			t.Errorf("case %d: validateBiconnectedComponents(%#v) error = nil", i, result)
 		}
+	}
+}
+
+func TestCollectCutStructureIDsPropagatesFailuresAndCleansUp(t *testing.T) {
+	forced := errors.New("forced failure")
+	tests := []struct {
+		name       string
+		failInit   bool
+		failQuery  bool
+		failSlice  bool
+		wantClosed int
+	}{
+		{name: "initialization", failInit: true},
+		{name: "upstream query", failQuery: true, wantClosed: 1},
+		{name: "result conversion", failSlice: true, wantClosed: 1},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			closed := 0
+			queried := false
+			result, err := collectCutStructureIDs(cutStructureOperations{
+				newVector: func() (*intVector, error) {
+					if tt.failInit {
+						return nil, forced
+					}
+					return &intVector{}, nil
+				},
+				close: func(*intVector) { closed++ },
+				query: func(*intVector) error {
+					queried = true
+					if tt.failQuery {
+						return forced
+					}
+					return nil
+				},
+				slice: func(*intVector) ([]int, error) {
+					if tt.failSlice {
+						return nil, forced
+					}
+					return []int{}, nil
+				},
+			})
+			if result != nil || !errors.Is(err, forced) {
+				t.Errorf("collectCutStructureIDs() = %v, %v, want nil, %v", result, err, forced)
+			}
+			if closed != tt.wantClosed {
+				t.Errorf("close count = %d, want %d", closed, tt.wantClosed)
+			}
+			if queried != !tt.failInit {
+				t.Errorf("query called = %t with initialization failure = %t", queried, tt.failInit)
+			}
+		})
 	}
 }
 
