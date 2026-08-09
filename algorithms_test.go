@@ -158,6 +158,34 @@ func TestDirectedNeighborhoodModesAndDistanceBounds(t *testing.T) {
 	}
 }
 
+func TestZeroOrderNeighborhoodsPreserveDuplicateRoots(t *testing.T) {
+	graph, err := NewGraphFromEdges(4, []Edge{{0, 1}, {1, 2}, {2, 3}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = graph.Close() })
+	vertices, err := VertexIDs(2, 0, 2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	options := NeighborhoodOptions{Order: 0, MinDistance: 0, Direction: DirectionAll}
+
+	sizes, err := graph.NeighborhoodSizes(vertices, options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []int{1, 1, 1}; !reflect.DeepEqual(sizes, want) {
+		t.Errorf("NeighborhoodSizes = %v, want %v", sizes, want)
+	}
+	neighborhoods, err := graph.Neighborhoods(vertices, options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := [][]int{{2}, {0}, {2}}; !reflect.DeepEqual(neighborhoods, want) {
+		t.Errorf("Neighborhoods = %v, want %v", neighborhoods, want)
+	}
+}
+
 func TestAlgorithmQueriesHandleEmptySelections(t *testing.T) {
 	graph, err := NewGraphFromEdges(2, []Edge{{0, 1}}, false)
 	if err != nil {
@@ -177,6 +205,39 @@ func TestAlgorithmQueriesHandleEmptySelections(t *testing.T) {
 	neighborhoods, err := graph.Neighborhoods(NoVertices(), options)
 	if err != nil || neighborhoods == nil || len(neighborhoods) != 0 {
 		t.Errorf("Neighborhoods(NoVertices) = %#v, %v, want non-nil empty slice", neighborhoods, err)
+	}
+}
+
+func TestAlgorithmQueriesHandleEmptyGraph(t *testing.T) {
+	graph, err := NewGraphFromEdges(0, nil, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = graph.Close() })
+
+	selectors := []struct {
+		name     string
+		selector VertexSelector
+	}{
+		{name: "all vertices", selector: AllVertices()},
+		{name: "no vertices", selector: NoVertices()},
+	}
+	for _, tt := range selectors {
+		t.Run(tt.name, func(t *testing.T) {
+			degrees, err := graph.Degree(tt.selector, DegreeOptions{Direction: DirectionAll})
+			if err != nil || degrees == nil || len(degrees) != 0 {
+				t.Errorf("Degree = %#v, %v, want non-nil empty slice", degrees, err)
+			}
+			options := NeighborhoodOptions{Order: 0, Direction: DirectionAll}
+			sizes, err := graph.NeighborhoodSizes(tt.selector, options)
+			if err != nil || sizes == nil || len(sizes) != 0 {
+				t.Errorf("NeighborhoodSizes = %#v, %v, want non-nil empty slice", sizes, err)
+			}
+			neighborhoods, err := graph.Neighborhoods(tt.selector, options)
+			if err != nil || neighborhoods == nil || len(neighborhoods) != 0 {
+				t.Errorf("Neighborhoods = %#v, %v, want non-nil empty slice", neighborhoods, err)
+			}
+		})
 	}
 }
 

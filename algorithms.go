@@ -31,6 +31,8 @@ type DegreeOptions struct {
 // Explicit selector duplicates produce duplicate result entries. The returned
 // slice is Go-owned and remains valid after the graph is closed. The selector
 // and options are read only for the duration of the call and are not retained.
+// An empty selection, including all vertices of an empty graph, returns a
+// non-nil empty slice.
 //
 //igraph:bind igraph_degree
 func (g *Graph) Degree(vertices VertexSelector, options DegreeOptions) ([]int, error) {
@@ -86,7 +88,8 @@ type NeighborhoodOptions struct {
 // bounded neighborhood, in selector order. Explicit selector duplicates
 // produce duplicate result entries. The returned slice is Go-owned. The
 // selector and options are read only for the duration of the call and are not
-// retained.
+// retained. An empty selection, including all vertices of an empty graph,
+// returns a non-nil empty slice.
 //
 //igraph:bind igraph_neighborhood_size
 func (g *Graph) NeighborhoodSizes(vertices VertexSelector, options NeighborhoodOptions) ([]int, error) {
@@ -122,7 +125,8 @@ func (g *Graph) NeighborhoodSizes(vertices VertexSelector, options NeighborhoodO
 // selector order. Both the outer slice and every inner slice are independently
 // Go-owned and remain valid after subsequent graph operations or Close. The
 // selector and options are read only for the duration of the call and are not
-// retained.
+// retained. An empty selection, including all vertices of an empty graph,
+// returns a non-nil empty outer slice.
 //
 //igraph:bind igraph_neighborhood
 func (g *Graph) Neighborhoods(vertices VertexSelector, options NeighborhoodOptions) ([][]int, error) {
