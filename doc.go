@@ -4,10 +4,11 @@
 // no longer needed. Close is idempotent, and methods on a closed resource
 // return ErrClosed. Selectors, Matrix, Path, ConnectedComponents,
 // articulation-point and bridge slices, BiconnectedComponents, IDMapping,
-// GraphIDMapping, induced- and edge-subgraph result mappings, traversal results,
-// structural results, centrality results, and centralization results are
-// Go-owned and never require Close. Graphs returned by subgraph and
-// decomposition operations are independently owned and must each be closed.
+// GraphIDMapping, subgraph and graph-operator result provenance, traversal
+// results, structural results, centrality results, and centralization results
+// are Go-owned and never require Close. Graphs returned by subgraph,
+// decomposition, and graph-operator APIs are independently owned and must each
+// be closed.
 // Every returned slice, nested slice, matrix, and path remains valid after the
 // source graph or temporary C resource is closed.
 //

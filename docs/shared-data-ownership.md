@@ -30,6 +30,10 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `InducedSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | `EdgeSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
+| `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
+| `VertexMappedGraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | vertex mapping is exact; unavailable edge provenance is not inferred |
+| `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
+| `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -127,6 +131,36 @@ Undirected collapse and mutual conversion likewise pass no combination and
 discard edge attributes; per-edge undirected conversion preserves them under
 upstream semantics. Directed conversion uses upstream attribute behavior with
 no configurable policy.
+Binary graph operators borrow operands while `withLockedGraphs` holds every
+distinct graph lock in stable pointer order. Reversed operand order and repeated
+operands therefore do not deadlock. Directedness must match for every binary
+operator. Union and intersection use the larger operand vertex count; union
+takes the larger and intersection the smaller parallel-edge multiplicity.
+Difference preserves the left operand's vertices and subtracts right-edge
+multiplicity. Disjoint union preserves operand order and offsets all right IDs.
+
+Disjoint union mappings follow upstream's documented ordering. Union edge
+mappings and intersection inverse edge mappings are copied from upstream and
+converted to exact operand-to-result `GraphIDMapping` values. Composition keeps
+upstream's per-result-edge pair of contributing operand edge IDs because a
+single source edge may contribute to several result edges and cannot be
+represented by `IDMapping`. Difference exposes its exact left identity vertex
+mapping. Upstream provides no difference edge map, so simple edges are matched
+exactly and endpoint-equivalent parallel edges are paired by ascending source
+and result edge IDs, with excess left edges marked `RemovedID`. This is a
+deterministic structural convention, not attribute provenance.
+Complement exposes its exact identity vertex mapping; complement edges have no
+source correspondence. Complement supports input loops but is intentionally
+limited to simple-graph inputs: parallel edges are rejected because upstream's
+complement traversal does not provide reliable multigraph presence semantics.
+No unavailable edge provenance is guessed. All mapping and provenance slices
+are non-nil Go-owned values and remain valid after every graph is closed.
+
+The current public combination API is deliberately binary. The upstream
+`disjoint_union_many`, `union_many`, and `intersection_many` entry points remain
+unbound: their empty-list directedness convention and nested per-operand
+provenance results do not share the binary result contract without adding a
+separate graph-pointer-list and vector-list ownership surface.
 
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is

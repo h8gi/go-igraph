@@ -32,7 +32,9 @@ average path length, and transitivity. Milestone 4 adds selector-aware
 closeness, harmonic and betweenness centrality, eigenvector centrality, HITS,
 standard and personalized PageRank, and graph centralization. Milestone 5 adds
 independently owned induced and edge subgraphs and connected-component graph
-decomposition over the shared derived-graph ownership infrastructure.
+decomposition, plus disjoint union, union, intersection, difference,
+composition, and complement operators with explicit provenance where upstream
+defines it, over the shared derived-graph ownership infrastructure.
 Executable examples demonstrate selector order, weighted distances, restricted
 traversal, distance centrality, and personalized ranking.
 
