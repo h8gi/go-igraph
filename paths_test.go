@@ -14,7 +14,7 @@ func TestDistancesPreserveSelectorOrderAndDuplicates(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	targets, err := VertexIDs(3, 1, 4)
+	targets, err := VertexIDs(3, 1, 3, 4, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,9 +24,9 @@ func TestDistancesPreserveSelectorOrderAndDuplicates(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertMatrixRows(t, distances, [][]float64{
-		{1, math.Inf(1), math.Inf(1)},
-		{2, 1, math.Inf(1)},
-		{1, math.Inf(1), math.Inf(1)},
+		{1, math.Inf(1), 1, math.Inf(1), math.Inf(1)},
+		{2, 1, 2, math.Inf(1), 1},
+		{1, math.Inf(1), 1, math.Inf(1), math.Inf(1)},
 	})
 
 	weighted, err := graph.Distances(sources, targets, PathOptions{
@@ -37,9 +37,9 @@ func TestDistancesPreserveSelectorOrderAndDuplicates(t *testing.T) {
 		t.Fatal(err)
 	}
 	assertMatrixRows(t, weighted, [][]float64{
-		{1, math.Inf(1), math.Inf(1)},
-		{6, 2, math.Inf(1)},
-		{1, math.Inf(1), math.Inf(1)},
+		{1, math.Inf(1), 1, math.Inf(1), math.Inf(1)},
+		{6, 2, 6, math.Inf(1), 2},
+		{1, math.Inf(1), 1, math.Inf(1), math.Inf(1)},
 	})
 }
 
@@ -70,6 +70,14 @@ func TestDistancesDirectionAndEmptySelections(t *testing.T) {
 	}
 	if rows, columns := emptyRows.Dims(); rows != 0 || columns != 5 {
 		t.Errorf("empty-row dimensions = (%d, %d), want (0, 5)", rows, columns)
+	}
+	duplicateTargets, _ := VertexIDs(1, 1, 3)
+	emptyRowsWithDuplicates, err := graph.Distances(NoVertices(), duplicateTargets, PathOptions{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rows, columns := emptyRowsWithDuplicates.Dims(); rows != 0 || columns != 3 {
+		t.Errorf("duplicate-target empty-row dimensions = (%d, %d), want (0, 3)", rows, columns)
 	}
 	emptyColumns, err := graph.Distances(AllVertices(), NoVertices(), PathOptions{})
 	if err != nil {
@@ -107,7 +115,7 @@ func TestShortestPathUnweightedWeightedAndUnreachable(t *testing.T) {
 	}) {
 		t.Errorf("unweighted path = %#v", unweighted)
 	}
-	assertPathEdges(t, graph, unweighted)
+	assertPathEdges(t, graph, unweighted, DirectionOut)
 
 	weighted, err := graph.ShortestPath(0, 3, PathOptions{
 		Direction: DirectionOut,
@@ -123,7 +131,7 @@ func TestShortestPathUnweightedWeightedAndUnreachable(t *testing.T) {
 	}) {
 		t.Errorf("weighted path = %#v", weighted)
 	}
-	assertPathEdges(t, graph, weighted)
+	assertPathEdges(t, graph, weighted, DirectionOut)
 
 	zero, err := graph.ShortestPath(2, 2, PathOptions{})
 	if err != nil {
@@ -150,6 +158,7 @@ func TestShortestPathDirectionAndGoOwnership(t *testing.T) {
 	if !path.Found || !reflect.DeepEqual(path.Vertices, []int{3, 2, 0}) {
 		t.Errorf("incoming path = %#v", path)
 	}
+	assertPathEdges(t, graph, path, DirectionIn)
 	distances, err := graph.Distances(AllVertices(), AllVertices(), PathOptions{})
 	if err != nil {
 		t.Fatal(err)
@@ -200,7 +209,28 @@ func TestPathsRejectInvalidInputsAndClosedGraphs(t *testing.T) {
 	assertPathsClosed(t, nilGraph)
 }
 
-func TestDistancesPropagateNegativeCycleError(t *testing.T) {
+func TestPathsUseNegativeWeightsAndPropagateNegativeCycleErrors(t *testing.T) {
+	weighted, err := NewGraphFromEdges(4, []Edge{{0, 1}, {0, 2}, {2, 1}, {1, 3}}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = weighted.Close() })
+	path, err := weighted.ShortestPath(0, 3, PathOptions{
+		Direction: DirectionOut,
+		Weights:   []float64{2, 5, -4, 1},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(path, Path{
+		Vertices: []int{0, 2, 1, 3},
+		Edges:    []int{1, 2, 3},
+		Found:    true,
+	}) {
+		t.Errorf("negative-weight path = %#v", path)
+	}
+	assertPathEdges(t, weighted, path, DirectionOut)
+
 	graph, err := NewGraphFromEdges(3, []Edge{{0, 1}, {1, 2}, {2, 1}}, true)
 	if err != nil {
 		t.Fatal(err)
@@ -213,6 +243,44 @@ func TestDistancesPropagateNegativeCycleError(t *testing.T) {
 	if err == nil {
 		t.Fatal("negative-cycle Distances error = nil")
 	}
+	if _, err := graph.ShortestPath(0, 2, PathOptions{
+		Direction: DirectionOut,
+		Weights:   []float64{1, -3, 1},
+	}); err == nil {
+		t.Fatal("negative-cycle ShortestPath error = nil")
+	}
+}
+
+func TestPathsOnUndirectedGraph(t *testing.T) {
+	graph, err := NewGraphFromEdges(4, []Edge{{0, 1}, {1, 2}, {2, 3}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = graph.Close() })
+	source, _ := VertexIDs(3)
+	target, _ := VertexIDs(0)
+
+	distances, err := graph.Distances(source, target, PathOptions{
+		Direction: DirectionIn,
+		Weights:   []float64{2, 3, 4},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertMatrixRows(t, distances, [][]float64{{9}})
+
+	path, err := graph.ShortestPath(3, 0, PathOptions{Direction: DirectionOut})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(path, Path{
+		Vertices: []int{3, 2, 1, 0},
+		Edges:    []int{2, 1, 0},
+		Found:    true,
+	}) {
+		t.Errorf("undirected path = %#v", path)
+	}
+	assertPathEdges(t, graph, path, DirectionOut)
 }
 
 func newPathTestGraph(t *testing.T) *Graph {
@@ -253,17 +321,30 @@ func assertMatrixRows(t *testing.T, matrix Matrix, want [][]float64) {
 	}
 }
 
-func assertPathEdges(t *testing.T, graph *Graph, path Path) {
+func assertPathEdges(t *testing.T, graph *Graph, path Path, direction DirectionMode) {
 	t.Helper()
 	if len(path.Edges)+1 != len(path.Vertices) {
 		t.Fatalf("path has %d edges and %d vertices", len(path.Edges), len(path.Vertices))
+	}
+	directed, err := graph.IsDirected()
+	if err != nil {
+		t.Fatal(err)
 	}
 	for index, edgeID := range path.Edges {
 		from, to, err := graph.EdgeEndpoints(edgeID)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if from != path.Vertices[index] || to != path.Vertices[index+1] {
+		stepFrom, stepTo := path.Vertices[index], path.Vertices[index+1]
+		matchesForward := from == stepFrom && to == stepTo
+		matchesReverse := from == stepTo && to == stepFrom
+		matches := matchesForward
+		if !directed || direction == DirectionAll {
+			matches = matchesForward || matchesReverse
+		} else if direction == DirectionIn {
+			matches = matchesReverse
+		}
+		if !matches {
 			t.Errorf("edge %d endpoints = (%d, %d), path step = (%d, %d)", edgeID, from, to, path.Vertices[index], path.Vertices[index+1])
 		}
 	}

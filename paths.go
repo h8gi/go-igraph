@@ -37,13 +37,11 @@ import "C"
 import (
 	"fmt"
 	"math"
-	"sync"
 )
 
-// Handler installation is process-global in C/igraph. Serialize calls that
-// temporarily replace handlers so concurrent operations cannot restore each
-// other's previous handler out of order.
-var igraphHandlerMu sync.Mutex
+// The pinned thread-safe igraph build stores handlers in thread-local state.
+// Each C wrapper installs and restores its handlers within one cgo call, so
+// handler state remains on the same OS thread without a Go-side mutex.
 
 // PathOptions controls path and distance calculations. Direction is ignored
 // for undirected graphs. A nil Weights slice requests an unweighted
@@ -92,12 +90,24 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 	if err := validateVertexSelector(targets, vertexCount); err != nil {
 		return Matrix{}, fmt.Errorf("igraph: invalid target selector: %w", err)
 	}
+	targetIDs, err := materializeVertexIDs(&g.graph, targets)
+	if err != nil {
+		return Matrix{}, fmt.Errorf("igraph: materialize target selector: %w", err)
+	}
+	uniqueTargetIDs, targetColumns := uniqueVertexIDs(targetIDs)
+	cTargetSelector := targets
+	if len(uniqueTargetIDs) != len(targetIDs) {
+		cTargetSelector, err = VertexIDs(uniqueTargetIDs...)
+		if err != nil {
+			return Matrix{}, fmt.Errorf("igraph: build unique target selector: %w", err)
+		}
+	}
 	cSources, err := newCVertexSelector(sources)
 	if err != nil {
 		return Matrix{}, err
 	}
 	defer cSources.close()
-	cTargets, err := newCVertexSelector(targets)
+	cTargets, err := newCVertexSelector(cTargetSelector)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -116,7 +126,6 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 	}
 	defer result.close()
 
-	igraphHandlerMu.Lock()
 	code := C.go_igraph_distances(
 		&g.graph,
 		pathWeightPointer(weights),
@@ -125,11 +134,17 @@ func (g *Graph) Distances(sources, targets VertexSelector, options PathOptions) 
 		cTargets.value,
 		cMode,
 	)
-	igraphHandlerMu.Unlock()
 	if code != C.IGRAPH_SUCCESS {
 		return Matrix{}, igraphError("calculate distances", int(code))
 	}
-	return result.matrix()
+	distances, err := result.matrix()
+	if err != nil {
+		return Matrix{}, err
+	}
+	if len(uniqueTargetIDs) == len(targetIDs) {
+		return distances, nil
+	}
+	return expandDistanceColumns(distances, targetColumns)
 }
 
 // ShortestPath returns one shortest path between source and target. The path
@@ -177,7 +192,6 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 	}
 	defer edges.close()
 
-	igraphHandlerMu.Lock()
 	code := C.go_igraph_get_shortest_path(
 		&g.graph,
 		pathWeightPointer(weights),
@@ -187,7 +201,6 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 		C.igraph_int_t(target),
 		cMode,
 	)
-	igraphHandlerMu.Unlock()
 	if code != C.IGRAPH_SUCCESS {
 		return Path{}, igraphError("calculate shortest path", int(code))
 	}
@@ -200,6 +213,39 @@ func (g *Graph) ShortestPath(source, target int, options PathOptions) (Path, err
 		return Path{}, err
 	}
 	return Path{Vertices: vertexIDs, Edges: edgeIDs, Found: len(vertexIDs) != 0}, nil
+}
+
+// uniqueVertexIDs preserves first-occurrence order and returns, for every
+// original ID, the column containing that ID in the unique result.
+func uniqueVertexIDs(ids []int) ([]int, []int) {
+	unique := make([]int, 0, len(ids))
+	columns := make([]int, len(ids))
+	seen := make(map[int]int, len(ids))
+	for index, id := range ids {
+		column, ok := seen[id]
+		if !ok {
+			column = len(unique)
+			seen[id] = column
+			unique = append(unique, id)
+		}
+		columns[index] = column
+	}
+	return unique, columns
+}
+
+func expandDistanceColumns(distances Matrix, columns []int) (Matrix, error) {
+	rows, _ := distances.Dims()
+	result, err := NewMatrix(rows, len(columns))
+	if err != nil {
+		return Matrix{}, err
+	}
+	for row := 0; row < rows; row++ {
+		for resultColumn, sourceColumn := range columns {
+			result.values[row*result.columns+resultColumn] =
+				distances.values[row*distances.columns+sourceColumn]
+		}
+	}
+	return result, nil
 }
 
 func newPathWeights(values []float64, edgeCount int) (*realVector, error) {
