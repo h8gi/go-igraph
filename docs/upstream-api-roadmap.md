@@ -210,12 +210,130 @@ Completion evidence:
 - `make verify` checks the regenerated inventory, statement-coverage floor,
   vet, formatting, and the full behavioral suite against pinned igraph 1.0.1.
 
-## Future advanced domains
+## Roadmap after Milestone 4
 
-Community detection, layouts, flows and cuts, isomorphism, random graph
-generators, and domain-specific spatial, bipartite, and motif APIs remain
-separate candidates for future milestones. Each should be planned as its own
-coherent slice rather than extending Milestone 4.
+Status: proposed. The milestone numbers below express the intended dependency
+order, not a commitment to bind every function in the named upstream headers.
+Before implementation starts, each milestone should be split into reviewable
+issues with an explicit API contract and binding target.
+
+The next stage should deepen the general-purpose graph API before expanding
+into increasingly specialized domains. In particular, graph-returning
+operations and stochastic algorithms need shared ownership, ID-mapping, and
+reproducibility rules rather than one-off conventions in each binding.
+
+### Milestone 5: Graph transformation and decomposition
+
+Goal: make derived graphs and destructive edits safe building blocks for later
+algorithms.
+
+Planned areas:
+
+- vertex and edge deletion using the existing selectors;
+- induced and edge subgraphs, decomposition into components, and independently
+  owned graph results;
+- simplification, direction conversion, and commonly used graph operators;
+- articulation points, bridges, and biconnected structure; and
+- explicit old-to-new vertex and edge mappings whenever an operation can
+  renumber IDs.
+
+The milestone must define atomic failure behavior for mutations, materialize
+selectors before modifying a graph, and clean up every partially initialized
+graph in multi-result operations. Returned graphs must be independently owned,
+and mappings must remain valid after their source graphs are closed.
+
+### Milestone 6: Community structure
+
+Goal: provide a coherent partition API rather than unrelated wrappers for
+individual community-detection functions.
+
+Planned areas:
+
+- partition quality and structure metrics such as modularity and coreness;
+- an initial representative set of flat community algorithms, including
+  multilevel or Leiden and label propagation;
+- hierarchical algorithms such as fast-greedy, walktrap, or edge
+  betweenness, after a common merge representation is defined; and
+- Go-owned partition and hierarchy results with membership, group sizes,
+  quality values, and algorithm-specific diagnostics where meaningful.
+
+Weighted, directed, resolution, initial-membership, and fixed-membership
+semantics must be explicit. Before exposing a randomized algorithm, the
+package must also define a shared stochastic-execution contract covering how
+seeding, concurrent calls, and C/igraph's RNG state interact; reproducibility
+must not depend on an undocumented global side effect.
+
+### Milestone 7: Connectivity, flows, and cuts
+
+Goal: cover network robustness and capacity analysis on top of the graph and
+result ownership rules established by Milestone 5.
+
+Planned areas:
+
+- edge and vertex connectivity;
+- maximum flow and minimum cuts;
+- edge- and vertex-disjoint paths;
+- source-target cut enumeration where bounded result handling is practical;
+  and
+- Gomory-Hu trees and residual graphs as independently owned graph results.
+
+Capacity inputs should follow the existing borrowed-input and validation
+model. Result types must distinguish values, partitions, cut edges, and flow
+vectors without exposing C storage, and tests must cover directedness,
+parallel edges, loops, zero capacities, disconnected graphs, and partial
+initialization failures.
+
+### Milestone 8: Reproducible random graphs
+
+Goal: apply and harden the stochastic-execution contract established for
+Milestone 6 through a useful first slice of graph generators and random
+transformations.
+
+Planned areas:
+
+- the shared seed and reproducibility policy under concurrent generator calls;
+- Erdős-Rényi, degree-sequence, and preferential-attachment families;
+- rewiring and sampling operations; and
+- validation for graphical sequences, size overflow, and model-specific
+  parameter domains.
+
+The public API should expose model concepts rather than C RNG objects. Equal
+inputs and seeds must have a documented reproducibility scope, and failure or
+an interrupted call must not leave package-wide random state in a surprising
+state.
+
+### Milestone 9: Layouts and embeddings
+
+Goal: return visualization-ready coordinates through the existing Go-owned
+matrix boundary.
+
+Planned areas:
+
+- deterministic circle, grid, star, tree, and bipartite layouts;
+- representative force-directed and distance-based 2D layouts;
+- selected 3D layouts and spectral or manifold embeddings when their solver
+  contracts can remain Go-native; and
+- copied seed coordinates, bounds, weights, and fixed-vertex inputs.
+
+Coordinate matrices must use one documented vertex-to-row convention and have
+explicit dimensionality. Iteration limits, convergence, warnings, and empty or
+degenerate graphs need the same error and ownership treatment as Milestone 4,
+while stochastic layouts must reuse the shared reproducibility contract from
+Milestone 6.
+
+### Later domain milestones
+
+Isomorphism and subgraph matching; cliques, cycles, motifs, and graphlets;
+bipartite and spatial analysis; attributes and richer import/export; and other
+specialized upstream domains remain candidates after the milestones above.
+They should advance when a concrete use case can define a coherent Go API and
+its resource model, not merely to increase the inventory percentage.
+
+Across all future milestones, interruption and progress callbacks should stay
+internal until they can cross the Go/C boundary without weakening concurrency,
+cleanup, or error guarantees. Each milestone should finish with a cross-feature
+audit, examples, regenerated inventory, and `make verify`, following the same
+pattern as Milestones 3 and 4.
 
 ## Definition of done for a binding
 
