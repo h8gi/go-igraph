@@ -14,6 +14,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `VertexSelector` | Go-owned value | none | constructors copy explicit IDs; no graph or C resource is retained |
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
+| `ConnectedComponents` | Go-owned value and slices | none | membership and sizes remain valid and mutable after the graph is closed |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -23,6 +24,12 @@ are constructed, and bounds, missing endpoint pairs, and closed graphs are
 validated each time they are materialized. `SelectedVertexIDs` and
 `SelectedEdgeIDs` eagerly materialize a result while holding the graph lock;
 they do not return an iterator that borrows the graph.
+
+Connected-component results are eagerly copied while holding the graph lock.
+`Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
+indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
+and ordering come from upstream igraph. No result retains the source graph or
+any C storage.
 
 ## Nil and empty values
 
@@ -38,6 +45,8 @@ an API explicitly requires at least one value:
 - `NoVertices` and `NoEdges` select nothing, including on an empty graph;
 - `NewGraphFromEdges(vertexCount, nil)` creates the requested isolated
   vertices, and `AddEdges(nil)` is a no-op;
+- `ConnectedComponents` on a graph with no vertices returns non-nil, empty
+  membership and size slices with a component count of zero;
 - `NewLattice` is the exception: it rejects nil and empty dimensions because
   a lattice needs at least one dimension.
 
