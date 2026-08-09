@@ -37,7 +37,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_components.h` | 6 | 10 | 60.00% |
 | `igraph_components.h (generated)` | 0 | 32 | 0.00% |
 | `igraph_constructors.h` | 8 | 37 | 21.62% |
-| `igraph_conversion.h` | 1 | 8 | 12.50% |
+| `igraph_conversion.h` | 3 | 8 | 37.50% |
 | `igraph_cycles.h` | 0 | 9 | 0.00% |
 | `igraph_datatype.h` | 0 | 1 | 0.00% |
 | `igraph_dqueue.h (generated)` | 0 | 56 | 0.00% |
@@ -1364,7 +1364,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_simple_cycles` | `igraph_cycles.h` | Missing | — |
 | `igraph_simple_cycles_callback` | `igraph_cycles.h` | Missing | — |
 | `igraph_simple_interconnected_islands_game` | `igraph_games.h` | Missing | — |
-| `igraph_simplify` | `igraph_operators.h` | Missing | — |
+| `igraph_simplify` | `igraph_operators.h` | User-facing | `SimplifyInPlace` |
 | `igraph_simplify_and_colorize` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_sir` | `igraph_epidemics.h` | Missing | — |
 | `igraph_sir_destroy` | `igraph_epidemics.h` | Missing | — |
@@ -1548,9 +1548,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_subisomorphic_lad` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_subisomorphic_vf2` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_symmetric_tree` | `igraph_constructors.h` | Missing | — |
-| `igraph_to_directed` | `igraph_conversion.h` | Missing | — |
+| `igraph_to_directed` | `igraph_conversion.h` | User-facing | `ConvertToDirectedInPlace` |
 | `igraph_to_prufer` | `igraph_conversion.h` | Missing | — |
-| `igraph_to_undirected` | `igraph_conversion.h` | Missing | — |
+| `igraph_to_undirected` | `igraph_conversion.h` | User-facing | `ConvertToUndirectedInPlace` |
 | `igraph_topological_sorting` | `igraph_cycles.h` | Missing | — |
 | `igraph_transitive_closure` | `igraph_reachability.h` | Missing | — |
 | `igraph_transitivity_avglocal_undirected` | `igraph_transitivity.h` | User-facing | `AverageLocalTransitivity` |

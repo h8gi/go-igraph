@@ -22,6 +22,10 @@
 // Destructive deletion APIs materialize selectors before mutation and use a
 // temporary graph so validation, initialization, upstream, and conversion
 // failures leave the original graph unchanged.
+// In-place simplification and direction conversion use the same clone-and-swap
+// atomicity: an error leaves the receiver unchanged. These transformations do
+// not return edge ID mappings because igraph does not expose complete
+// provenance for merged, duplicated, paired, or discarded edges.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined

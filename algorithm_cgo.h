@@ -17,6 +17,9 @@ igraph_error_t go_igraph_delete_vertices_map(
     igraph_t *, igraph_vs_t, igraph_vector_int_t *, igraph_vector_int_t *);
 igraph_error_t go_igraph_get_edgelist(
     const igraph_t *, igraph_vector_int_t *, igraph_bool_t);
+igraph_error_t go_igraph_simplify(igraph_t *, igraph_bool_t, igraph_bool_t);
+igraph_error_t go_igraph_to_directed(igraph_t *, igraph_to_directed_t);
+igraph_error_t go_igraph_to_undirected(igraph_t *, igraph_to_undirected_t);
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *, const igraph_vector_int_t *);
 igraph_error_t go_igraph_es_vector_copy(igraph_es_t *, const igraph_vector_int_t *);
 igraph_error_t go_igraph_vit_create(const igraph_t *, igraph_vs_t, igraph_vit_t *);
