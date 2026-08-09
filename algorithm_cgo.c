@@ -192,3 +192,32 @@ igraph_error_t go_igraph_transitivity_avglocal_undirected(
     GO_IGRAPH_CALL(igraph_transitivity_avglocal_undirected(
         graph, result, mode));
 }
+
+igraph_error_t go_igraph_closeness(
+    const igraph_t *graph, igraph_vector_t *result,
+    igraph_vector_int_t *reachable_count, igraph_bool_t *all_reachable,
+    igraph_vs_t vertices, igraph_neimode_t mode,
+    const igraph_vector_t *weights, igraph_bool_t normalized,
+    igraph_bool_t has_cutoff, igraph_real_t cutoff) {
+    if (has_cutoff) {
+        GO_IGRAPH_CALL(igraph_closeness_cutoff(
+            graph, result, reachable_count, all_reachable, vertices, mode,
+            weights, normalized, cutoff));
+    }
+    GO_IGRAPH_CALL(igraph_closeness(
+        graph, result, reachable_count, all_reachable, vertices, mode,
+        weights, normalized));
+}
+
+igraph_error_t go_igraph_harmonic_centrality(
+    const igraph_t *graph, igraph_vector_t *result, igraph_vs_t vertices,
+    igraph_neimode_t mode, const igraph_vector_t *weights,
+    igraph_bool_t normalized, igraph_bool_t has_cutoff,
+    igraph_real_t cutoff) {
+    if (has_cutoff) {
+        GO_IGRAPH_CALL(igraph_harmonic_centrality_cutoff(
+            graph, result, vertices, mode, weights, normalized, cutoff));
+    }
+    GO_IGRAPH_CALL(igraph_harmonic_centrality(
+        graph, result, vertices, mode, weights, normalized));
+}
