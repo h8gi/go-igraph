@@ -212,10 +212,10 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: proposed. The milestone numbers below express the intended dependency
-order, not a commitment to bind every function in the named upstream headers.
-Before implementation starts, each milestone should be split into reviewable
-issues with an explicit API contract and binding target.
+Status: Milestone 5 is complete. Milestone 6 community structure is the next
+separate milestone. Later milestone numbers express dependency order, not a
+commitment to bind every function in the named upstream headers; each milestone
+must still be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -227,20 +227,59 @@ reproducibility rules rather than one-off conventions in each binding.
 Goal: make derived graphs and destructive edits safe building blocks for later
 algorithms.
 
-Planned areas:
+Status: complete. The transformation layer was delivered as a dependency-ordered
+sequence of focused issues:
 
-- vertex and edge deletion using the existing selectors;
+- shared derived-graph ownership, ID mappings, graph-list adoption, and stable
+  multi-graph locking ([#66](https://github.com/h8gi/go-igraph/issues/66));
+- selector-based atomic vertex and edge deletion
+  ([#67](https://github.com/h8gi/go-igraph/issues/67));
 - induced and edge subgraphs, decomposition into components, and independently
-  owned graph results;
-- simplification, direction conversion, and commonly used graph operators;
-- articulation points, bridges, and biconnected structure; and
-- explicit old-to-new vertex and edge mappings whenever an operation can
-  renumber IDs.
+  owned graph results ([#68](https://github.com/h8gi/go-igraph/issues/68));
+- atomic simplification and direction conversion
+  ([#69](https://github.com/h8gi/go-igraph/issues/69));
+- common graph operators with explicit provenance availability
+  ([#70](https://github.com/h8gi/go-igraph/issues/70));
+- articulation points, bridges, and biconnected structure
+  ([#71](https://github.com/h8gi/go-igraph/issues/71)); and
+- this integration, executable-example, ownership, failure-path, and
+  documentation audit ([#72](https://github.com/h8gi/go-igraph/issues/72)).
 
-The milestone must define atomic failure behavior for mutations, materialize
-selectors before modifying a graph, and clean up every partially initialized
-graph in multi-result operations. Returned graphs must be independently owned,
-and mappings must remain valid after their source graphs are closed.
+Completion criteria:
+
+- mutating names and graph-returning names distinguish receiver mutation from
+  independently owned results, while selectors are materialized before every
+  mutation;
+- `RemovedID`, identity, many-to-one representatives, unavailable one-to-many
+  mappings, exact upstream provenance, and deterministic structural mappings
+  have one documented source-to-result contract;
+- clone-and-swap mutations are atomic on validation, initialization, upstream,
+  and conversion failure, and graph-list/nested-list partial results are cleaned
+  at every ownership-transfer boundary;
+- graph results survive source and sibling closure, mappings and nested
+  collections are non-nil Go-owned values, and repeated `Close` is safe;
+- multi-operand APIs deduplicate repeated graphs and lock distinct operands in
+  deterministic order; and
+- integration tests, race tests, generated inventory checks, and `make verify`
+  pass against pinned igraph 1.0.1.
+
+Completion evidence:
+
+- deletion, subgraph, transformation, operator, and structural-decomposition
+  suites cover directed and undirected graphs, loops, parallel edges,
+  disconnected and empty graphs, empty and all-element selectors, invalid and
+  closed inputs, upstream and initialization failures, and early returns;
+- focused failure seams cover clone cleanup, mapping-vector cleanup, partial
+  graph-list extraction, and partial nested-list conversion;
+- integration pipelines combine deletion, independently owned subgraphs and
+  components, simplification, direction conversion, graph operators,
+  articulation points, bridges, and biconnected components, including source
+  closure before result use;
+- concurrent reversed and repeated operand tests run under the race detector;
+- executable examples demonstrate deletion mappings and independently closed
+  component graphs; and
+- `make verify` enforces formatting, vet, behavioral tests, the statement
+  coverage floor, inventory-tool tests, and generated inventory freshness.
 
 ### Milestone 6: Community structure
 

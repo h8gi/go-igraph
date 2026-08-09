@@ -20,19 +20,12 @@ type BinaryGraphOperatorResult struct {
 	Right GraphIDMapping
 }
 
-// VertexMappedGraphResult contains an independently owned graph and an exact
-// source-to-result vertex mapping. No edge mapping is available for operations
-// returning this type because upstream does not expose one and the binding
-// does not infer edge correspondence or result ordering.
-type VertexMappedGraphResult struct {
-	Graph    *Graph
-	Vertices IDMapping
-}
-
 // DifferenceResult contains an independently owned difference graph and exact
 // left-operand vertex provenance. Left.Edges is a deterministic structural
 // source-to-result mapping: endpoint-equivalent parallel edges are paired by
-// ascending source and result edge IDs. It is not attribute provenance.
+// ascending source and result edge IDs. It is not attribute provenance. Graph
+// must be closed by the caller; mapping slices are non-nil, Go-owned, and
+// survive closure of both operands and the result.
 type DifferenceResult struct {
 	Graph *Graph
 	Left  GraphIDMapping
@@ -398,18 +391,18 @@ func collectDifference(
 }
 
 func structuralDifferenceEdgeMapping(source, result []Edge, directed bool) (IDMapping, error) {
-	resultBuckets := make(map[Edge][]int)
+	resultBuckets := make(map[edgeEndpointKey][]int)
 	for resultID, edge := range result {
-		resultBuckets[operatorCanonicalEdge(edge, directed)] = append(
-			resultBuckets[operatorCanonicalEdge(edge, directed)], resultID,
+		resultBuckets[endpointKey(edge, directed)] = append(
+			resultBuckets[endpointKey(edge, directed)], resultID,
 		)
 	}
-	positions := make(map[Edge]int, len(resultBuckets))
+	positions := make(map[edgeEndpointKey]int, len(resultBuckets))
 	oldToNew := make([]int, len(source))
 	matched := 0
 	for sourceID, edge := range source {
 		oldToNew[sourceID] = RemovedID
-		key := operatorCanonicalEdge(edge, directed)
+		key := endpointKey(edge, directed)
 		position := positions[key]
 		if position < len(resultBuckets[key]) {
 			oldToNew[sourceID] = resultBuckets[key][position]
@@ -421,13 +414,6 @@ func structuralDifferenceEdgeMapping(source, result []Edge, directed bool) (IDMa
 		return IDMapping{}, errors.New("igraph: difference result contains an edge absent from the left operand")
 	}
 	return newIDMapping(oldToNew, len(result))
-}
-
-func operatorCanonicalEdge(edge Edge, directed bool) Edge {
-	if !directed && edge.From > edge.To {
-		edge.From, edge.To = edge.To, edge.From
-	}
-	return edge
 }
 
 func offsetGraphIDMapping(oldVertices, oldEdges, newVertices, newEdges, vertexOffset, edgeOffset int) (GraphIDMapping, error) {

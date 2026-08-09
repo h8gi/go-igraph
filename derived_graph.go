@@ -42,6 +42,16 @@ type GraphIDMapping struct {
 	Edges    IDMapping
 }
 
+// VertexMappedGraphResult contains an independently owned graph and a
+// source-to-result vertex mapping. Operation-specific documentation states
+// whether upstream supplies the mapping or the binding derives it from an
+// exact ID-preserving step. Graph must be closed by the caller. Both mapping
+// slices are non-nil, Go-owned, and remain valid after every graph is closed.
+type VertexMappedGraphResult struct {
+	Graph    *Graph
+	Vertices IDMapping
+}
+
 func newIDMapping(oldToNew []int, newCount int) (IDMapping, error) {
 	if newCount < 0 {
 		return IDMapping{}, fmt.Errorf("igraph: new ID count must be non-negative: %d", newCount)

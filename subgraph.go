@@ -11,30 +11,13 @@ import (
 	"sort"
 )
 
-// InducedSubgraphResult contains an independently owned graph and the exact
-// vertex-ID mapping returned by upstream igraph. No edge mapping is exposed
-// because upstream does not return result edge-ID correspondence or a result
-// edge-order mapping.
-//
-// Graph remains usable after the source graph is closed. Vertices and all of
-// its slices are non-nil, Go-owned values and remain valid after either graph
-// is closed.
-type InducedSubgraphResult struct {
-	Graph    *Graph
-	Vertices IDMapping
-}
+// InducedSubgraphResult is the vertex-mapped result returned by
+// InducedSubgraph. Its mapping is the exact mapping supplied by upstream.
+type InducedSubgraphResult = VertexMappedGraphResult
 
-// EdgeSubgraphResult contains an independently owned graph and its vertex-ID
-// mapping. No edge mapping is exposed because upstream igraph does not return
-// result edge-ID correspondence or a result edge-order mapping.
-//
-// Graph remains usable after the source graph is closed. Vertices and all of
-// its slices are non-nil, Go-owned values and remain valid after either graph
-// is closed.
-type EdgeSubgraphResult struct {
-	Graph    *Graph
-	Vertices IDMapping
-}
+// EdgeSubgraphResult is the vertex-mapped result returned by EdgeSubgraph. Its
+// mapping is identity or the exact mapping supplied by upstream deletion.
+type EdgeSubgraphResult = VertexMappedGraphResult
 
 // InducedSubgraph returns the subgraph induced by vertices and every edge whose
 // endpoints are both selected. The selector is borrowed and fully materialized

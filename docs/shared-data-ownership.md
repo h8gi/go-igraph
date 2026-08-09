@@ -27,11 +27,9 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `IDMapping` | Go-owned slices | none | `OldToNew` is indexed by source ID; `NewToOld` is indexed by derived ID; both survive graph closure |
 | `GraphIDMapping` | two Go-owned `IDMapping` values | none | vertex and edge mappings follow the same direction, sentinel, and lifetime rules |
 | `GraphTransformationResult` | Go-owned mappings and availability flag | none | vertex mapping is identity; an unavailable one-to-many edge mapping has non-nil empty slices and must not be read as empty provenance |
-| `InducedSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
-| `EdgeSubgraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the graph and mapping survive source closure and have independent lifetimes |
+| `VertexMappedGraphResult` (`InducedSubgraphResult`, `EdgeSubgraphResult`) | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the aliases share one ownership shape; operation docs define exact mapping provenance |
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
 | `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
-| `VertexMappedGraphResult` | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | vertex mapping is exact; unavailable edge provenance is not inferred |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 

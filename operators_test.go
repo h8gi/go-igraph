@@ -672,14 +672,14 @@ func undirectedCompositionMatches(left, right, result Edge) bool {
 	if right.From != right.To {
 		rightDirections = append(rightDirections, Edge{From: right.To, To: right.From})
 	}
-	result = operatorCanonicalEdge(result, false)
+	resultKey := endpointKey(result, false)
 	for _, leftDirection := range leftDirections {
 		for _, rightDirection := range rightDirections {
 			if leftDirection.To != rightDirection.From {
 				continue
 			}
-			candidate := operatorCanonicalEdge(Edge{From: leftDirection.From, To: rightDirection.To}, false)
-			if candidate == result {
+			candidate := endpointKey(Edge{From: leftDirection.From, To: rightDirection.To}, false)
+			if candidate == resultKey {
 				return true
 			}
 		}
