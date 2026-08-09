@@ -247,3 +247,60 @@ igraph_error_t go_igraph_edge_betweenness(
     GO_IGRAPH_CALL(igraph_edge_betweenness(
         graph, weights, result, edges, directed, normalized));
 }
+
+static void go_igraph_arpack_options(
+    igraph_arpack_options_t *options, int max_iterations,
+    igraph_real_t tolerance) {
+    igraph_arpack_options_init(options);
+    if (max_iterations > 0) {
+        options->mxiter = max_iterations;
+    }
+    if (tolerance > 0) {
+        options->tol = tolerance;
+    }
+}
+
+igraph_error_t go_igraph_eigenvector_centrality(
+    const igraph_t *graph, igraph_vector_t *result, igraph_real_t *value,
+    igraph_neimode_t mode, const igraph_vector_t *weights,
+    int max_iterations, igraph_real_t tolerance) {
+    igraph_arpack_options_t options;
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
+    GO_IGRAPH_CALL(igraph_eigenvector_centrality(
+        graph, result, value, mode, weights, &options));
+}
+
+igraph_error_t go_igraph_hub_and_authority_scores(
+    const igraph_t *graph, igraph_vector_t *hub_result,
+    igraph_vector_t *authority_result, igraph_real_t *value,
+    const igraph_vector_t *weights, int max_iterations,
+    igraph_real_t tolerance) {
+    igraph_arpack_options_t options;
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
+    GO_IGRAPH_CALL(igraph_hub_and_authority_scores(
+        graph, hub_result, authority_result, value, weights, &options));
+}
+
+igraph_error_t go_igraph_pagerank(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_real_t *value,
+    const igraph_vector_t *reset, igraph_vs_t reset_vertices, int reset_kind,
+    igraph_real_t damping, igraph_bool_t directed, igraph_vs_t vertices,
+    igraph_pagerank_algo_t algorithm, int max_iterations,
+    igraph_real_t tolerance) {
+    igraph_arpack_options_t options;
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
+    if (reset_kind == 1) {
+        GO_IGRAPH_CALL(igraph_personalized_pagerank(
+            graph, weights, result, value, reset, damping, directed, vertices,
+            algorithm, &options));
+    }
+    if (reset_kind == 2) {
+        GO_IGRAPH_CALL(igraph_personalized_pagerank_vs(
+            graph, weights, result, value, reset_vertices, damping, directed,
+            vertices, algorithm, &options));
+    }
+    GO_IGRAPH_CALL(igraph_pagerank(
+        graph, weights, result, value, damping, directed, vertices, algorithm,
+        &options));
+}
