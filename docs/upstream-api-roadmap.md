@@ -150,11 +150,11 @@ Goal: deliver the first advanced-algorithm slice as a coherent centrality API
 over the selector, direction, weight, matrix, error, and ownership contracts
 established by Milestones 2 and 3.
 
-Status: planned. Work is tracked by
-[GitHub Milestone 4](https://github.com/h8gi/go-igraph/milestone/4) and is not
-complete until its implementation and contract-audit issues are closed.
+Status: complete. The centrality layer adds 22 user-facing bindings and reuses
+the selector, direction, optional-weight, error, locking, and ownership
+contracts established by Milestones 2 and 3.
 
-Planned areas and execution order:
+Implemented areas:
 
 - closeness and harmonic centrality, including explicit cutoff and
   reachability semantics ([#52](https://github.com/h8gi/go-igraph/issues/52));
@@ -189,9 +189,33 @@ Completion criteria:
 - the binding inventory is regenerated and reviewed, statement coverage stays
   above the CI threshold, and `make verify` passes.
 
+Completion evidence:
+
+- closeness, harmonic, vertex-betweenness, edge-betweenness, and PageRank
+  results preserve selector order and duplicates while returning non-nil,
+  Go-owned slices;
+- cutoffs use explicit optional non-negative values, centrality families share
+  positive or non-negative weight validators as required, and PageRank reset
+  representations are mutually exclusive;
+- eigenvector, HITS, and PageRank expose only Go solver settings, default to the
+  recommended PRPACK PageRank backend, and never expose a C solver object;
+- graph centralization returns node scores, raw or normalized values, and
+  theoretical maxima without exposing null-graph or raw-node-count conventions;
+- focused and cross-feature tests cover known answers, invariants, directed and
+  undirected graphs, weighted and unweighted calls, cutoff boundaries,
+  personalized resets, disconnected and degenerate graphs, initialization and
+  upstream failures where testable, warning paths, and use after `Close`;
+- package examples demonstrate selector-ordered distance centrality and
+  personalized PageRank; and
+- `make verify` checks the regenerated inventory, statement-coverage floor,
+  vet, formatting, and the full behavioral suite against pinned igraph 1.0.1.
+
+## Future advanced domains
+
 Community detection, layouts, flows and cuts, isomorphism, random graph
 generators, and domain-specific spatial, bipartite, and motif APIs remain
-candidates for separate future milestones. They are not part of Milestone 4.
+separate candidates for future milestones. Each should be planned as its own
+coherent slice rather than extending Milestone 4.
 
 ## Definition of done for a binding
 

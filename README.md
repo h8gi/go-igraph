@@ -28,9 +28,11 @@ strategy, milestones, and completion criteria.
 
 Milestone 3's fundamental algorithms include degree and neighborhoods,
 components, BFS/DFS, shortest paths and distance matrices, density, diameter,
-average path length, and transitivity. Executable examples in the package
-documentation demonstrate selector-ordered weighted distances and restricted
-traversal.
+average path length, and transitivity. Milestone 4 adds selector-aware
+closeness, harmonic and betweenness centrality, eigenvector centrality, HITS,
+standard and personalized PageRank, and graph centralization. Executable
+examples demonstrate selector order, weighted distances, restricted traversal,
+distance centrality, and personalized ranking.
 
 The generated [API coverage report](docs/api-coverage.md) compares the functions
 exported by a pinned upstream igraph release with explicit `//igraph:bind` and
