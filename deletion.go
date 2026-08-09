@@ -309,6 +309,13 @@ func edgeSlice(graph *C.igraph_t) ([]Edge, error) {
 	if err != nil {
 		return nil, err
 	}
+	return edgesFromEndpointValues(values)
+}
+
+func edgesFromEndpointValues(values []int) ([]Edge, error) {
+	if len(values)%2 != 0 {
+		return nil, fmt.Errorf("igraph: edge endpoint vector has odd length %d", len(values))
+	}
 	edges := make([]Edge, len(values)/2)
 	for index := range edges {
 		edges[index] = Edge{From: values[2*index], To: values[2*index+1]}

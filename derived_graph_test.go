@@ -238,6 +238,28 @@ func TestWithGraphsLockedOppositeOrdersDoNotDeadlock(t *testing.T) {
 	}
 }
 
+func TestDerivedGraphHelpersRejectInvalidOperations(t *testing.T) {
+	var nilList *graphList
+	if err := nilList.appendCopy(nil); err == nil {
+		t.Error("nil graphList.appendCopy() error = nil")
+	}
+	if graphs, err := nilList.takeGraphs(); graphs != nil || err == nil {
+		t.Errorf("nil graphList.takeGraphs() = %v, %v, want nil, error", graphs, err)
+	}
+	nilList.close()
+	(&graphList{}).close()
+
+	if list, err := newGraphListFromCopies([]*Graph{nil}); list != nil || !errors.Is(err, ErrClosed) {
+		t.Errorf("newGraphListFromCopies(nil graph) = %v, %v, want nil, %v", list, err, ErrClosed)
+	}
+	if err := withLockedGraphs(nil, nil); err == nil {
+		t.Error("withLockedGraphs(nil operation) error = nil")
+	}
+	if err := withGraphsLocked(nil, nil); err == nil {
+		t.Error("withGraphsLocked(nil operation) error = nil")
+	}
+}
+
 func testGraphFromEdges(t *testing.T, vertexCount int, edges []Edge, directed bool) *Graph {
 	t.Helper()
 	graph, err := NewGraphFromEdges(vertexCount, edges, directed)

@@ -288,11 +288,35 @@ func TestDeletionHelpersRejectInconsistentInternalResults(t *testing.T) {
 	if edges, err := edgeSlice(nil); edges != nil || err == nil {
 		t.Errorf("edgeSlice(nil) = %v, %v, want nil, error", edges, err)
 	}
+	if edges, err := edgesFromEndpointValues([]int{0}); edges != nil || err == nil {
+		t.Errorf("edgesFromEndpointValues(odd) = %v, %v, want nil, error", edges, err)
+	}
 	if err := validateDeletionCount("edge", 2, 1); err == nil {
 		t.Error("validateDeletionCount(mismatch) error = nil")
 	}
 	if err := validateReverseDeletionMapping([]int{0}, []int{1}); err == nil {
 		t.Error("validateReverseDeletionMapping(mismatch) error = nil")
+	}
+}
+
+func TestEdgesFromEndpointValues(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		values []int
+		want   []Edge
+	}{
+		{name: "empty", want: []Edge{}},
+		{name: "directed loop and edge", values: []int{1, 1, 2, 0}, want: []Edge{{1, 1}, {2, 0}}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := edgesFromEndpointValues(test.values)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got == nil || !reflect.DeepEqual(got, test.want) {
+				t.Errorf("edgesFromEndpointValues(%v) = %v, want non-nil %v", test.values, got, test.want)
+			}
+		})
 	}
 }
 
