@@ -259,9 +259,9 @@ Planned areas:
 
 Weighted, directed, resolution, initial-membership, and fixed-membership
 semantics must be explicit. Before exposing a randomized algorithm, the
-package must also define how seeding, concurrent calls, and C/igraph's RNG
-state interact; reproducibility must not depend on an undocumented global
-side effect.
+package must also define a shared stochastic-execution contract covering how
+seeding, concurrent calls, and C/igraph's RNG state interact; reproducibility
+must not depend on an undocumented global side effect.
 
 ### Milestone 7: Connectivity, flows, and cuts
 
@@ -285,13 +285,13 @@ initialization failures.
 
 ### Milestone 8: Reproducible random graphs
 
-Goal: establish one safe stochastic-execution contract and use it for a useful
-first slice of graph generators and random transformations.
+Goal: apply and harden the stochastic-execution contract established for
+Milestone 6 through a useful first slice of graph generators and random
+transformations.
 
 Planned areas:
 
-- an explicit seed and reproducibility policy compatible with concurrent Go
-  callers;
+- the shared seed and reproducibility policy under concurrent generator calls;
 - Erdős-Rényi, degree-sequence, and preferential-attachment families;
 - rewiring and sampling operations; and
 - validation for graphical sequences, size overflow, and model-specific
@@ -318,7 +318,8 @@ Planned areas:
 Coordinate matrices must use one documented vertex-to-row convention and have
 explicit dimensionality. Iteration limits, convergence, warnings, and empty or
 degenerate graphs need the same error and ownership treatment as Milestone 4,
-while stochastic layouts must reuse the Milestone 8 reproducibility contract.
+while stochastic layouts must reuse the shared reproducibility contract from
+Milestone 6.
 
 ### Later domain milestones
 
