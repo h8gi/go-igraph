@@ -59,6 +59,22 @@ inverse of `OldToNew`. Empty mappings contain non-nil empty slices. Both
 directions are copied into Go storage and remain valid and mutable after source
 and result graphs are closed.
 
+`DeleteVertices` and `DeleteEdges` borrow their selector for the call and
+materialize it into Go-owned IDs while holding the graph lock, before creating
+or mutating any replacement graph. Duplicate IDs coalesce and selector order
+does not affect deletion. Empty selectors are no-ops that return identity
+vertex and edge mappings. Vertex deletion marks both removed vertices and all
+incident edges with `RemovedID`; edge deletion returns an identity vertex
+mapping and marks selected edges with `RemovedID`. Retained elements preserve
+their relative ID order, including directed edges, loops, and parallel edges.
+
+Deletion is fully atomic. The binding clones the graph, initializes selectors
+and mapping outputs, invokes upstream igraph, converts and validates all
+Go-owned mappings, and only then moves the completed clone into the public
+`Graph`. Validation, initialization, upstream, or post-mutation conversion
+failure destroys the clone and leaves the original graph unchanged. Successful
+mappings retain no graph or C storage and survive closing the mutated graph.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
@@ -124,6 +140,9 @@ an API explicitly requires at least one value:
 - `NoVertices` and `NoEdges` select nothing, including on an empty graph;
 - `NewGraphFromEdges(vertexCount, nil)` creates the requested isolated
   vertices, and `AddEdges(nil)` is a no-op;
+- empty deletion selectors are no-ops with non-nil identity mappings; deleting
+  all edges retains all vertices, while deleting all vertices yields a valid
+  zero-vertex, zero-edge graph and non-nil empty reverse mappings;
 - `ConnectedComponents` on a graph with no vertices returns non-nil, empty
   membership and size slices with a component count of zero;
 - cut-structure queries on empty or edgeless graphs return non-nil empty
@@ -158,6 +177,7 @@ Initialization failure does not create a resource that needs destruction.
 | vertex or edge iterator | borrows its graph and selector only during eager materialization | destroy iterator first, then its owned selector, before releasing the graph lock |
 | initialized graph result | ownership is moved, never copied from borrowed list storage, into exactly one public `Graph` | clear the moved-from value; the public `Graph.Close` performs the one destroy |
 | graph list | owns its container and every graph still stored in it | remove transfers one element; destroy the container on success and all remaining elements plus already adopted graphs on any failure or early return |
+| deletion replacement graph | source graph and selector are borrowed under one lock; mapping vectors and the clone are temporary owners | destroy the clone and temporaries on every failure; on success destroy the prior graph exactly once after moving in the clone |
 
 No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully

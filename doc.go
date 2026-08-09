@@ -17,6 +17,9 @@
 // constraints. Distance-based and betweenness centralities require positive
 // weights; spectral and ranking centralities require non-negative weights.
 // Duplicate explicit selectors preserve caller order in returned results.
+// Destructive deletion APIs materialize selectors before mutation and use a
+// temporary graph so validation, initialization, upstream, and conversion
+// failures leave the original graph unchanged.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined

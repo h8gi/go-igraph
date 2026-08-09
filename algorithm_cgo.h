@@ -12,6 +12,11 @@ igraph_error_t go_igraph_graph_list_init(igraph_graph_list_t *, igraph_int_t);
 igraph_error_t go_igraph_graph_list_push_back_copy(igraph_graph_list_t *, const igraph_t *);
 igraph_error_t go_igraph_graph_list_remove(igraph_graph_list_t *, igraph_int_t, igraph_t *);
 igraph_error_t go_igraph_copy(igraph_t *, const igraph_t *);
+igraph_error_t go_igraph_delete_edges(igraph_t *, igraph_es_t);
+igraph_error_t go_igraph_delete_vertices_map(
+    igraph_t *, igraph_vs_t, igraph_vector_int_t *, igraph_vector_int_t *);
+igraph_error_t go_igraph_get_edgelist(
+    const igraph_t *, igraph_vector_int_t *, igraph_bool_t);
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *, const igraph_vector_int_t *);
 igraph_error_t go_igraph_es_vector_copy(igraph_es_t *, const igraph_vector_int_t *);
 igraph_error_t go_igraph_vit_create(const igraph_t *, igraph_vs_t, igraph_vit_t *);
