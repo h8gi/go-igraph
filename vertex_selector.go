@@ -128,7 +128,8 @@ func (g *Graph) vertexIDs(selector VertexSelector) ([]int, error) {
 		return nil, ErrClosed
 	}
 
-	if err := validateVertexSelector(selector, int(C.igraph_vcount(&g.graph))); err != nil {
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	if err := validateVertexSelector(selector, vertexCount); err != nil {
 		return nil, err
 	}
 
@@ -143,6 +144,9 @@ func validateVertexSelector(selector VertexSelector, vertexCount int) error {
 	case vertexSelectorAll, vertexSelectorNone:
 	case vertexSelectorIDs:
 		for index, id := range selector.ids {
+			if id < 0 {
+				return fmt.Errorf("igraph: vertex ID at selector index %d must be non-negative: %d", index, id)
+			}
 			if id >= vertexCount {
 				return fmt.Errorf(
 					"igraph: vertex ID at selector index %d is %d, outside [0, %d)",
@@ -151,6 +155,12 @@ func validateVertexSelector(selector VertexSelector, vertexCount int) error {
 			}
 		}
 	case vertexSelectorRange:
+		if selector.start < 0 {
+			return fmt.Errorf("igraph: vertex range start must be non-negative: %d", selector.start)
+		}
+		if selector.end < selector.start {
+			return fmt.Errorf("igraph: vertex range end %d is before start %d", selector.end, selector.start)
+		}
 		if selector.end > vertexCount {
 			return fmt.Errorf(
 				"igraph: vertex range [%d, %d) exceeds vertex count %d",

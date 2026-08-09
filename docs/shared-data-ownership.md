@@ -15,6 +15,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `EdgeSelector` | Go-owned value | none | constructors copy explicit IDs or pairs; no graph or C resource is retained |
 | selection result | Go-owned slice | none | remains valid and mutable after the graph is closed |
 | `ConnectedComponents` | Go-owned value and slices | none | membership and sizes remain valid and mutable after the graph is closed |
+| `BFSResult`, `DFSResult` | Go-owned slices | none | traversal options are borrowed only during the call; results remain valid and mutable after the graph is closed |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -47,6 +48,8 @@ an API explicitly requires at least one value:
   vertices, and `AddEdges(nil)` is a no-op;
 - `ConnectedComponents` on a graph with no vertices returns non-nil, empty
   membership and size slices with a component count of zero;
+- breadth-first search requires at least one root and depth-first search
+  requires one valid root, so traversal of an empty graph returns an error;
 - `NewLattice` is the exception: it rejects nil and empty dimensions because
   a lattice needs at least one dimension.
 
