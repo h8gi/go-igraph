@@ -479,3 +479,227 @@ func TestRandomTreeGame(t *testing.T) {
 		}
 	})
 }
+
+func TestDegreeSequenceGame(t *testing.T) {
+	seed := uint64(12345)
+
+	t.Run("undirected valid methods", func(t *testing.T) {
+		outDeg := []int{2, 2, 2, 2} // 4-cycle or 2 2-cycles
+		methods := []igraph.DegSeqMethod{
+			igraph.DegSeqConfiguration,
+			igraph.DegSeqVL,
+			igraph.DegSeqSimpleNoMultiple,
+			igraph.DegSeqSimpleNoMultipleUniform,
+			igraph.DegSeqEdgeSwitchingSimple,
+			igraph.DegSeqSimple,
+		}
+
+		for _, method := range methods {
+			g, err := igraph.DegreeSequenceGame(outDeg, nil, method, igraph.DegSeqOptions{Seed: &seed})
+			if err != nil {
+				t.Fatalf("DegreeSequenceGame failed for method %d: %v", method, err)
+			}
+			defer g.Close()
+
+			vertices, edges := mustCounts(t, g)
+			if vertices != 4 || edges != 4 {
+				t.Errorf("expected 4 vertices and 4 edges for method %d, got %d and %d", method, vertices, edges)
+			}
+
+			directed, err := g.IsDirected()
+			if err != nil {
+				t.Fatalf("IsDirected failed: %v", err)
+			}
+			if directed {
+				t.Errorf("expected undirected graph for method %d", method)
+			}
+		}
+	})
+
+	t.Run("directed valid methods", func(t *testing.T) {
+		outDeg := []int{1, 1, 1}
+		inDeg := []int{1, 1, 1} // 3-cycle
+
+		methods := []igraph.DegSeqMethod{
+			igraph.DegSeqConfiguration,
+			igraph.DegSeqSimpleNoMultiple,
+			igraph.DegSeqSimpleNoMultipleUniform,
+			igraph.DegSeqEdgeSwitchingSimple,
+		}
+
+		for _, method := range methods {
+			g, err := igraph.DegreeSequenceGame(outDeg, inDeg, method, igraph.DegSeqOptions{Seed: &seed})
+			if err != nil {
+				t.Fatalf("DegreeSequenceGame failed for directed method %d: %v", method, err)
+			}
+			defer g.Close()
+
+			vertices, edges := mustCounts(t, g)
+			if vertices != 3 || edges != 3 {
+				t.Errorf("expected 3 vertices and 3 edges for method %d, got %d and %d", method, vertices, edges)
+			}
+
+			directed, err := g.IsDirected()
+			if err != nil {
+				t.Fatalf("IsDirected failed: %v", err)
+			}
+			if !directed {
+				t.Errorf("expected directed graph for method %d", method)
+			}
+		}
+	})
+
+	t.Run("empty sequence", func(t *testing.T) {
+		g, err := igraph.DegreeSequenceGame([]int{}, nil, igraph.DegSeqConfiguration, igraph.DegSeqOptions{})
+		if err != nil {
+			t.Fatalf("DegreeSequenceGame failed for empty sequence: %v", err)
+		}
+		defer g.Close()
+
+		vertices, edges := mustCounts(t, g)
+		if vertices != 0 || edges != 0 {
+			t.Errorf("expected 0 vertices and 0 edges, got %d and %d", vertices, edges)
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		outDeg := []int{3, 3, 3, 3}
+		g1, err := igraph.DegreeSequenceGame(outDeg, nil, igraph.DegSeqConfiguration, igraph.DegSeqOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("DegreeSequenceGame failed: %v", err)
+		}
+		defer g1.Close()
+
+		g2, err := igraph.DegreeSequenceGame(outDeg, nil, igraph.DegSeqConfiguration, igraph.DegSeqOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("DegreeSequenceGame failed: %v", err)
+		}
+		defer g2.Close()
+
+		if !reflect.DeepEqual(mustEdges(t, g1), mustEdges(t, g2)) {
+			t.Errorf("expected identical edge lists for same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		// Negative degree
+		if _, err := igraph.DegreeSequenceGame([]int{2, -1, 1}, nil, igraph.DegSeqConfiguration, igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for negative degree")
+		}
+
+		// Undirected odd degree sum
+		if _, err := igraph.DegreeSequenceGame([]int{1, 1, 1}, nil, igraph.DegSeqConfiguration, igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for undirected odd degree sum")
+		}
+
+		// Directed mismatched slice lengths
+		if _, err := igraph.DegreeSequenceGame([]int{1, 1}, []int{1, 1, 1}, igraph.DegSeqConfiguration, igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for mismatched in/out slice lengths")
+		}
+
+		// Directed mismatched sums
+		if _, err := igraph.DegreeSequenceGame([]int{1, 2}, []int{1, 1}, igraph.DegSeqConfiguration, igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for mismatched in/out degree sums")
+		}
+
+		// Directed with VL method
+		if _, err := igraph.DegreeSequenceGame([]int{1, 1}, []int{1, 1}, igraph.DegSeqVL, igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for directed graph with VL method")
+		}
+
+		// Invalid method
+		if _, err := igraph.DegreeSequenceGame([]int{2, 2, 2, 2}, nil, igraph.DegSeqMethod(99), igraph.DegSeqOptions{}); err == nil {
+			t.Errorf("expected error for invalid DegSeqMethod")
+		}
+	})
+}
+
+func TestIsGraphical(t *testing.T) {
+	t.Run("undirected simple graphical sequence", func(t *testing.T) {
+		ok, err := igraph.IsGraphical([]int{2, 2, 2}, nil, igraph.EdgeTypeSimple)
+		if err != nil {
+			t.Fatalf("IsGraphical failed: %v", err)
+		}
+		if !ok {
+			t.Errorf("expected [2, 2, 2] to be graphical")
+		}
+	})
+
+	t.Run("undirected non-graphical simple sequence", func(t *testing.T) {
+		ok, err := igraph.IsGraphical([]int{3, 1, 1}, nil, igraph.EdgeTypeSimple)
+		if err != nil {
+			t.Fatalf("IsGraphical failed: %v", err)
+		}
+		if ok {
+			t.Errorf("expected [3, 1, 1] to not be graphical for simple edge type")
+		}
+	})
+
+	t.Run("directed graphical sequence", func(t *testing.T) {
+		ok, err := igraph.IsGraphical([]int{1, 1, 1}, []int{1, 1, 1}, igraph.EdgeTypeSimple)
+		if err != nil {
+			t.Fatalf("IsGraphical failed: %v", err)
+		}
+		if !ok {
+			t.Errorf("expected directed [1, 1, 1] to be graphical")
+		}
+	})
+
+	t.Run("edge type variations", func(t *testing.T) {
+		types := []igraph.EdgeType{
+			igraph.EdgeTypeSimple,
+			igraph.EdgeTypeLoops,
+			igraph.EdgeTypeMulti,
+			igraph.EdgeTypeLoopsAndMulti,
+		}
+		for _, et := range types {
+			ok, err := igraph.IsGraphical([]int{2, 2, 2}, nil, et)
+			if err != nil {
+				t.Fatalf("IsGraphical failed for EdgeType %d: %v", et, err)
+			}
+			if !ok {
+				t.Errorf("expected [2, 2, 2] to be graphical for EdgeType %d", et)
+			}
+		}
+	})
+
+	t.Run("invalid edge type", func(t *testing.T) {
+		if _, err := igraph.IsGraphical([]int{2, 2, 2}, nil, igraph.EdgeType(99)); err == nil {
+			t.Errorf("expected error for invalid EdgeType")
+		}
+	})
+
+	t.Run("mismatched directed lengths", func(t *testing.T) {
+		if _, err := igraph.IsGraphical([]int{1, 1}, []int{1}, igraph.EdgeTypeSimple); err == nil {
+			t.Errorf("expected error for mismatched slice lengths")
+		}
+	})
+}
+
+func TestIsBigraphical(t *testing.T) {
+	t.Run("valid bipartite degree sequence", func(t *testing.T) {
+		ok, err := igraph.IsBigraphical([]int{2, 2}, []int{2, 2}, igraph.EdgeTypeSimple)
+		if err != nil {
+			t.Fatalf("IsBigraphical failed: %v", err)
+		}
+		if !ok {
+			t.Errorf("expected bipartite sequence to be bigraphical")
+		}
+	})
+
+	t.Run("invalid bipartite degree sequence", func(t *testing.T) {
+		ok, err := igraph.IsBigraphical([]int{3, 3}, []int{1, 1}, igraph.EdgeTypeSimple)
+		if err != nil {
+			t.Fatalf("IsBigraphical failed: %v", err)
+		}
+		if ok {
+			t.Errorf("expected mismatched bipartite sequence to not be bigraphical")
+		}
+	})
+
+	t.Run("invalid edge type", func(t *testing.T) {
+		if _, err := igraph.IsBigraphical([]int{1}, []int{1}, igraph.EdgeType(99)); err == nil {
+			t.Errorf("expected error for invalid EdgeType")
+		}
+	})
+}

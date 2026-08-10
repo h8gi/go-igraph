@@ -32,4 +32,22 @@ igraph_error_t go_igraph_tree_game(
     igraph_bool_t directed,
     igraph_random_tree_t method);
 
+igraph_error_t go_igraph_degree_sequence_game(
+    igraph_t *graph,
+    const igraph_vector_int_t *out_deg,
+    const igraph_vector_int_t *in_deg,
+    igraph_degseq_t method);
+
+igraph_error_t go_igraph_is_graphical(
+    const igraph_vector_int_t *out_degrees,
+    const igraph_vector_int_t *in_degrees,
+    igraph_edge_type_sw_t allowed_edge_types,
+    igraph_bool_t *res);
+
+igraph_error_t go_igraph_is_bigraphical(
+    const igraph_vector_int_t *degrees1,
+    const igraph_vector_int_t *degrees2,
+    igraph_edge_type_sw_t allowed_edge_types,
+    igraph_bool_t *res);
+
 #endif
