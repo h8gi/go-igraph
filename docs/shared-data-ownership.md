@@ -33,8 +33,10 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
-| `HierarchicalCommunity` | Go-owned result value and slices | none | merges matrix, step modularities, and node count remain valid and mutable after graph closure; `MembershipAt` and `OptimalMembership` return Go-owned `CommunityPartition` structs |
 | `SpinglassSingleResult` | Go-owned result value and slices | none | community member vertex IDs, cohesion, adhesion, inner links, and outer links remain valid after graph closure |
+| `MaxFlowResult`, `MinCutResult`, `STMinCutResult` | Go-owned result value and slices | none | scalar values, flow vectors, cut edge sets, and partition vertex sets remain valid and mutable after graph closure |
+| `STCut` | Go-owned result value and slices | none | cut edge set and source partition vertex set remain valid and mutable after graph closure |
+| `ResidualGraphResult`, `GomoryHuTreeResult`, `DominatorTreeResult`, `TarjanReductionResult` | independently owned `*Graph` plus Go-owned result vectors | close `Graph` | returned tree and residual graph survive source graph closure; result vectors remain valid after graph closure |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
@@ -295,6 +297,19 @@ wrapper contract. Initialization failure transfers no list ownership. During
 extraction, removed elements are either immediately adopted or destroyed;
 conversion failure closes all previously adopted graphs and list destruction
 cleans every element that has not yet been removed.
+
+Flow, cut, and connectivity operations borrow optional capacity and flow
+vectors only for the call. Non-nil capacity slices must match `g.NumEdges()` in
+length and contain finite non-negative values (`>= 0`); `nil` specifies unit edge
+capacity `1.0`. Vector outputs (flows, cut edge lists, partition vertex lists)
+are copied eagerly into Go-owned slices while the graph lock is held, and temporary
+C storage is destroyed before returning. Cut enumeration (`AllSTCuts` and `AllSTMincuts`)
+extracts list of vector results into Go `[]STCut` values; if nested allocation
+or conversion fails partway, all initialized C vectors and lists are cleanly freed.
+Graph-returning flow APIs (`ResidualGraph`, `ReverseResidualGraph`, `GomoryHuTree`,
+`DominatorTree`, `EvenTarjanReduction`) instantiate an independent `igraph_t` inside a
+new Go `*Graph`. The returned graph survives closing the source graph and can be
+closed independently.
 
 ## Verification
 

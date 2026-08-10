@@ -212,10 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestone 5 is complete. Milestone 6 community structure is the next
-separate milestone. Later milestone numbers express dependency order, not a
-commitment to bind every function in the named upstream headers; each milestone
-must still be split into reviewable issues with explicit API contracts.
+Status: Milestones 5 and 6 are complete. Milestone 7 connectivity, flows, and cuts is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -310,20 +307,29 @@ Completion criteria:
 Goal: cover network robustness and capacity analysis on top of the graph and
 result ownership rules established by Milestone 5.
 
+Status: planned. To be delivered as a sequence of focused issues:
+
+- core flow and cut result types (`MaxFlowResult`, `MinCutResult`, `STMinCutResult`), capacity validation, and max-flow / min-cut algorithms ([#94](https://github.com/h8gi/go-igraph/issues/94));
+- edge and vertex connectivity, adhesion, cohesion, and edge-/vertex-disjoint paths ([#95](https://github.com/h8gi/go-igraph/issues/95));
+- cut enumeration (`AllSTCuts` and `AllSTMincuts`) with safe multi-vector extraction ([#96](https://github.com/h8gi/go-igraph/issues/96));
+- residual graphs, Gomory-Hu tree, dominator tree, and Tarjan reduction as independently owned graph results ([#97](https://github.com/h8gi/go-igraph/issues/97)); and
+- this final contract audit, integration pipeline, executable examples, and documentation update ([#98](https://github.com/h8gi/go-igraph/issues/98)).
+
 Planned areas:
 
-- edge and vertex connectivity;
-- maximum flow and minimum cuts;
-- edge- and vertex-disjoint paths;
-- source-target cut enumeration where bounded result handling is practical;
-  and
-- Gomory-Hu trees and residual graphs as independently owned graph results.
+- maximum flow and minimum cuts (s-t and global maxflow/mincut, values, partitions, cut edge lists);
+- edge and vertex connectivity, adhesion, cohesion, and edge-/vertex-disjoint path counts;
+- source-target cut enumeration (`AllSTCuts` and `AllSTMincuts`) with bounded Go memory structures; and
+- residual graphs, reverse residual graphs, Gomory-Hu trees, dominator trees, and Even-Tarjan reductions as independently owned graph results.
 
-Capacity inputs should follow the existing borrowed-input and validation
-model. Result types must distinguish values, partitions, cut edges, and flow
-vectors without exposing C storage, and tests must cover directedness,
-parallel edges, loops, zero capacities, disconnected graphs, and partial
-initialization failures.
+Completion criteria:
+
+- capacity inputs follow the existing borrowed-input model (optional `[]float64` slice, where `nil` implies unit capacity `1.0` per edge, and non-nil slices are checked for length matching `g.NumEdges()` and non-negative values);
+- result types distinguish scalar flow/cut values, edge flow vectors, cut edge sets, partition vertex sets, and tree graphs without exposing C storage or raw pointers;
+- graph-returning flow operations (`ResidualGraph`, `ReverseResidualGraph`, `GomoryHuTree`, `DominatorTree`, `EvenTarjanReduction`) return independently owned `*Graph` instances that survive parent graph closure;
+- error propagation covers invalid vertex IDs (source/target out of bounds), negative capacity values, invalid selector/vertex parameters, disconnected graphs, initialization failures, and use after `Close`;
+- integration pipelines combine max flow, min cut, connectivity, residual graphs, Gomory-Hu trees, and dominator trees; and
+- statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
 
 ### Milestone 8: Reproducible random graphs
 
