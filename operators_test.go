@@ -686,3 +686,15 @@ func undirectedCompositionMatches(left, right, result Edge) bool {
 	}
 	return false
 }
+
+func TestComplementRejectsParallelEdges(t *testing.T) {
+	g, err := NewGraphFromEdges(2, []Edge{{0, 1}, {0, 1}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+
+	if _, err := g.Complement(false); err == nil {
+		t.Error("expected error when calling Complement on graph with parallel edges")
+	}
+}

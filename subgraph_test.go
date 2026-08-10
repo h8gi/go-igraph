@@ -64,6 +64,18 @@ func TestInducedSubgraphEmptyAndIdentity(t *testing.T) {
 	assertEdgesEqual(t, identity.Graph, []Edge{{0, 1}, {1, 2}})
 }
 
+func TestEdgeSubgraphEmptySelector(t *testing.T) {
+	source := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, false)
+	empty, err := source.EdgeSubgraph(NoEdges(), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer empty.Graph.Close()
+	if empty.Graph == nil {
+		t.Errorf("expected non-nil empty graph result")
+	}
+}
+
 func TestEdgeSubgraphSelectionAndIsolatedVertices(t *testing.T) {
 	source := testGraphFromEdges(t, 5, []Edge{
 		{0, 1}, {1, 2}, {2, 0}, {1, 1}, {0, 1}, {3, 1}, {4, 4},

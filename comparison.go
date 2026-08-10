@@ -79,7 +79,7 @@ func validateCommunityInputs(comm1, comm2 []int, opName string) error {
 //
 // Inputs comm1 and comm2 are borrowed and copied; returned float64 score is Go-owned.
 //
-// //igraph:bind igraph_compare_communities
+//igraph:bind igraph_compare_communities
 func CompareCommunities(comm1, comm2 []int, method CommunityComparisonMethod) (float64, error) {
 	if err := validateCommunityInputs(comm1, comm2, "CompareCommunities"); err != nil {
 		return 0, err
@@ -114,7 +114,7 @@ func CompareCommunities(comm1, comm2 []int, method CommunityComparisonMethod) (f
 //
 // Inputs comm1 and comm2 are borrowed and copied; returned SplitJoinDistanceResult is Go-owned.
 //
-// //igraph:bind igraph_split_join_distance
+//igraph:bind igraph_split_join_distance
 func SplitJoinDistance(comm1, comm2 []int) (SplitJoinDistanceResult, error) {
 	if err := validateCommunityInputs(comm1, comm2, "SplitJoinDistance"); err != nil {
 		return SplitJoinDistanceResult{}, err

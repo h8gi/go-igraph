@@ -2,6 +2,7 @@ package igraph
 
 import (
 	"errors"
+	"math"
 	"reflect"
 	"testing"
 )
@@ -208,6 +209,7 @@ func TestTraversalsRejectInvalidOptions(t *testing.T) {
 		{},
 		{Roots: []int{-1}},
 		{Roots: []int{7}},
+		{Roots: []int{0, math.MaxInt}},
 		{Roots: []int{0}, Direction: DirectionMode(99)},
 		{Roots: []int{0}, Restriction: NoVertices()},
 		{Roots: []int{0}, Restriction: VertexSelector{kind: vertexSelectorKind(99)}},
