@@ -374,19 +374,25 @@ Completion evidence:
 Goal: return visualization-ready coordinates through the existing Go-owned
 matrix boundary.
 
-Planned areas:
+Status: in progress. Planned as a sequence of focused issues:
 
-- deterministic circle, grid, star, tree, and bipartite layouts;
-- representative force-directed and distance-based 2D layouts;
-- selected 3D layouts and spectral or manifold embeddings when their solver
-  contracts can remain Go-native; and
-- copied seed coordinates, bounds, weights, and fixed-vertex inputs.
+- layout coordinate contract and deterministic circle, star, grid, and random layout APIs ([#121](https://github.com/h8gi/go-igraph/issues/121));
+- Reingold-Tilford tree, bipartite, and Sugiyama layered layout APIs ([#122](https://github.com/h8gi/go-igraph/issues/122));
+- Fruchterman-Reingold, Kamada-Kawai, and MDS layout APIs ([#123](https://github.com/h8gi/go-igraph/issues/123));
+- selected 3D layouts and adjacency/Laplacian spectral embedding APIs ([#124](https://github.com/h8gi/go-igraph/issues/124)); and
+- final contract audit, integration pipeline, executable examples, and documentation update ([#125](https://github.com/h8gi/go-igraph/issues/125)).
 
-Coordinate matrices must use one documented vertex-to-row convention and have
-explicit dimensionality. Iteration limits, convergence, warnings, and empty or
-degenerate graphs need the same error and ownership treatment as Milestone 4,
-while stochastic layouts must reuse the shared reproducibility contract from
-Milestone 6.
+Completion criteria:
+
+- all layout and embedding APIs return Go-owned `Matrix` or `SpectralEmbeddingResult` values using the vertex-to-row convention (row `i` = vertex `i`) and explicit dimensionality;
+- borrowed input slices (`order`, `roots`, `types`, `layers`, `Weights`) and options structs are strictly validated before calling C/igraph functions;
+- stochastic layouts (`LayoutRandom`, `LayoutFruchtermanReingold`, `LayoutKamadaKawai`, `LayoutRandom3D`, `LayoutFruchtermanReingold3D`, `LayoutKamadaKawai3D`, spectral embeddings) accept an optional `Seed *uint64` and execute under the package-wide thread-safe `withRNG` contract;
+- initial coordinates, distance matrices, and option bounds are copied or validated at the boundary, without exposing C option structs, solver objects, or raw C pointers;
+- UMAP layouts are documented as intentionally unsupported until their solver contract can remain Go-native;
+- failure-path tests cover invalid parameter domains, out-of-bounds vertex/order/layer selections, mismatched matrix dimensions, solver convergence failures, upstream errors, and use after `Close`;
+- integration pipelines combine graph generation, layout computation, and spectral-embedding-based downstream analysis;
+- race detector tests verify thread safety and seed isolation under concurrent layout calls; and
+- statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
 
 ### Later domain milestones
 
