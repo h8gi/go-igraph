@@ -212,7 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5, 6, 7, and 8 are complete. Milestone 9 layouts and embeddings is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
+Status: Milestones 5 through 9 are complete. The later domain milestones below are the remaining candidates. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -374,7 +374,7 @@ Completion evidence:
 Goal: return visualization-ready coordinates through the existing Go-owned
 matrix boundary.
 
-Status: in progress. Planned as a sequence of focused issues:
+Status: complete. Delivered as a sequence of focused issues:
 
 - layout coordinate contract and deterministic circle, star, grid, and random layout APIs ([#121](https://github.com/h8gi/go-igraph/issues/121));
 - Reingold-Tilford tree, bipartite, and Sugiyama layered layout APIs ([#122](https://github.com/h8gi/go-igraph/issues/122));
@@ -393,6 +393,16 @@ Completion criteria:
 - integration pipelines combine graph generation, layout computation, and spectral-embedding-based downstream analysis;
 - race detector tests verify thread safety and seed isolation under concurrent layout calls; and
 - statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
+
+Completion evidence:
+
+- all layout functions (`LayoutCircle`, `LayoutStar`, `LayoutGrid`, `LayoutRandom`, `LayoutReingoldTilford`, `LayoutReingoldTilfordCircular`, `LayoutBipartite`, `LayoutSugiyama`, `LayoutFruchtermanReingold`, `LayoutKamadaKawai`, `LayoutMDS`, `LayoutRandom3D`, `LayoutGrid3D`, `LayoutSphere`, `LayoutFruchtermanReingold3D`, `LayoutKamadaKawai3D`) return Go-owned `Matrix` values with row `i` holding the coordinates of vertex `i` and explicit 2- or 3-column dimensionality, and the embeddings return Go-owned `SpectralEmbeddingResult` values;
+- borrowed inputs (`order`, `roots`, `types`, `layers`, `Weights`, per-axis bounds, `DegreeCorrection`) are length- and finiteness-validated at the boundary, initial coordinates and distance matrices are dimension-checked and copied, and no upstream enum, ARPACK object, or raw C pointer appears in any public signature;
+- every stochastic entry point (`LayoutRandom`, `LayoutRandom3D`, `LayoutFruchtermanReingold`, `LayoutFruchtermanReingold3D`, `LayoutKamadaKawai`, `LayoutKamadaKawai3D`, `LayoutMDS`, `AdjacencySpectralEmbedding`, `LaplacianSpectralEmbedding`) accepts `Seed *uint64` and runs under the package-wide `withRNG` contract, including the ARPACK start vector of the spectral embeddings;
+- UMAP layouts (`igraph_layout_umap`, `igraph_layout_umap_3d`, `igraph_layout_umap_compute_weights`) are recorded as intentionally unsupported in the generated inventory until their solver contract can remain Go-native;
+- `TestMilestone9IntegrationPipeline` chains reproducible graph generation, deterministic circle seeding, bounded force-directed refinement, 3D layout, adjacency spectral embedding, `DimSelect`, and Laplacian embedding; `TestMilestone9ConcurrentSeedIsolation` proves concurrent seeded runs reproduce their serial references exactly under `-race`;
+- `examples/layout/main.go` demonstrates deterministic layouts and seed-reproducible force-directed layouts and embeddings; and
+- the regenerated inventory reports the new bindings, and `make verify` passes with statement coverage at or above 90.0%.
 
 ### Later domain milestones
 
