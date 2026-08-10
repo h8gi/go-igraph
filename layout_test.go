@@ -663,6 +663,30 @@ func TestLayoutFruchtermanReingold(t *testing.T) {
 		if r, c := coordsInit.Dims(); r != 5 || c != 2 {
 			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
 		}
+
+		// Defaults (NIter 500, StartTemp sqrt(V)) must actually run the
+		// algorithm: starting from identical coordinates, the layout must
+		// move away from its initial placement.
+		coordsDefault, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{
+			Seed:               &seed,
+			InitialCoordinates: &initCoords,
+		})
+		if err != nil {
+			t.Fatalf("LayoutFruchtermanReingold with default options failed: %v", err)
+		}
+		moved := false
+		for r := 0; r < 5; r++ {
+			for c := 0; c < 2; c++ {
+				before, _ := initCoords.At(r, c)
+				after, _ := coordsDefault.At(r, c)
+				if before != after {
+					moved = true
+				}
+			}
+		}
+		if !moved {
+			t.Error("default options left every vertex at its initial position; the algorithm did not run")
+		}
 	})
 
 	t.Run("seed reproducibility and concurrent isolation", func(t *testing.T) {
@@ -744,6 +768,14 @@ func TestLayoutFruchtermanReingold(t *testing.T) {
 			MaxX: []float64{-10, -10, -10, -10},
 		}); err == nil {
 			t.Error("expected error for MinX greater than MaxX")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{
+			MinX: []float64{math.NaN(), 0, 0, 0},
+		}); err == nil {
+			t.Error("expected error for NaN MinX")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{StartTemp: -1}); err == nil {
+			t.Error("expected error for negative StartTemp")
 		}
 	})
 
@@ -890,6 +922,17 @@ func TestLayoutKamadaKawai(t *testing.T) {
 		}); err == nil {
 			t.Error("expected error for MinX greater than MaxX")
 		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{
+			MaxY: []float64{0, 0, math.NaN(), 0},
+		}); err == nil {
+			t.Error("expected error for NaN MaxY")
+		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{Epsilon: -0.5}); err == nil {
+			t.Error("expected error for negative Epsilon")
+		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{KKConst: -5}); err == nil {
+			t.Error("expected error for negative KKConst")
+		}
 	})
 
 	t.Run("empty graph", func(t *testing.T) {
@@ -990,20 +1033,16 @@ func TestLayoutMDS(t *testing.T) {
 			t.Error("expected error for mismatched distance matrix dimensions")
 		}
 
-		// Symmetry handling is delegated to upstream, which accepts
-		// asymmetric matrices (warning path) rather than erroring.
+		// Upstream leaves the result for asymmetric distances unspecified,
+		// so the binding rejects them at the boundary.
 		asymDist, _ := igraph.NewMatrixFromRows([][]float64{
 			{0, 1, 2, 3},
 			{9, 0, 1, 2},
 			{2, 1, 0, 1},
 			{3, 2, 1, 0},
 		})
-		coords, err := g.LayoutMDS(&asymDist, 2, igraph.MDSOptions{})
-		if err != nil {
-			t.Fatalf("LayoutMDS with asymmetric distances failed: %v", err)
-		}
-		if r, c := coords.Dims(); r != 4 || c != 2 {
-			t.Fatalf("got dims (%d, %d), want (4, 2)", r, c)
+		if _, err := g.LayoutMDS(&asymDist, 2, igraph.MDSOptions{}); err == nil {
+			t.Error("expected error for asymmetric distance matrix")
 		}
 	})
 
