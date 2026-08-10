@@ -167,7 +167,10 @@ def download_source(url: str, destination: Path) -> Path:
             target = (destination / member.name).resolve()
             if root not in target.parents and target != root:
                 raise ValueError("unsafe path in upstream archive")
-        bundle.extractall(destination, filter="data")
+        if hasattr(tarfile, "data_filter"):
+            bundle.extractall(destination, filter="data")
+        else:
+            bundle.extractall(destination)
     return destination
 
 
