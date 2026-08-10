@@ -212,7 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5, 6, and 7 are complete. Milestone 8 reproducible random graphs is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
+Status: Milestones 5, 6, 7, and 8 are complete. Milestone 9 layouts and embeddings is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -340,20 +340,13 @@ Goal: apply and harden the stochastic-execution contract established for
 Milestone 6 through a useful first slice of graph generators and random
 transformations.
 
-Status: planned. To be delivered as a sequence of focused issues:
+Status: complete. Delivered as a sequence of focused issues:
 
 - Erdős-Rényi (G(n,m), G(n,p)), k-regular, and random tree generator APIs ([#111](https://github.com/h8gi/go-igraph/issues/111));
 - degree-sequence graph generator and degree sequence validation APIs ([#112](https://github.com/h8gi/go-igraph/issues/112));
 - Barabási-Albert preferential attachment, Watts-Strogatz small-world, and Stochastic Block Model (SBM) generator APIs ([#113](https://github.com/h8gi/go-igraph/issues/113));
 - graph rewiring, random walk, and random spanning tree APIs ([#114](https://github.com/h8gi/go-igraph/issues/114)); and
-- final contract audit, integration pipeline, executable examples, and documentation update ([#115](https://github.com/h8gi/go-igraph/issues/115)).
-
-Planned areas:
-
-- shared RNG seed infrastructure and reproducibility policy under concurrent generator calls;
-- Erdős-Rényi (G(n,m), G(n,p)), degree-sequence, k-regular, random tree, Barabási-Albert, Watts-Strogatz, and Stochastic Block Model (SBM) generators;
-- in-place edge rewiring, random graph edge rewiring, random walks, and random spanning tree sampling; and
-- validation for graphical sequences, size overflow, probability bounds, and model-specific parameter domains.
+- this final contract audit, integration pipeline, executable examples, and documentation update ([#115](https://github.com/h8gi/go-igraph/issues/115)).
 
 Completion criteria:
 
@@ -365,6 +358,16 @@ Completion criteria:
 - failure-path tests cover invalid parameter domains, negative/overflow counts, non-graphical degree sequences, out-of-bounds start vertices, and use after `Close`;
 - integration pipelines combine random graph generation, rewiring, random walks, and downstream graph analysis; and
 - statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
+
+Completion evidence:
+
+- all generator and sampling functions (`ErdosRenyiGNM`, `ErdosRenyiGNP`, `KRegularGame`, `RandomTreeGame`, `DegreeSequenceGame`, `BarabasiGame`, `WattsStrogatzGame`, `SBMGame`, `Rewire`, `RewireEdges`, `RandomWalk`, `RandomSpanningTree`) accept `Seed *uint64` and execute under the package-wide thread-safe `withRNG` contract;
+- parameter validation (degree sequences, block sizes, integer bounds, overflow checks, float/probability bounds) rejects invalid inputs prior to calling C/igraph functions;
+- in-place mutation (`Rewire`) is atomic on error, returning Go errors and preserving receiver state;
+- graph generators and `RewireEdges` return Go-owned `*Graph` instances that survive source and caller scope;
+- integration pipeline test suite and concurrent seed isolation tests under `-race` verify reproducibility and thread safety;
+- executable example in `examples/random/` demonstrates reproducible random network generation and sampling; and
+- `make verify` enforces formatting, vet, behavioral tests, statement coverage (>= 90.0%), and inventory report freshness.
 
 ### Milestone 9: Layouts and embeddings
 
