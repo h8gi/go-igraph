@@ -278,6 +278,7 @@ func TestSpectralAndPageRankRejectInvalidOptionsAndClosedGraph(t *testing.T) {
 			t.Errorf("PageRank weights %v error = nil", weights)
 		}
 	}
+
 	invalidDamping := []float64{-0.1, 1, math.NaN(), math.Inf(1)}
 	for _, damping := range invalidDamping {
 		if _, err := graph.PageRank(AllVertices(), PageRankOptions{Damping: &damping}); err == nil {
@@ -350,5 +351,25 @@ func assertProbabilityScores(t *testing.T, scores []float64) {
 	}
 	if math.Abs(sum-1) > 1e-12 {
 		t.Errorf("probability score sum = %.15g, want 1: %v", sum, scores)
+	}
+}
+
+func TestPageRankDuplicateVertexIDsSelector(t *testing.T) {
+	graph, err := NewGraphFromEdges(3, []Edge{{0, 1}, {1, 2}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer graph.Close()
+
+	selector, err := VertexIDs(0, 0, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	res, err := graph.PageRank(selector, PageRankOptions{})
+	if err != nil {
+		t.Fatalf("PageRank with duplicate vertex IDs failed: %v", err)
+	}
+	if len(res.Scores) != 3 {
+		t.Errorf("expected 3 scores for duplicate selector, got %d", len(res.Scores))
 	}
 }

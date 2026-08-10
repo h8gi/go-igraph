@@ -201,4 +201,12 @@ func TestSplitJoinDistance_InvalidInputs(t *testing.T) {
 			t.Error("expected error for negative community ID in comm2, got nil")
 		}
 	})
+
+	t.Run("invalid method", func(t *testing.T) {
+		comm1 := []int{0, 1}
+		comm2 := []int{0, 1}
+		if _, err := igraph.CompareCommunities(comm1, comm2, igraph.CommunityComparisonMethod(99)); err == nil {
+			t.Error("expected error for invalid CommunityComparisonMethod")
+		}
+	})
 }

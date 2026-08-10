@@ -260,6 +260,30 @@ func TestDerivedGraphHelpersRejectInvalidOperations(t *testing.T) {
 	}
 }
 
+func TestGraphListTakeGraphsCleanupOnHookFailure(t *testing.T) {
+	g1 := testGraphFromEdges(t, 1, nil, false)
+	defer g1.Close()
+	g2 := testGraphFromEdges(t, 1, nil, false)
+	defer g2.Close()
+
+	list, err := newGraphListFromCopies([]*Graph{g1, g2})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = list.takeGraphsWithHooks(graphListExtractionHooks{
+		afterAdopt: func(index int, graph *Graph) error {
+			if index == 1 {
+				return errors.New("simulated hook failure")
+			}
+			return nil
+		},
+	})
+	if err == nil {
+		t.Error("expected error on hook failure")
+	}
+}
+
 func testGraphFromEdges(t *testing.T, vertexCount int, edges []Edge, directed bool) *Graph {
 	t.Helper()
 	graph, err := NewGraphFromEdges(vertexCount, edges, directed)

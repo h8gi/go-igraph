@@ -11,12 +11,26 @@ import (
 
 func TestReindexMembership(t *testing.T) {
 	t.Run("empty membership", func(t *testing.T) {
-		reindexed, newToOld, count, err := igraph.ReindexMembership([]int{})
+		reindexed, newToOld, count, err := igraph.ReindexMembership(nil)
 		if err != nil {
 			t.Fatalf("unexpected error: %v", err)
 		}
 		if len(reindexed) != 0 || len(newToOld) != 0 || count != 0 {
-			t.Errorf("expected empty results, got reindexed=%v, newToOld=%v, count=%d", reindexed, newToOld, count)
+			t.Errorf("expected empty results, got %v, %v, %d", reindexed, newToOld, count)
+		}
+	})
+
+	t.Run("non-contiguous membership", func(t *testing.T) {
+		mem := []int{10, 50, 10, 50, 100}
+		reindexed, newToOld, count, err := igraph.ReindexMembership(mem)
+		if err != nil {
+			t.Fatalf("unexpected error: %v", err)
+		}
+		if count != 3 {
+			t.Errorf("expected 3 clusters, got %d", count)
+		}
+		if len(reindexed) != 5 || len(newToOld) != 3 {
+			t.Errorf("unexpected slices lengths: %v, %v", reindexed, newToOld)
 		}
 	})
 
@@ -154,7 +168,11 @@ func TestLeadingEigenvectorCommunityToMembership(t *testing.T) {
 
 	t.Run("out of bounds steps", func(t *testing.T) {
 		merges := [][2]int{{0, 1}}
-		_, err := igraph.LeadingEigenvectorCommunityToMembership(merges, 10)
+		_, err := igraph.LeadingEigenvectorCommunityToMembership(merges, -1)
+		if err == nil {
+			t.Errorf("expected error for steps < 0")
+		}
+		_, err = igraph.LeadingEigenvectorCommunityToMembership(merges, 10)
 		if err == nil {
 			t.Errorf("expected error for steps > len(merges)")
 		}
