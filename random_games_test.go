@@ -639,3 +639,332 @@ func TestDegreeSequenceGame(t *testing.T) {
 		}
 	})
 }
+
+func TestBarabasiGame(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("undirected simple", func(t *testing.T) {
+		g, err := igraph.BarabasiGame(10, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("BarabasiGame failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, edges := mustCounts(t, g)
+		if vertices != 10 {
+			t.Errorf("expected 10 vertices, got %d", vertices)
+		}
+		if edges == 0 {
+			t.Errorf("expected non-zero edge count, got 0")
+		}
+		directed, err := g.IsDirected()
+		if err != nil {
+			t.Fatalf("IsDirected failed: %v", err)
+		}
+		if directed {
+			t.Errorf("expected undirected graph")
+		}
+	})
+
+	t.Run("directed and algorithms", func(t *testing.T) {
+		algos := []igraph.BarabasiAlgorithm{
+			igraph.BarabasiBag,
+			igraph.BarabasiPSumTree,
+			igraph.BarabasiPSumTreeMultiple,
+		}
+		for _, algo := range algos {
+			g, err := igraph.BarabasiGame(10, 2, 1.0, 1.0, true, igraph.BarabasiOptions{
+				Seed:      &seed,
+				Algorithm: algo,
+			})
+			if err != nil {
+				t.Fatalf("BarabasiGame failed for algo %d: %v", algo, err)
+			}
+			defer g.Close()
+
+			vertices, _ := mustCounts(t, g)
+			if vertices != 10 {
+				t.Errorf("expected 10 vertices for algo %d, got %d", algo, vertices)
+			}
+			directed, err := g.IsDirected()
+			if err != nil {
+				t.Fatalf("IsDirected failed: %v", err)
+			}
+			if !directed {
+				t.Errorf("expected directed graph for algo %d", algo)
+			}
+		}
+	})
+
+	t.Run("custom OutSeq", func(t *testing.T) {
+		outSeq := []int{0, 1, 2, 1, 2}
+		g, err := igraph.BarabasiGame(5, 0, 1.0, 1.0, false, igraph.BarabasiOptions{
+			Seed:   &seed,
+			OutSeq: outSeq,
+		})
+		if err != nil {
+			t.Fatalf("BarabasiGame with OutSeq failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, _ := mustCounts(t, g)
+		if vertices != 5 {
+			t.Errorf("expected 5 vertices, got %d", vertices)
+		}
+	})
+
+	t.Run("StartFrom initial graph", func(t *testing.T) {
+		start, err := igraph.NewFull(3, false, false)
+		if err != nil {
+			t.Fatalf("FullGraph failed: %v", err)
+		}
+		defer start.Close()
+
+		g, err := igraph.BarabasiGame(6, 2, 1.0, 1.0, false, igraph.BarabasiOptions{
+			Seed:      &seed,
+			StartFrom: start,
+		})
+		if err != nil {
+			t.Fatalf("BarabasiGame with StartFrom failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, _ := mustCounts(t, g)
+		if vertices != 6 {
+			t.Errorf("expected 6 vertices, got %d", vertices)
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		first, err := igraph.BarabasiGame(20, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("BarabasiGame failed: %v", err)
+		}
+		defer first.Close()
+
+		second, err := igraph.BarabasiGame(20, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("BarabasiGame failed on second run: %v", err)
+		}
+		defer second.Close()
+
+		if !reflect.DeepEqual(mustEdges(t, first), mustEdges(t, second)) {
+			t.Errorf("expected identical edge lists for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		if _, err := igraph.BarabasiGame(-1, 2, 1.0, 1.0, false, igraph.BarabasiOptions{}); err == nil {
+			t.Errorf("expected error for negative n")
+		}
+		if _, err := igraph.BarabasiGame(10, -1, 1.0, 1.0, false, igraph.BarabasiOptions{}); err == nil {
+			t.Errorf("expected error for negative m")
+		}
+		if _, err := igraph.BarabasiGame(10, 2, math.NaN(), 1.0, false, igraph.BarabasiOptions{}); err == nil {
+			t.Errorf("expected error for NaN power")
+		}
+		if _, err := igraph.BarabasiGame(10, 2, 1.0, -0.5, false, igraph.BarabasiOptions{}); err == nil {
+			t.Errorf("expected error for negative zeroAppeal")
+		}
+		if _, err := igraph.BarabasiGame(10, 2, 1.0, math.NaN(), false, igraph.BarabasiOptions{}); err == nil {
+			t.Errorf("expected error for NaN zeroAppeal")
+		}
+		if _, err := igraph.BarabasiGame(10, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Algorithm: igraph.BarabasiAlgorithm(99)}); err == nil {
+			t.Errorf("expected error for invalid algorithm")
+		}
+		if _, err := igraph.BarabasiGame(5, 2, 1.0, 1.0, false, igraph.BarabasiOptions{OutSeq: []int{1, 2}}); err == nil {
+			t.Errorf("expected error for mismatched OutSeq length")
+		}
+		if _, err := igraph.BarabasiGame(2, 2, 1.0, 1.0, false, igraph.BarabasiOptions{OutSeq: []int{-1, 1}}); err == nil {
+			t.Errorf("expected error for negative element in OutSeq")
+		}
+
+		closed, _ := igraph.NewFull(2, false, false)
+		closed.Close()
+		if _, err := igraph.BarabasiGame(5, 2, 1.0, 1.0, false, igraph.BarabasiOptions{StartFrom: closed}); err == nil {
+			t.Errorf("expected error for closed StartFrom graph")
+		}
+	})
+}
+
+func TestWattsStrogatzGame(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("undirected simple small-world", func(t *testing.T) {
+		g, err := igraph.WattsStrogatzGame(1, 20, 2, 0.1, false, false, igraph.WattsStrogatzOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("WattsStrogatzGame failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, edges := mustCounts(t, g)
+		if vertices != 20 {
+			t.Errorf("expected 20 vertices, got %d", vertices)
+		}
+		if edges != 20*2 {
+			t.Errorf("expected 40 edges, got %d", edges)
+		}
+	})
+
+	t.Run("loops and multiple edge types", func(t *testing.T) {
+		g, err := igraph.WattsStrogatzGame(1, 10, 1, 0.5, true, true, igraph.WattsStrogatzOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("WattsStrogatzGame failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, _ := mustCounts(t, g)
+		if vertices != 10 {
+			t.Errorf("expected 10 vertices, got %d", vertices)
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		first, err := igraph.WattsStrogatzGame(1, 20, 2, 0.2, false, false, igraph.WattsStrogatzOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("WattsStrogatzGame failed: %v", err)
+		}
+		defer first.Close()
+
+		second, err := igraph.WattsStrogatzGame(1, 20, 2, 0.2, false, false, igraph.WattsStrogatzOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("WattsStrogatzGame failed on second run: %v", err)
+		}
+		defer second.Close()
+
+		if !reflect.DeepEqual(mustEdges(t, first), mustEdges(t, second)) {
+			t.Errorf("expected identical edge lists for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		if _, err := igraph.WattsStrogatzGame(0, 10, 2, 0.1, false, false, igraph.WattsStrogatzOptions{}); err == nil {
+			t.Errorf("expected error for dim < 1")
+		}
+		if _, err := igraph.WattsStrogatzGame(1, 0, 2, 0.1, false, false, igraph.WattsStrogatzOptions{}); err == nil {
+			t.Errorf("expected error for size < 1")
+		}
+		if _, err := igraph.WattsStrogatzGame(1, 10, -1, 0.1, false, false, igraph.WattsStrogatzOptions{}); err == nil {
+			t.Errorf("expected error for nei < 0")
+		}
+		invalidP := []float64{-0.1, 1.1, math.NaN()}
+		for _, p := range invalidP {
+			if _, err := igraph.WattsStrogatzGame(1, 10, 2, p, false, false, igraph.WattsStrogatzOptions{}); err == nil {
+				t.Errorf("expected error for invalid probability p = %g", p)
+			}
+		}
+	})
+}
+
+func TestSBMGame(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("undirected simple SBM", func(t *testing.T) {
+		prefMat, err := igraph.NewMatrixFromRows([][]float64{
+			{0.8, 0.1},
+			{0.1, 0.8},
+		})
+		if err != nil {
+			t.Fatalf("NewMatrixFromRows failed: %v", err)
+		}
+
+		g, err := igraph.SBMGame(10, prefMat, []int{5, 5}, false, false, igraph.SBMOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("SBMGame failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, _ := mustCounts(t, g)
+		if vertices != 10 {
+			t.Errorf("expected 10 vertices, got %d", vertices)
+		}
+		directed, err := g.IsDirected()
+		if err != nil {
+			t.Fatalf("IsDirected failed: %v", err)
+		}
+		if directed {
+			t.Errorf("expected undirected graph")
+		}
+	})
+
+	t.Run("directed SBM with loops", func(t *testing.T) {
+		prefMat, err := igraph.NewMatrixFromRows([][]float64{
+			{0.5, 0.2},
+			{0.1, 0.5},
+		})
+		if err != nil {
+			t.Fatalf("NewMatrixFromRows failed: %v", err)
+		}
+
+		g, err := igraph.SBMGame(6, prefMat, []int{3, 3}, true, true, igraph.SBMOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("SBMGame failed: %v", err)
+		}
+		defer g.Close()
+
+		vertices, _ := mustCounts(t, g)
+		if vertices != 6 {
+			t.Errorf("expected 6 vertices, got %d", vertices)
+		}
+		directed, err := g.IsDirected()
+		if err != nil {
+			t.Fatalf("IsDirected failed: %v", err)
+		}
+		if !directed {
+			t.Errorf("expected directed graph")
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		prefMat, _ := igraph.NewMatrixFromRows([][]float64{
+			{0.7, 0.2},
+			{0.2, 0.7},
+		})
+
+		first, err := igraph.SBMGame(10, prefMat, []int{5, 5}, false, false, igraph.SBMOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("SBMGame failed: %v", err)
+		}
+		defer first.Close()
+
+		second, err := igraph.SBMGame(10, prefMat, []int{5, 5}, false, false, igraph.SBMOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("SBMGame failed on second run: %v", err)
+		}
+		defer second.Close()
+
+		if !reflect.DeepEqual(mustEdges(t, first), mustEdges(t, second)) {
+			t.Errorf("expected identical edge lists for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		mat2x2, _ := igraph.NewMatrixFromRows([][]float64{{0.5, 0.5}, {0.5, 0.5}})
+
+		if _, err := igraph.SBMGame(-1, mat2x2, []int{1, 1}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for negative n")
+		}
+		if _, err := igraph.SBMGame(10, mat2x2, []int{5, -1}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for negative block size")
+		}
+		if _, err := igraph.SBMGame(10, mat2x2, []int{5, 4}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for blockSizes sum != n")
+		}
+		if _, err := igraph.SBMGame(10, mat2x2, []int{3, 3, 4}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for matrix size mismatch with blockSizes count")
+		}
+
+		badMat, _ := igraph.NewMatrixFromRows([][]float64{{-0.1, 0.5}, {0.5, 0.5}})
+		if _, err := igraph.SBMGame(10, badMat, []int{5, 5}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for negative matrix probability")
+		}
+		badMat2, _ := igraph.NewMatrixFromRows([][]float64{{1.5, 0.5}, {0.5, 0.5}})
+		if _, err := igraph.SBMGame(10, badMat2, []int{5, 5}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for matrix probability > 1")
+		}
+		badMatNaN, _ := igraph.NewMatrixFromRows([][]float64{{math.NaN(), 0.5}, {0.5, 0.5}})
+		if _, err := igraph.SBMGame(10, badMatNaN, []int{5, 5}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for NaN matrix element")
+		}
+	})
+}

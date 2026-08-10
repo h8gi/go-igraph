@@ -61,6 +61,17 @@ func allowedEdgeTypes(loops bool) EdgeType {
 	return EdgeTypeSimple
 }
 
+func edgeTypeFromFlags(loops, multiple bool) EdgeType {
+	if loops && multiple {
+		return EdgeTypeLoopsAndMulti
+	} else if loops {
+		return EdgeTypeLoops
+	} else if multiple {
+		return EdgeTypeMulti
+	}
+	return EdgeTypeSimple
+}
+
 // generateGraph runs generate under the package RNG lock and adopts the
 // initialized C graph into an independently owned public Graph.
 func generateGraph(operation string, seed *uint64, generate func(graph *C.igraph_t) C.igraph_error_t) (*Graph, error) {
@@ -353,6 +364,231 @@ func DegreeSequenceGame(outDeg []int, inDeg []int, method DegSeqMethod, options 
 			&outVec.value,
 			inVecPtr,
 			cMethod,
+		)
+	})
+}
+
+// BarabasiAlgorithm selects the generator algorithm used by BarabasiGame.
+type BarabasiAlgorithm uint8
+
+const (
+	// BarabasiBag uses the original bag-based preferential attachment algorithm.
+	BarabasiBag BarabasiAlgorithm = iota
+	// BarabasiPSumTree uses the partial sum tree algorithm.
+	BarabasiPSumTree
+	// BarabasiPSumTreeMultiple allows multiple edges and uses the partial sum tree algorithm.
+	BarabasiPSumTreeMultiple
+)
+
+func (algo BarabasiAlgorithm) cValue() (C.igraph_barabasi_algorithm_t, error) {
+	switch algo {
+	case BarabasiBag:
+		return C.IGRAPH_BARABASI_BAG, nil
+	case BarabasiPSumTree:
+		return C.IGRAPH_BARABASI_PSUMTREE, nil
+	case BarabasiPSumTreeMultiple:
+		return C.IGRAPH_BARABASI_PSUMTREE_MULTIPLE, nil
+	default:
+		return 0, fmt.Errorf("igraph: invalid Barabasi algorithm: %d", algo)
+	}
+}
+
+// BarabasiOptions contains options for the Barabási-Albert preferential attachment graph model.
+type BarabasiOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+	// OutSeq optionally specifies out-degrees for newly added vertices.
+	OutSeq []int
+	// OutPref specifies whether out-degree preference is enabled.
+	OutPref bool
+	// Algorithm selects the generator algorithm.
+	Algorithm BarabasiAlgorithm
+	// StartFrom optionally specifies an initial graph to start from.
+	StartFrom *Graph
+}
+
+// WattsStrogatzOptions contains options for the Watts-Strogatz small-world graph model.
+type WattsStrogatzOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+}
+
+// SBMOptions contains options for the Stochastic Block Model graph generator.
+type SBMOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+}
+
+// BarabasiGame generates a random graph according to the Barabási-Albert
+// preferential attachment model.
+//
+// The returned graph is independently Go-owned and must be closed by the
+// caller. Options are read only for the duration of the call. A non-nil
+// options.Seed makes the sample reproducible under the package RNG contract.
+//
+//igraph:bind igraph_barabasi_game
+func BarabasiGame(n int, m int, power float64, zeroAppeal float64, directed bool, options BarabasiOptions) (*Graph, error) {
+	if err := validateConstructorSize("vertex count", n); err != nil {
+		return nil, err
+	}
+	if m < 0 {
+		return nil, fmt.Errorf("igraph: out-degree m must be >= 0, got %d", m)
+	}
+	if math.IsNaN(power) {
+		return nil, fmt.Errorf("igraph: power must not be NaN")
+	}
+	if zeroAppeal < 0 || math.IsNaN(zeroAppeal) {
+		return nil, fmt.Errorf("igraph: zero-appeal must be >= 0, got %g", zeroAppeal)
+	}
+	cAlgo, err := options.Algorithm.cValue()
+	if err != nil {
+		return nil, err
+	}
+
+	var outSeqPtr *C.igraph_vector_int_t
+	if len(options.OutSeq) > 0 {
+		if len(options.OutSeq) != n {
+			return nil, fmt.Errorf("igraph: outseq length (%d) must match vertex count n (%d)", len(options.OutSeq), n)
+		}
+		for i, deg := range options.OutSeq {
+			if deg < 0 {
+				return nil, fmt.Errorf("igraph: outseq element at index %d must be >= 0, got %d", i, deg)
+			}
+		}
+		outSeqVec, err := newIntVector(options.OutSeq)
+		if err != nil {
+			return nil, err
+		}
+		defer outSeqVec.close()
+		outSeqPtr = &outSeqVec.value
+	}
+
+	var startFromPtr *C.igraph_t
+	if options.StartFrom != nil {
+		options.StartFrom.mu.RLock()
+		defer options.StartFrom.mu.RUnlock()
+		if err := options.StartFrom.checkClosed(); err != nil {
+			return nil, err
+		}
+		startFromPtr = &options.StartFrom.graph
+	}
+
+	return generateGraph("igraph_barabasi_game", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_barabasi_game(
+			graph,
+			C.igraph_int_t(n),
+			C.igraph_real_t(power),
+			C.igraph_int_t(m),
+			outSeqPtr,
+			booltoint(options.OutPref),
+			C.igraph_real_t(zeroAppeal),
+			booltoint(directed),
+			cAlgo,
+			startFromPtr,
+		)
+	})
+}
+
+// WattsStrogatzGame generates a random small-world graph according to the
+// Watts-Strogatz model.
+//
+// The returned graph is independently Go-owned and must be closed by the
+// caller. Options are read only for the duration of the call. A non-nil
+// options.Seed makes the sample reproducible under the package RNG contract.
+//
+//igraph:bind igraph_watts_strogatz_game
+func WattsStrogatzGame(dim int, size int, nei int, p float64, loops bool, multiple bool, options WattsStrogatzOptions) (*Graph, error) {
+	if dim < 1 {
+		return nil, fmt.Errorf("igraph: dimension must be >= 1, got %d", dim)
+	}
+	if size < 1 {
+		return nil, fmt.Errorf("igraph: lattice size must be >= 1, got %d", size)
+	}
+	if nei < 0 {
+		return nil, fmt.Errorf("igraph: neighborhood distance must be >= 0, got %d", nei)
+	}
+	if p < 0 || p > 1 || math.IsNaN(p) {
+		return nil, fmt.Errorf("igraph: probability must be between 0 and 1, got %g", p)
+	}
+	cEdgeTypes, err := edgeTypeFromFlags(loops, multiple).cValue()
+	if err != nil {
+		return nil, err
+	}
+
+	return generateGraph("igraph_watts_strogatz_game", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_watts_strogatz_game(
+			graph,
+			C.igraph_int_t(dim),
+			C.igraph_int_t(size),
+			C.igraph_int_t(nei),
+			C.igraph_real_t(p),
+			cEdgeTypes,
+		)
+	})
+}
+
+// SBMGame generates a random graph according to the Stochastic Block Model.
+//
+// The returned graph is independently Go-owned and must be closed by the
+// caller. Options are read only for the duration of the call. A non-nil
+// options.Seed makes the sample reproducible under the package RNG contract.
+//
+//igraph:bind igraph_sbm_game
+func SBMGame(n int, prefMatrix Matrix, blockSizes []int, directed bool, loops bool, options SBMOptions) (*Graph, error) {
+	if err := validateConstructorSize("vertex count", n); err != nil {
+		return nil, err
+	}
+	sum := 0
+	for i, bs := range blockSizes {
+		if bs < 0 {
+			return nil, fmt.Errorf("igraph: block size at index %d must be >= 0, got %d", i, bs)
+		}
+		sum += bs
+	}
+	if sum != n {
+		return nil, fmt.Errorf("igraph: sum of block sizes (%d) does not match vertex count n (%d)", sum, n)
+	}
+	rows, cols := prefMatrix.Dims()
+	k := len(blockSizes)
+	if rows != k || cols != k {
+		return nil, fmt.Errorf("igraph: preference matrix dimensions (%dx%d) do not match block sizes count (%d)", rows, cols, k)
+	}
+	for r := 0; r < k; r++ {
+		for c := 0; c < k; c++ {
+			val, err := prefMatrix.At(r, c)
+			if err != nil {
+				return nil, err
+			}
+			if val < 0.0 || val > 1.0 || math.IsNaN(val) {
+				return nil, fmt.Errorf("igraph: preference matrix element at [%d,%d] out of bounds: %g", r, c, val)
+			}
+		}
+	}
+
+	cPrefMat, err := newCMatrix(prefMatrix)
+	if err != nil {
+		return nil, err
+	}
+	defer cPrefMat.close()
+
+	cBlockSizes, err := newIntVector(blockSizes)
+	if err != nil {
+		return nil, err
+	}
+	defer cBlockSizes.close()
+
+	cEdgeTypes, err := allowedEdgeTypes(loops).cValue()
+	if err != nil {
+		return nil, err
+	}
+
+	return generateGraph("igraph_sbm_game", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_sbm_game(
+			graph,
+			&cPrefMat.value,
+			&cBlockSizes.value,
+			booltoint(directed),
+			cEdgeTypes,
 		)
 	})
 }
