@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **156 / 2015 (7.74%)**
-- Internal dependencies: **44**
+- Internal dependencies: **45**
 - Intentionally unsupported: **3**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -1516,7 +1516,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_static_power_law_game` | `igraph_games.h` | Missing | — |
 | `igraph_status` | `igraph_statusbar.h` | Missing | — |
 | `igraph_statusf` | `igraph_statusbar.h` | Missing | — |
-| `igraph_strength` | `igraph_structural.h` | Missing | — |
+| `igraph_strength` | `igraph_structural.h` | Internal | `newDegreeCorrection` |
 | `igraph_strerror` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_strvector_append` | `igraph_strvector.h` | Missing | — |
 | `igraph_strvector_capacity` | `igraph_strvector.h` | Missing | — |

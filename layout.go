@@ -552,7 +552,7 @@ type forceLayoutInputs struct {
 }
 
 func newForceLayoutInputs(weights []float64, bounds forceLayoutBounds, initial *Matrix, dim, numVertices, numEdges int) (*forceLayoutInputs, error) {
-	if dim == 2 && (bounds.minZ != nil || bounds.maxZ != nil) {
+	if dim == 2 && (len(bounds.minZ) > 0 || len(bounds.maxZ) > 0) {
 		return nil, fmt.Errorf("igraph: MinZ and MaxZ apply only to 3D layouts")
 	}
 
@@ -688,37 +688,21 @@ func (g *Graph) layoutFruchtermanReingold(options FruchtermanReingoldOptions, di
 
 	var runErr error
 	errRNG := withRNG(options.Seed, func() error {
-		var code C.igraph_error_t
-		if dim == 3 {
-			code = C.go_igraph_layout_fruchterman_reingold_3d(
-				&g.graph,
-				&inputs.coords.value,
-				inputs.useSeed,
-				cNIter,
-				C.igraph_real_t(startTemp),
-				edgeWeightPointer(inputs.weights),
-				edgeWeightPointer(inputs.minX),
-				edgeWeightPointer(inputs.maxX),
-				edgeWeightPointer(inputs.minY),
-				edgeWeightPointer(inputs.maxY),
-				edgeWeightPointer(inputs.minZ),
-				edgeWeightPointer(inputs.maxZ),
-			)
-		} else {
-			code = C.go_igraph_layout_fruchterman_reingold(
-				&g.graph,
-				&inputs.coords.value,
-				inputs.useSeed,
-				cNIter,
-				C.igraph_real_t(startTemp),
-				C.IGRAPH_LAYOUT_AUTOGRID,
-				edgeWeightPointer(inputs.weights),
-				edgeWeightPointer(inputs.minX),
-				edgeWeightPointer(inputs.maxX),
-				edgeWeightPointer(inputs.minY),
-				edgeWeightPointer(inputs.maxY),
-			)
-		}
+		code := C.go_igraph_layout_fruchterman_reingold(
+			&g.graph,
+			&inputs.coords.value,
+			inputs.useSeed,
+			cNIter,
+			C.igraph_real_t(startTemp),
+			edgeWeightPointer(inputs.weights),
+			edgeWeightPointer(inputs.minX),
+			edgeWeightPointer(inputs.maxX),
+			edgeWeightPointer(inputs.minY),
+			edgeWeightPointer(inputs.maxY),
+			edgeWeightPointer(inputs.minZ),
+			edgeWeightPointer(inputs.maxZ),
+			C.int(dim),
+		)
 		if code != C.IGRAPH_SUCCESS {
 			runErr = igraphError(operation, int(code))
 			return runErr
@@ -810,38 +794,22 @@ func (g *Graph) layoutKamadaKawai(options KamadaKawaiOptions, dim int) (Matrix, 
 
 	var runErr error
 	errRNG := withRNG(options.Seed, func() error {
-		var code C.igraph_error_t
-		if dim == 3 {
-			code = C.go_igraph_layout_kamada_kawai_3d(
-				&g.graph,
-				&inputs.coords.value,
-				inputs.useSeed,
-				cMaxIter,
-				C.igraph_real_t(options.Epsilon),
-				C.igraph_real_t(kkconst),
-				edgeWeightPointer(inputs.weights),
-				edgeWeightPointer(inputs.minX),
-				edgeWeightPointer(inputs.maxX),
-				edgeWeightPointer(inputs.minY),
-				edgeWeightPointer(inputs.maxY),
-				edgeWeightPointer(inputs.minZ),
-				edgeWeightPointer(inputs.maxZ),
-			)
-		} else {
-			code = C.go_igraph_layout_kamada_kawai(
-				&g.graph,
-				&inputs.coords.value,
-				inputs.useSeed,
-				cMaxIter,
-				C.igraph_real_t(options.Epsilon),
-				C.igraph_real_t(kkconst),
-				edgeWeightPointer(inputs.weights),
-				edgeWeightPointer(inputs.minX),
-				edgeWeightPointer(inputs.maxX),
-				edgeWeightPointer(inputs.minY),
-				edgeWeightPointer(inputs.maxY),
-			)
-		}
+		code := C.go_igraph_layout_kamada_kawai(
+			&g.graph,
+			&inputs.coords.value,
+			inputs.useSeed,
+			cMaxIter,
+			C.igraph_real_t(options.Epsilon),
+			C.igraph_real_t(kkconst),
+			edgeWeightPointer(inputs.weights),
+			edgeWeightPointer(inputs.minX),
+			edgeWeightPointer(inputs.maxX),
+			edgeWeightPointer(inputs.minY),
+			edgeWeightPointer(inputs.maxY),
+			edgeWeightPointer(inputs.minZ),
+			edgeWeightPointer(inputs.maxZ),
+			C.int(dim),
+		)
 		if code != C.IGRAPH_SUCCESS {
 			runErr = igraphError(operation, int(code))
 			return runErr

@@ -1,16 +1,15 @@
 #include "embedding_cgo.h"
+#include "algorithm_cgo.h"
 #include "igraph_error_cgo.h"
 
-static void go_igraph_arpack_options_embedding(
-    igraph_arpack_options_t *options, int max_iterations,
-    igraph_real_t tolerance) {
-    igraph_arpack_options_init(options);
-    if (max_iterations > 0) {
-        options->mxiter = max_iterations;
-    }
-    if (tolerance > 0) {
-        options->tol = tolerance;
-    }
+igraph_error_t go_igraph_strength(
+    const igraph_t *graph,
+    igraph_vector_t *res,
+    igraph_vs_t vids,
+    igraph_neimode_t mode,
+    igraph_loops_t loops,
+    const igraph_vector_t *weights) {
+    GO_IGRAPH_CALL(igraph_strength(graph, res, vids, mode, loops, weights));
 }
 
 igraph_error_t go_igraph_adjacency_spectral_embedding(
@@ -26,7 +25,7 @@ igraph_error_t go_igraph_adjacency_spectral_embedding(
     int max_iterations,
     igraph_real_t tolerance) {
     igraph_arpack_options_t options;
-    go_igraph_arpack_options_embedding(&options, max_iterations, tolerance);
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
     GO_IGRAPH_CALL(igraph_adjacency_spectral_embedding(
         graph, no, weights, which, scaled, x, y, d, cvec, &options));
 }
@@ -44,7 +43,7 @@ igraph_error_t go_igraph_laplacian_spectral_embedding(
     int max_iterations,
     igraph_real_t tolerance) {
     igraph_arpack_options_t options;
-    go_igraph_arpack_options_embedding(&options, max_iterations, tolerance);
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
     GO_IGRAPH_CALL(igraph_laplacian_spectral_embedding(
         graph, no, weights, which, type, scaled, x, y, d, &options));
 }

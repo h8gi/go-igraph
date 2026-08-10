@@ -1,17 +1,6 @@
 #include "spectral_community_cgo.h"
+#include "algorithm_cgo.h"
 #include "igraph_error_cgo.h"
-
-static void go_igraph_arpack_options_local(
-    igraph_arpack_options_t *options, int max_iterations,
-    igraph_real_t tolerance) {
-    igraph_arpack_options_init(options);
-    if (max_iterations > 0) {
-        options->mxiter = max_iterations;
-    }
-    if (tolerance > 0) {
-        options->tol = tolerance;
-    }
-}
 
 igraph_error_t go_igraph_community_leading_eigenvector(
     const igraph_t *graph,
@@ -24,7 +13,7 @@ igraph_error_t go_igraph_community_leading_eigenvector(
     igraph_real_t *modularity,
     igraph_bool_t start) {
     igraph_arpack_options_t options;
-    go_igraph_arpack_options_local(&options, max_iterations, tolerance);
+    go_igraph_arpack_options(&options, max_iterations, tolerance);
     GO_IGRAPH_CALL(igraph_community_leading_eigenvector(
         graph, weights, merges, membership, steps, &options, modularity, start,
         NULL, NULL, NULL, NULL, NULL));

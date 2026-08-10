@@ -76,14 +76,22 @@ igraph_error_t go_igraph_layout_fruchterman_reingold(
     igraph_bool_t use_seed,
     igraph_integer_t niter,
     igraph_real_t start_temp,
-    igraph_layout_grid_t grid,
     const igraph_vector_t *weights,
     const igraph_vector_t *minx,
     const igraph_vector_t *maxx,
     const igraph_vector_t *miny,
-    const igraph_vector_t *maxy) {
-    GO_IGRAPH_CALL(igraph_layout_fruchterman_reingold(
-        graph, res, use_seed, niter, start_temp, grid, weights, minx, maxx, miny, maxy));
+    const igraph_vector_t *maxy,
+    const igraph_vector_t *minz,
+    const igraph_vector_t *maxz,
+    int dim) {
+    if (dim == 2) {
+        GO_IGRAPH_CALL(igraph_layout_fruchterman_reingold(
+            graph, res, use_seed, niter, start_temp, IGRAPH_LAYOUT_AUTOGRID,
+            weights, minx, maxx, miny, maxy));
+    }
+    GO_IGRAPH_CALL(igraph_layout_fruchterman_reingold_3d(
+        graph, res, use_seed, niter, start_temp,
+        weights, minx, maxx, miny, maxy, minz, maxz));
 }
 
 igraph_error_t go_igraph_layout_kamada_kawai(
@@ -97,9 +105,18 @@ igraph_error_t go_igraph_layout_kamada_kawai(
     const igraph_vector_t *minx,
     const igraph_vector_t *maxx,
     const igraph_vector_t *miny,
-    const igraph_vector_t *maxy) {
-    GO_IGRAPH_CALL(igraph_layout_kamada_kawai(
-        graph, res, use_seed, maxiter, epsilon, kkconst, weights, minx, maxx, miny, maxy));
+    const igraph_vector_t *maxy,
+    const igraph_vector_t *minz,
+    const igraph_vector_t *maxz,
+    int dim) {
+    if (dim == 2) {
+        GO_IGRAPH_CALL(igraph_layout_kamada_kawai(
+            graph, res, use_seed, maxiter, epsilon, kkconst,
+            weights, minx, maxx, miny, maxy));
+    }
+    GO_IGRAPH_CALL(igraph_layout_kamada_kawai_3d(
+        graph, res, use_seed, maxiter, epsilon, kkconst,
+        weights, minx, maxx, miny, maxy, minz, maxz));
 }
 
 igraph_error_t go_igraph_layout_mds(
@@ -130,39 +147,3 @@ igraph_error_t go_igraph_layout_sphere(
     GO_IGRAPH_CALL(igraph_layout_sphere(graph, res));
 }
 
-igraph_error_t go_igraph_layout_fruchterman_reingold_3d(
-    const igraph_t *graph,
-    igraph_matrix_t *res,
-    igraph_bool_t use_seed,
-    igraph_integer_t niter,
-    igraph_real_t start_temp,
-    const igraph_vector_t *weights,
-    const igraph_vector_t *minx,
-    const igraph_vector_t *maxx,
-    const igraph_vector_t *miny,
-    const igraph_vector_t *maxy,
-    const igraph_vector_t *minz,
-    const igraph_vector_t *maxz) {
-    GO_IGRAPH_CALL(igraph_layout_fruchterman_reingold_3d(
-        graph, res, use_seed, niter, start_temp, weights,
-        minx, maxx, miny, maxy, minz, maxz));
-}
-
-igraph_error_t go_igraph_layout_kamada_kawai_3d(
-    const igraph_t *graph,
-    igraph_matrix_t *res,
-    igraph_bool_t use_seed,
-    igraph_integer_t maxiter,
-    igraph_real_t epsilon,
-    igraph_real_t kkconst,
-    const igraph_vector_t *weights,
-    const igraph_vector_t *minx,
-    const igraph_vector_t *maxx,
-    const igraph_vector_t *miny,
-    const igraph_vector_t *maxy,
-    const igraph_vector_t *minz,
-    const igraph_vector_t *maxz) {
-    GO_IGRAPH_CALL(igraph_layout_kamada_kawai_3d(
-        graph, res, use_seed, maxiter, epsilon, kkconst, weights,
-        minx, maxx, miny, maxy, minz, maxz));
-}

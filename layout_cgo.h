@@ -55,18 +55,24 @@ igraph_error_t go_igraph_layout_sugiyama(
     igraph_integer_t maxiter,
     const igraph_vector_t *weights);
 
+/*
+ * dim selects the upstream variant for the force-directed layouts: 2 calls
+ * the 2D function (minz/maxz must be NULL), any other value calls the 3D one.
+ */
 igraph_error_t go_igraph_layout_fruchterman_reingold(
     const igraph_t *graph,
     igraph_matrix_t *res,
     igraph_bool_t use_seed,
     igraph_integer_t niter,
     igraph_real_t start_temp,
-    igraph_layout_grid_t grid,
     const igraph_vector_t *weights,
     const igraph_vector_t *minx,
     const igraph_vector_t *maxx,
     const igraph_vector_t *miny,
-    const igraph_vector_t *maxy);
+    const igraph_vector_t *maxy,
+    const igraph_vector_t *minz,
+    const igraph_vector_t *maxz,
+    int dim);
 
 igraph_error_t go_igraph_layout_kamada_kawai(
     const igraph_t *graph,
@@ -79,7 +85,10 @@ igraph_error_t go_igraph_layout_kamada_kawai(
     const igraph_vector_t *minx,
     const igraph_vector_t *maxx,
     const igraph_vector_t *miny,
-    const igraph_vector_t *maxy);
+    const igraph_vector_t *maxy,
+    const igraph_vector_t *minz,
+    const igraph_vector_t *maxz,
+    int dim);
 
 igraph_error_t go_igraph_layout_mds(
     const igraph_t *graph,
@@ -100,34 +109,5 @@ igraph_error_t go_igraph_layout_grid_3d(
 igraph_error_t go_igraph_layout_sphere(
     const igraph_t *graph,
     igraph_matrix_t *res);
-
-igraph_error_t go_igraph_layout_fruchterman_reingold_3d(
-    const igraph_t *graph,
-    igraph_matrix_t *res,
-    igraph_bool_t use_seed,
-    igraph_integer_t niter,
-    igraph_real_t start_temp,
-    const igraph_vector_t *weights,
-    const igraph_vector_t *minx,
-    const igraph_vector_t *maxx,
-    const igraph_vector_t *miny,
-    const igraph_vector_t *maxy,
-    const igraph_vector_t *minz,
-    const igraph_vector_t *maxz);
-
-igraph_error_t go_igraph_layout_kamada_kawai_3d(
-    const igraph_t *graph,
-    igraph_matrix_t *res,
-    igraph_bool_t use_seed,
-    igraph_integer_t maxiter,
-    igraph_real_t epsilon,
-    igraph_real_t kkconst,
-    const igraph_vector_t *weights,
-    const igraph_vector_t *minx,
-    const igraph_vector_t *maxx,
-    const igraph_vector_t *miny,
-    const igraph_vector_t *maxy,
-    const igraph_vector_t *minz,
-    const igraph_vector_t *maxz);
 
 #endif

@@ -1302,12 +1302,21 @@ func TestLayoutFruchtermanReingold3D(t *testing.T) {
 		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{InitialCoordinates: &badInit}); err == nil {
 			t.Error("expected error for 2-column InitialCoordinates in 3D layout")
 		}
-		// The 2D variant must reject z-axis bounds.
+		// Non-positive weights pass Go-side validation and are rejected by
+		// the upstream C implementation.
+		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{Weights: []float64{-1, 1, 1, 1}}); err == nil {
+			t.Error("expected upstream error for negative weight")
+		}
+		// The 2D variant must reject z-axis bounds; an empty slice means no
+		// bound and is accepted.
 		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{MinZ: []float64{0, 0, 0, 0}}); err == nil {
 			t.Error("expected error for MinZ on 2D layout")
 		}
 		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{MaxZ: []float64{0, 0, 0, 0}}); err == nil {
 			t.Error("expected error for MaxZ on 2D layout")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{NIter: 5, MinZ: []float64{}}); err != nil {
+			t.Errorf("empty MinZ on 2D layout should be accepted: %v", err)
 		}
 	})
 
@@ -1368,6 +1377,11 @@ func TestLayoutKamadaKawai3D(t *testing.T) {
 		badInit, _ := igraph.NewMatrixFromRows([][]float64{{0, 0}, {1, 1}, {2, 2}, {3, 3}})
 		if _, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{InitialCoordinates: &badInit}); err == nil {
 			t.Error("expected error for 2-column InitialCoordinates in 3D layout")
+		}
+		// Non-positive weights pass Go-side validation and are rejected by
+		// the upstream C implementation.
+		if _, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{Weights: []float64{0, 1, 1, 1}}); err == nil {
+			t.Error("expected upstream error for non-positive weight")
 		}
 		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{MinZ: []float64{0, 0, 0, 0}}); err == nil {
 			t.Error("expected error for MinZ on 2D layout")

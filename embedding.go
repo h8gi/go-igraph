@@ -76,6 +76,9 @@ func (t LaplacianEmbeddingType) cValue() (C.igraph_laplacian_spectral_embedding_
 // nil means unweighted. Solver settings affect only the internal ARPACK run; no
 // solver object is exposed or retained.
 type SpectralEmbeddingOptions struct {
+	// Seed is an optional seed for thread-safe reproducible execution; the
+	// internal ARPACK run draws its start vector from the package RNG.
+	Seed *uint64
 	// Which selects the eigenvalues used for the embedding.
 	Which SpectralEmbeddingWhich
 	// Scaled multiplies the eigenvectors by the square root of the singular values when true.
@@ -85,7 +88,7 @@ type SpectralEmbeddingOptions struct {
 	// DegreeCorrection applies only to AdjacencySpectralEmbedding and must be
 	// nil for LaplacianSpectralEmbedding. It augments the diagonal of the
 	// adjacency matrix with one finite value per vertex; nil uses the
-	// upstream-recommended default degree/(V-1).
+	// upstream-recommended default of the (weighted) degree divided by V-1.
 	DegreeCorrection []float64
 	// Type applies only to LaplacianSpectralEmbedding and must be the zero
 	// value for AdjacencySpectralEmbedding.
@@ -100,7 +103,9 @@ type SpectralEmbeddingOptions struct {
 // half of the embedding; for undirected graphs Y is an empty matrix.
 // SingularValues holds the dim values selected by Which: singular values for
 // directed graphs, and the corresponding eigenvalues (possibly negative) for
-// undirected graphs. All values remain valid after the graph is closed.
+// undirected graphs. Graphs without edges skip the solver upstream and yield
+// an all-zero X and an empty SingularValues slice. All values remain valid
+// after the graph is closed.
 type SpectralEmbeddingResult struct {
 	X              Matrix
 	Y              Matrix
@@ -113,9 +118,6 @@ type SpectralEmbeddingResult struct {
 //
 //igraph:bind igraph_adjacency_spectral_embedding
 func (g *Graph) AdjacencySpectralEmbedding(dim int, options SpectralEmbeddingOptions) (*SpectralEmbeddingResult, error) {
-	if options.Type != LaplacianEmbeddingDA {
-		return nil, fmt.Errorf("igraph: Type applies only to LaplacianSpectralEmbedding")
-	}
 	return g.spectralEmbedding(dim, options, true)
 }
 
@@ -125,9 +127,6 @@ func (g *Graph) AdjacencySpectralEmbedding(dim int, options SpectralEmbeddingOpt
 //
 //igraph:bind igraph_laplacian_spectral_embedding
 func (g *Graph) LaplacianSpectralEmbedding(dim int, options SpectralEmbeddingOptions) (*SpectralEmbeddingResult, error) {
-	if options.DegreeCorrection != nil {
-		return nil, fmt.Errorf("igraph: DegreeCorrection applies only to AdjacencySpectralEmbedding")
-	}
 	return g.spectralEmbedding(dim, options, false)
 }
 
@@ -144,11 +143,24 @@ func (g *Graph) spectralEmbedding(dim int, options SpectralEmbeddingOptions, adj
 	numVertices := int(C.igraph_vcount(&g.graph))
 	numEdges := int(C.igraph_ecount(&g.graph))
 
+	if adjacency {
+		if options.Type != LaplacianEmbeddingDA {
+			return nil, fmt.Errorf("igraph: Type applies only to LaplacianSpectralEmbedding")
+		}
+	} else if options.DegreeCorrection != nil {
+		return nil, fmt.Errorf("igraph: DegreeCorrection applies only to AdjacencySpectralEmbedding")
+	}
+
 	if dim < 1 {
 		return nil, fmt.Errorf("igraph: embedding dimension must be positive: %d", dim)
 	}
 	if dim > numVertices {
 		return nil, fmt.Errorf("igraph: embedding dimension %d exceeds vertex count %d", dim, numVertices)
+	}
+	// The upstream ARPACK solver, which runs whenever the graph has edges,
+	// requires strictly fewer dimensions than vertices.
+	if dim == numVertices && numEdges > 0 {
+		return nil, fmt.Errorf("igraph: embedding dimension %d must be less than vertex count %d for a graph with edges", dim, numVertices)
 	}
 
 	which, err := options.Which.cValue()
@@ -174,7 +186,7 @@ func (g *Graph) spectralEmbedding(dim int, options SpectralEmbeddingOptions, adj
 
 	var correction *realVector
 	if adjacency {
-		correction, err = newDegreeCorrection(g, options.DegreeCorrection, numVertices)
+		correction, err = newDegreeCorrection(g, options.DegreeCorrection, weights, numVertices)
 		if err != nil {
 			return nil, err
 		}
@@ -209,24 +221,41 @@ func (g *Graph) spectralEmbedding(dim int, options SpectralEmbeddingOptions, adj
 		return nil, err
 	}
 
-	var code C.igraph_error_t
 	operation := "calculate Laplacian spectral embedding"
 	if adjacency {
 		operation = "calculate adjacency spectral embedding"
-		code = C.go_igraph_adjacency_spectral_embedding(
-			&g.graph, cDim, edgeWeightPointer(weights), which,
-			booltoint(options.Scaled), &xMat.value, yPtr, &singular.value,
-			&correction.value, C.int(maxIterations), C.igraph_real_t(tolerance),
-		)
-	} else {
-		code = C.go_igraph_laplacian_spectral_embedding(
-			&g.graph, cDim, edgeWeightPointer(weights), which, embeddingType,
-			booltoint(options.Scaled), &xMat.value, yPtr, &singular.value,
-			C.int(maxIterations), C.igraph_real_t(tolerance),
-		)
 	}
-	if code != C.IGRAPH_SUCCESS {
-		return nil, igraphError(operation, int(code))
+
+	// The ARPACK start vector is drawn from the package RNG, so the call
+	// runs under the package-wide withRNG contract for reproducibility and
+	// isolation from concurrently seeded callers.
+	var runErr error
+	errRNG := withRNG(options.Seed, func() error {
+		var code C.igraph_error_t
+		if adjacency {
+			code = C.go_igraph_adjacency_spectral_embedding(
+				&g.graph, cDim, edgeWeightPointer(weights), which,
+				booltoint(options.Scaled), &xMat.value, yPtr, &singular.value,
+				&correction.value, C.int(maxIterations), C.igraph_real_t(tolerance),
+			)
+		} else {
+			code = C.go_igraph_laplacian_spectral_embedding(
+				&g.graph, cDim, edgeWeightPointer(weights), which, embeddingType,
+				booltoint(options.Scaled), &xMat.value, yPtr, &singular.value,
+				C.int(maxIterations), C.igraph_real_t(tolerance),
+			)
+		}
+		if code != C.IGRAPH_SUCCESS {
+			runErr = igraphError(operation, int(code))
+			return runErr
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return nil, errRNG
+	}
+	if runErr != nil {
+		return nil, runErr
 	}
 
 	x, err := xMat.matrix()
@@ -247,9 +276,13 @@ func (g *Graph) spectralEmbedding(dim int, options SpectralEmbeddingOptions, adj
 }
 
 // newDegreeCorrection validates a caller-provided adjacency degree correction
-// or computes the upstream-recommended default degree/(V-1). The caller must
-// hold g.mu. The returned vector is never nil on success.
-func newDegreeCorrection(g *Graph, values []float64, numVertices int) (*realVector, error) {
+// or computes the upstream-recommended default: the weighted degree (strength)
+// divided by V-1, so that a weighted adjacency matrix is augmented with a
+// matching weighted diagonal. The caller must hold g.mu. The returned vector
+// is never nil on success.
+//
+//igraph:internal igraph_strength
+func newDegreeCorrection(g *Graph, values []float64, weights *realVector, numVertices int) (*realVector, error) {
 	if values != nil {
 		if len(values) != numVertices {
 			return nil, fmt.Errorf("igraph: DegreeCorrection length %d does not match vertex count %d", len(values), numVertices)
@@ -267,19 +300,20 @@ func newDegreeCorrection(g *Graph, values []float64, numVertices int) (*realVect
 		return nil, err
 	}
 	defer selector.close()
-	degrees, err := newIntVector(nil)
+	strengths, err := newRealVectorSize(0)
 	if err != nil {
 		return nil, err
 	}
-	defer degrees.close()
-	code := C.go_igraph_degree(
-		&g.graph, &degrees.value, selector.value,
+	defer strengths.close()
+	code := C.go_igraph_strength(
+		&g.graph, &strengths.value, selector.value,
 		C.igraph_neimode_t(C.IGRAPH_ALL), C.igraph_loops_t(C.IGRAPH_LOOPS),
+		edgeWeightPointer(weights),
 	)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("calculate default degree correction", int(code))
 	}
-	degreeValues, err := degrees.slice()
+	strengthValues, err := strengths.slice()
 	if err != nil {
 		return nil, err
 	}
@@ -287,9 +321,9 @@ func newDegreeCorrection(g *Graph, values []float64, numVertices int) (*realVect
 	if denominator <= 0 {
 		denominator = 1
 	}
-	correction := make([]float64, len(degreeValues))
-	for index, degree := range degreeValues {
-		correction[index] = float64(degree) / denominator
+	correction := make([]float64, len(strengthValues))
+	for index, strength := range strengthValues {
+		correction[index] = strength / denominator
 	}
 	return newRealVector(correction)
 }

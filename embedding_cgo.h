@@ -3,6 +3,14 @@
 
 #include <igraph.h>
 
+igraph_error_t go_igraph_strength(
+    const igraph_t *graph,
+    igraph_vector_t *res,
+    igraph_vs_t vids,
+    igraph_neimode_t mode,
+    igraph_loops_t loops,
+    const igraph_vector_t *weights);
+
 igraph_error_t go_igraph_adjacency_spectral_embedding(
     const igraph_t *graph,
     igraph_integer_t no,

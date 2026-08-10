@@ -120,6 +120,9 @@ func TestAdjacencySpectralEmbedding(t *testing.T) {
 		if _, err := g.AdjacencySpectralEmbedding(6, igraph.SpectralEmbeddingOptions{}); err == nil {
 			t.Error("expected error for dimension exceeding vertex count")
 		}
+		if _, err := g.AdjacencySpectralEmbedding(5, igraph.SpectralEmbeddingOptions{}); err == nil {
+			t.Error("expected error for dimension equal to vertex count on a graph with edges")
+		}
 		if _, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Weights: []float64{1}}); err == nil {
 			t.Error("expected error for mismatched Weights length")
 		}
@@ -137,6 +140,87 @@ func TestAdjacencySpectralEmbedding(t *testing.T) {
 		}
 		if _, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Solver: igraph.SpectralSolverOptions{MaxIterations: -1}}); err == nil {
 			t.Error("expected error for negative solver iterations")
+		}
+		if _, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Solver: igraph.SpectralSolverOptions{MaxIterations: math.MaxInt32 + 1}}); err == nil {
+			t.Error("expected error for solver iterations exceeding int32 range")
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewRing(10, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(1234)
+		first, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("first call failed: %v", err)
+		}
+		second, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("second call failed: %v", err)
+		}
+		for r := 0; r < 10; r++ {
+			for c := 0; c < 2; c++ {
+				v1, _ := first.X.At(r, c)
+				v2, _ := second.X.At(r, c)
+				if v1 != v2 {
+					t.Errorf("X mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+	})
+
+	t.Run("default degree correction uses edge weights", func(t *testing.T) {
+		g, err := igraph.NewRing(6, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		weights := []float64{2, 2, 2, 2, 2, 2}
+		seed := uint64(5)
+		defaulted, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{Seed: &seed, Weights: weights})
+		if err != nil {
+			t.Fatalf("default correction call failed: %v", err)
+		}
+		// Every vertex has weighted degree 4, so the default correction must
+		// equal strength/(V-1) = 0.8, not the unweighted degree/(V-1) = 0.4.
+		explicit, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{
+			Seed:             &seed,
+			Weights:          weights,
+			DegreeCorrection: []float64{0.8, 0.8, 0.8, 0.8, 0.8, 0.8},
+		})
+		if err != nil {
+			t.Fatalf("explicit correction call failed: %v", err)
+		}
+		for i := range defaulted.SingularValues {
+			if math.Abs(defaulted.SingularValues[i]-explicit.SingularValues[i]) > 1e-9 {
+				t.Errorf("singular value %d differs: %v vs %v", i, defaulted.SingularValues[i], explicit.SingularValues[i])
+			}
+		}
+	})
+
+	t.Run("edgeless graph skips the solver", func(t *testing.T) {
+		g, err := igraph.NewGraphFromEdges(3, nil, false)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer g.Close()
+
+		result, err := g.AdjacencySpectralEmbedding(2, igraph.SpectralEmbeddingOptions{})
+		if err != nil {
+			t.Fatalf("AdjacencySpectralEmbedding failed: %v", err)
+		}
+		if r, c := result.X.Dims(); r != 3 || c != 2 {
+			t.Fatalf("got X dims (%d, %d), want (3, 2)", r, c)
+		}
+		// Upstream's zero-edge shortcut returns an all-zero X and no
+		// singular values (documented contract).
+		if len(result.SingularValues) != 0 {
+			t.Errorf("got %d singular values, want 0 for edgeless graph", len(result.SingularValues))
 		}
 	})
 
@@ -187,6 +271,10 @@ func TestAdjacencySpectralEmbedding(t *testing.T) {
 		var nilG *igraph.Graph
 		if _, err := nilG.AdjacencySpectralEmbedding(1, igraph.SpectralEmbeddingOptions{}); err != igraph.ErrClosed {
 			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		// ErrClosed takes precedence over option validation.
+		if _, err := nilG.AdjacencySpectralEmbedding(1, igraph.SpectralEmbeddingOptions{Type: igraph.LaplacianEmbeddingDAD}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph with invalid options", err)
 		}
 		g, _ := igraph.NewGraphFromEdges(3, nil, false)
 		g.Close()
