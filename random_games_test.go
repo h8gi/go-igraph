@@ -775,6 +775,9 @@ func TestBarabasiGame(t *testing.T) {
 		if _, err := igraph.BarabasiGame(5, 2, 1.0, 1.0, false, igraph.BarabasiOptions{OutSeq: []int{1, 2}}); err == nil {
 			t.Errorf("expected error for mismatched OutSeq length")
 		}
+		if _, err := igraph.BarabasiGame(5, 2, 1.0, 1.0, false, igraph.BarabasiOptions{OutSeq: []int{}}); err == nil {
+			t.Errorf("expected error for empty non-nil OutSeq with n > 0")
+		}
 		if _, err := igraph.BarabasiGame(2, 2, 1.0, 1.0, false, igraph.BarabasiOptions{OutSeq: []int{-1, 1}}); err == nil {
 			t.Errorf("expected error for negative element in OutSeq")
 		}
@@ -965,6 +968,9 @@ func TestSBMGame(t *testing.T) {
 		badMatNaN, _ := igraph.NewMatrixFromRows([][]float64{{math.NaN(), 0.5}, {0.5, 0.5}})
 		if _, err := igraph.SBMGame(10, badMatNaN, []int{5, 5}, false, false, igraph.SBMOptions{}); err == nil {
 			t.Errorf("expected error for NaN matrix element")
+		}
+		if _, err := igraph.SBMGame(10, mat2x2, []int{math.MaxInt, 1}, false, false, igraph.SBMOptions{}); err == nil {
+			t.Errorf("expected error for blockSizes sum overflow")
 		}
 	})
 }

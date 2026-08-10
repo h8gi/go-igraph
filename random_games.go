@@ -422,8 +422,9 @@ type SBMOptions struct {
 // BarabasiGame generates a random graph according to the Barabási-Albert
 // preferential attachment model.
 //
-// The returned graph is independently Go-owned and must be closed by the
-// caller. Options are read only for the duration of the call. A non-nil
+// Input options slices and optional start graph are borrowed for the duration
+// of the call. The returned graph is independently Go-owned and must be closed
+// by the caller. Options are read only for the duration of the call. A non-nil
 // options.Seed makes the sample reproducible under the package RNG contract.
 //
 //igraph:bind igraph_barabasi_game
@@ -431,8 +432,8 @@ func BarabasiGame(n int, m int, power float64, zeroAppeal float64, directed bool
 	if err := validateConstructorSize("vertex count", n); err != nil {
 		return nil, err
 	}
-	if m < 0 {
-		return nil, fmt.Errorf("igraph: out-degree m must be >= 0, got %d", m)
+	if err := validateConstructorSize("out-degree m", m); err != nil {
+		return nil, err
 	}
 	if math.IsNaN(power) {
 		return nil, fmt.Errorf("igraph: power must not be NaN")
@@ -446,21 +447,23 @@ func BarabasiGame(n int, m int, power float64, zeroAppeal float64, directed bool
 	}
 
 	var outSeqPtr *C.igraph_vector_int_t
-	if len(options.OutSeq) > 0 {
+	if options.OutSeq != nil {
 		if len(options.OutSeq) != n {
 			return nil, fmt.Errorf("igraph: outseq length (%d) must match vertex count n (%d)", len(options.OutSeq), n)
 		}
-		for i, deg := range options.OutSeq {
-			if deg < 0 {
-				return nil, fmt.Errorf("igraph: outseq element at index %d must be >= 0, got %d", i, deg)
+		if len(options.OutSeq) > 0 {
+			for i, deg := range options.OutSeq {
+				if deg < 0 {
+					return nil, fmt.Errorf("igraph: outseq element at index %d must be >= 0, got %d", i, deg)
+				}
 			}
+			outSeqVec, err := newIntVector(options.OutSeq)
+			if err != nil {
+				return nil, err
+			}
+			defer outSeqVec.close()
+			outSeqPtr = &outSeqVec.value
 		}
-		outSeqVec, err := newIntVector(options.OutSeq)
-		if err != nil {
-			return nil, err
-		}
-		defer outSeqVec.close()
-		outSeqPtr = &outSeqVec.value
 	}
 
 	var startFromPtr *C.igraph_t
@@ -501,11 +504,20 @@ func WattsStrogatzGame(dim int, size int, nei int, p float64, loops bool, multip
 	if dim < 1 {
 		return nil, fmt.Errorf("igraph: dimension must be >= 1, got %d", dim)
 	}
+	if err := validateConstructorSize("dimension", dim); err != nil {
+		return nil, err
+	}
 	if size < 1 {
 		return nil, fmt.Errorf("igraph: lattice size must be >= 1, got %d", size)
 	}
+	if err := validateConstructorSize("lattice size", size); err != nil {
+		return nil, err
+	}
 	if nei < 0 {
 		return nil, fmt.Errorf("igraph: neighborhood distance must be >= 0, got %d", nei)
+	}
+	if err := validateConstructorSize("neighborhood distance", nei); err != nil {
+		return nil, err
 	}
 	if p < 0 || p > 1 || math.IsNaN(p) {
 		return nil, fmt.Errorf("igraph: probability must be between 0 and 1, got %g", p)
@@ -543,7 +555,11 @@ func SBMGame(n int, prefMatrix Matrix, blockSizes []int, directed bool, loops bo
 		if bs < 0 {
 			return nil, fmt.Errorf("igraph: block size at index %d must be >= 0, got %d", i, bs)
 		}
-		sum += bs
+		next := sum + bs
+		if next < sum {
+			return nil, fmt.Errorf("igraph: block sizes sum overflows int")
+		}
+		sum = next
 	}
 	if sum != n {
 		return nil, fmt.Errorf("igraph: sum of block sizes (%d) does not match vertex count n (%d)", sum, n)
