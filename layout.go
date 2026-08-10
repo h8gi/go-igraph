@@ -643,6 +643,9 @@ func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
 	kkconst := options.KKConst
 	if kkconst <= 0 {
 		kkconst = float64(numVertices)
+		if kkconst == 0 {
+			kkconst = 1
+		}
 	}
 
 	weightsVec, err := newOptionalEdgeWeights(options.Weights, numEdges)
@@ -745,6 +748,7 @@ func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
 // LayoutMDS computes a layout using Multi-Dimensional Scaling based on vertex distance matrix.
 // If distances is nil, shortest path distances between all vertex pairs are computed automatically.
 // If distances is non-nil, its dimensions must be square and match vertex count.
+// Symmetry handling is delegated to upstream, which accepts asymmetric matrices via its warning path.
 // dim specifies layout dimension (must be 2 or 3; default 2 if <= 0).
 // Public input matrices are borrowed and returned values are Go-owned.
 //
