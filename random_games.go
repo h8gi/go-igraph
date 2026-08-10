@@ -52,11 +52,13 @@ func (method TreeGameMethod) cValue() (C.igraph_random_tree_t, error) {
 	}
 }
 
-func allowedEdgeTypes(loops bool) C.igraph_edge_type_sw_t {
+// allowedEdgeTypes maps the loops flag of the Erdős-Rényi generators onto the
+// shared EdgeType constants.
+func allowedEdgeTypes(loops bool) EdgeType {
 	if loops {
-		return C.IGRAPH_LOOPS_SW
+		return EdgeTypeLoops
 	}
-	return C.IGRAPH_SIMPLE_SW
+	return EdgeTypeSimple
 }
 
 // generateGraph runs generate under the package RNG lock and adopts the
@@ -92,13 +94,17 @@ func ErdosRenyiGNM(n int, m int, directed bool, loops bool, options ErdosRenyiOp
 	if err := validateConstructorSize("edge count", m); err != nil {
 		return nil, err
 	}
+	cEdgeTypes, err := allowedEdgeTypes(loops).cValue()
+	if err != nil {
+		return nil, err
+	}
 	return generateGraph("igraph_erdos_renyi_game_gnm", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
 		return C.go_igraph_erdos_renyi_game_gnm(
 			graph,
 			C.igraph_int_t(n),
 			C.igraph_int_t(m),
 			booltoint(directed),
-			allowedEdgeTypes(loops),
+			cEdgeTypes,
 			booltoint(false),
 		)
 	})
@@ -121,13 +127,17 @@ func ErdosRenyiGNP(n int, p float64, directed bool, loops bool, options ErdosRen
 	if math.IsNaN(p) || p < 0 || p > 1 {
 		return nil, fmt.Errorf("igraph: edge probability must be in [0, 1]: %v", p)
 	}
+	cEdgeTypes, err := allowedEdgeTypes(loops).cValue()
+	if err != nil {
+		return nil, err
+	}
 	return generateGraph("igraph_erdos_renyi_game_gnp", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
 		return C.go_igraph_erdos_renyi_game_gnp(
 			graph,
 			C.igraph_int_t(n),
 			C.igraph_real_t(p),
 			booltoint(directed),
-			allowedEdgeTypes(loops),
+			cEdgeTypes,
 			booltoint(false),
 		)
 	})
@@ -243,40 +253,42 @@ func (method DegSeqMethod) cValue() (C.igraph_degseq_t, error) {
 	}
 }
 
-// EdgeType specifies allowed edge types for degree sequence graphicality checks.
-type EdgeType uint8
-
-const (
-	// EdgeTypeSimple allows simple edges only (no self-loops, no multiple edges).
-	EdgeTypeSimple EdgeType = iota
-	// EdgeTypeLoops allows self-loops but no multiple edges.
-	EdgeTypeLoops
-	// EdgeTypeMulti allows multiple edges between distinct vertices but no self-loops.
-	EdgeTypeMulti
-	// EdgeTypeLoopsAndMulti allows both self-loops and multiple edges.
-	EdgeTypeLoopsAndMulti
-)
-
-func (et EdgeType) cValue() (C.igraph_edge_type_sw_t, error) {
-	switch et {
-	case EdgeTypeSimple:
-		return C.IGRAPH_SIMPLE_SW, nil
-	case EdgeTypeLoops:
-		return C.IGRAPH_LOOPS_SW, nil
-	case EdgeTypeMulti:
-		return C.IGRAPH_MULTI_SW, nil
-	case EdgeTypeLoopsAndMulti:
-		return C.IGRAPH_LOOPS_SW | C.IGRAPH_MULTI_SW, nil
-	default:
-		return 0, fmt.Errorf("igraph: invalid edge type: %d", et)
+// sumDegrees validates that every degree in the named sequence is
+// non-negative and returns the sequence sum, rejecting sums that overflow int.
+func sumDegrees(name string, degrees []int) (int, error) {
+	sum := 0
+	for i, d := range degrees {
+		if d < 0 {
+			return 0, fmt.Errorf("igraph: %s degree at index %d must be non-negative: %d", name, i, d)
+		}
+		next := sum + d
+		if next < sum {
+			return 0, fmt.Errorf("igraph: %s degree sum overflows int", name)
+		}
+		sum = next
 	}
+	return sum, nil
+}
+
+// newOptionalInDegrees converts a directed in-degree sequence into a C vector,
+// or returns nil when inDeg is nil or empty (the undirected form). The length
+// check runs before any C allocation.
+func newOptionalInDegrees(outDeg, inDeg []int) (*intVector, error) {
+	if len(inDeg) == 0 {
+		return nil, nil
+	}
+	if len(outDeg) != len(inDeg) {
+		return nil, fmt.Errorf("igraph: outDeg length (%d) and inDeg length (%d) must match", len(outDeg), len(inDeg))
+	}
+	return newIntVector(inDeg)
 }
 
 // DegreeSequenceGame samples a random graph with the given degree sequence(s)
 // using the specified method.
 //
-// For undirected graphs, pass outDeg as the degree sequence and inDeg as nil.
-// For directed graphs, pass both outDeg (out-degrees) and inDeg (in-degrees).
+// A nil or empty inDeg samples an undirected graph with outDeg as its degree
+// sequence; otherwise outDeg holds out-degrees and inDeg holds in-degrees of
+// a directed graph.
 //
 // Input slices are borrowed for the duration of the call.
 // The returned graph is independently Go-owned and must be closed by the
@@ -293,38 +305,35 @@ func DegreeSequenceGame(outDeg []int, inDeg []int, method DegSeqMethod, options 
 		return nil, err
 	}
 
-	outSum := 0
-	for i, d := range outDeg {
-		if d < 0 {
-			return nil, fmt.Errorf("igraph: outDeg degree at index %d must be non-negative: %d", i, d)
-		}
-		outSum += d
+	outSum, err := sumDegrees("outDeg", outDeg)
+	if err != nil {
+		return nil, err
 	}
 
-	if inDeg == nil {
-		if method == DegSeqVL && outSum%2 != 0 {
-			return nil, fmt.Errorf("igraph: undirected degree sequence sum must be even: %d", outSum)
-		}
-		if outSum%2 != 0 && (method == DegSeqSimpleNoMultiple || method == DegSeqSimpleNoMultipleUniform || method == DegSeqEdgeSwitchingSimple) {
+	if len(inDeg) == 0 {
+		// Every undirected sampling method rejects an odd degree sum.
+		if outSum%2 != 0 {
 			return nil, fmt.Errorf("igraph: undirected degree sequence sum must be even: %d", outSum)
 		}
 	} else {
 		if method == DegSeqVL {
 			return nil, fmt.Errorf("igraph: Viger-Latapy method does not support directed graphs")
 		}
-		if len(outDeg) != len(inDeg) {
-			return nil, fmt.Errorf("igraph: outDeg length (%d) and inDeg length (%d) must match", len(outDeg), len(inDeg))
-		}
-		inSum := 0
-		for i, d := range inDeg {
-			if d < 0 {
-				return nil, fmt.Errorf("igraph: inDeg degree at index %d must be non-negative: %d", i, d)
-			}
-			inSum += d
+		inSum, err := sumDegrees("inDeg", inDeg)
+		if err != nil {
+			return nil, err
 		}
 		if outSum != inSum {
 			return nil, fmt.Errorf("igraph: sum of out-degrees (%d) must equal sum of in-degrees (%d)", outSum, inSum)
 		}
+	}
+
+	inVec, err := newOptionalInDegrees(outDeg, inDeg)
+	if err != nil {
+		return nil, err
+	}
+	if inVec != nil {
+		defer inVec.close()
 	}
 
 	outVec, err := newIntVector(outDeg)
@@ -334,12 +343,7 @@ func DegreeSequenceGame(outDeg []int, inDeg []int, method DegSeqMethod, options 
 	defer outVec.close()
 
 	var inVecPtr *C.igraph_vector_int_t
-	if inDeg != nil {
-		inVec, err := newIntVector(inDeg)
-		if err != nil {
-			return nil, err
-		}
-		defer inVec.close()
+	if inVec != nil {
 		inVecPtr = &inVec.value
 	}
 
@@ -351,74 +355,4 @@ func DegreeSequenceGame(outDeg []int, inDeg []int, method DegSeqMethod, options 
 			cMethod,
 		)
 	})
-}
-
-// IsGraphical checks whether the given degree sequence(s) can be realized by a graph
-// under the specified allowed edge types.
-//
-// For undirected graphs, pass the degree sequence as outDeg and set inDeg to nil.
-// For directed graphs, pass both outDeg (out-degrees) and inDeg (in-degrees).
-//
-// Input slices are borrowed for the duration of the call.
-//
-//igraph:bind igraph_is_graphical
-func IsGraphical(outDeg []int, inDeg []int, allowedEdgeTypes EdgeType) (bool, error) {
-	cEdgeType, err := allowedEdgeTypes.cValue()
-	if err != nil {
-		return false, err
-	}
-	outVec, err := newIntVector(outDeg)
-	if err != nil {
-		return false, err
-	}
-	defer outVec.close()
-
-	var inVecPtr *C.igraph_vector_int_t
-	if inDeg != nil {
-		if len(outDeg) != len(inDeg) {
-			return false, fmt.Errorf("igraph: outDeg length (%d) and inDeg length (%d) must match", len(outDeg), len(inDeg))
-		}
-		inVec, err := newIntVector(inDeg)
-		if err != nil {
-			return false, err
-		}
-		defer inVec.close()
-		inVecPtr = &inVec.value
-	}
-
-	var res C.igraph_bool_t
-	if code := C.go_igraph_is_graphical(&outVec.value, inVecPtr, cEdgeType, &res); code != C.IGRAPH_SUCCESS {
-		return false, igraphError("igraph_is_graphical", int(code))
-	}
-	return res != booltoint(false), nil
-}
-
-// IsBigraphical checks whether two degree sequences can be realized by a bipartite graph
-// under the specified allowed edge types.
-//
-// Input slices are borrowed for the duration of the call.
-//
-//igraph:bind igraph_is_bigraphical
-func IsBigraphical(deg1 []int, deg2 []int, allowedEdgeTypes EdgeType) (bool, error) {
-	cEdgeType, err := allowedEdgeTypes.cValue()
-	if err != nil {
-		return false, err
-	}
-	vec1, err := newIntVector(deg1)
-	if err != nil {
-		return false, err
-	}
-	defer vec1.close()
-
-	vec2, err := newIntVector(deg2)
-	if err != nil {
-		return false, err
-	}
-	defer vec2.close()
-
-	var res C.igraph_bool_t
-	if code := C.go_igraph_is_bigraphical(&vec1.value, &vec2.value, cEdgeType, &res); code != C.IGRAPH_SUCCESS {
-		return false, igraphError("igraph_is_bigraphical", int(code))
-	}
-	return res != booltoint(false), nil
 }
