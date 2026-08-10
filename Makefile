@@ -28,6 +28,6 @@ docker-coverage: docker-test
 	docker run --rm --volume "$(CURDIR):/workspace" $(DOCKER_IMAGE)
 
 docker-coverage-check: docker-test
-	docker run --rm $(DOCKER_IMAGE) sh -c 'go test ./... -coverprofile=/tmp/coverage.out && coverage=$$(go tool cover -func=/tmp/coverage.out | awk "/^total:/ { sub(/%/, \"\", \$$3); print \$$3 }") && echo "statement coverage: $$coverage% (minimum $(COVERAGE_MIN)%)" && awk -v coverage="$$coverage" -v minimum="$(COVERAGE_MIN)" "BEGIN { exit coverage >= minimum ? 0 : 1 }"'
+	docker run --rm $(DOCKER_IMAGE) sh -c 'go test -coverpkg=github.com/h8gi/go-igraph ./... -coverprofile=/tmp/coverage.out && coverage=$$(go tool cover -func=/tmp/coverage.out | awk "/^total:/ { sub(/%/, \"\", \$$3); print \$$3 }") && echo "statement coverage: $$coverage% (minimum $(COVERAGE_MIN)%)" && awk -v coverage="$$coverage" -v minimum="$(COVERAGE_MIN)" "BEGIN { exit coverage >= minimum ? 0 : 1 }"'
 
 verify: format-check docker-coverage-check coverage-tool-test coverage-check
