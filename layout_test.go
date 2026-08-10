@@ -321,15 +321,7 @@ func TestLayoutRandom(t *testing.T) {
 			t.Fatalf("unexpected dimensions: (%d, %d) vs (%d, %d)", r1, c1, r2, c2)
 		}
 
-		for r := 0; r < 10; r++ {
-			for c := 0; c < 2; c++ {
-				v1, _ := coords1.At(r, c)
-				v2, _ := coords2.At(r, c)
-				if v1 != v2 {
-					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "LayoutRandom", coords1, coords2)
 	})
 
 	t.Run("concurrent seed isolation", func(t *testing.T) {
@@ -663,6 +655,14 @@ func TestLayoutFruchtermanReingold(t *testing.T) {
 		if r, c := coordsInit.Dims(); r != 5 || c != 2 {
 			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
 		}
+		for r := 0; r < 5; r++ {
+			for c := 0; c < 2; c++ {
+				v, _ := coordsInit.At(r, c)
+				if v < -10 || v > 10 {
+					t.Errorf("coordinate (%d, %d) = %v escapes bounds [-10, 10]", r, c, v)
+				}
+			}
+		}
 
 		// Defaults (NIter 500, StartTemp sqrt(V)) must actually run the
 		// algorithm: starting from identical coordinates, the layout must
@@ -706,15 +706,7 @@ func TestLayoutFruchtermanReingold(t *testing.T) {
 			t.Fatalf("Layout 2 failed: %v", err)
 		}
 
-		for r := 0; r < 10; r++ {
-			for c := 0; c < 2; c++ {
-				v1, _ := c1.At(r, c)
-				v2, _ := c2.At(r, c)
-				if v1 != v2 {
-					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "seeded layout", c1, c2)
 
 		var wg sync.WaitGroup
 		for i := 0; i < 5; i++ {
@@ -840,6 +832,14 @@ func TestLayoutKamadaKawai(t *testing.T) {
 		if r, c := coordsInit.Dims(); r != 5 || c != 2 {
 			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
 		}
+		for r := 0; r < 5; r++ {
+			for c := 0; c < 2; c++ {
+				v, _ := coordsInit.At(r, c)
+				if v < -10 || v > 10 {
+					t.Errorf("coordinate (%d, %d) = %v escapes bounds [-10, 10]", r, c, v)
+				}
+			}
+		}
 	})
 
 	t.Run("seed reproducibility and concurrent isolation", func(t *testing.T) {
@@ -859,15 +859,7 @@ func TestLayoutKamadaKawai(t *testing.T) {
 			t.Fatalf("Layout 2 failed: %v", err)
 		}
 
-		for r := 0; r < 10; r++ {
-			for c := 0; c < 2; c++ {
-				v1, _ := c1.At(r, c)
-				v2, _ := c2.At(r, c)
-				if v1 != v2 {
-					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "seeded layout", c1, c2)
 
 		var wg sync.WaitGroup
 		for i := 0; i < 5; i++ {
@@ -1080,15 +1072,7 @@ func TestLayoutRandom3D(t *testing.T) {
 		if err != nil {
 			t.Fatalf("LayoutRandom3D second call failed: %v", err)
 		}
-		for r := 0; r < 6; r++ {
-			for c := 0; c < 3; c++ {
-				v1, _ := c1.At(r, c)
-				v2, _ := c2.At(r, c)
-				if v1 != v2 {
-					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "seeded 3D layout", c1, c2)
 	})
 
 	t.Run("closed and nil graph", func(t *testing.T) {
@@ -1192,15 +1176,7 @@ func TestLayoutSphere(t *testing.T) {
 		if err != nil {
 			t.Fatalf("LayoutSphere second call failed: %v", err)
 		}
-		for r := 0; r < 10; r++ {
-			for c := 0; c < 3; c++ {
-				v1, _ := coords.At(r, c)
-				v2, _ := again.At(r, c)
-				if v1 != v2 {
-					t.Errorf("layout not deterministic at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "LayoutSphere", coords, again)
 	})
 
 	t.Run("closed and nil graph", func(t *testing.T) {
@@ -1274,15 +1250,7 @@ func TestLayoutFruchtermanReingold3D(t *testing.T) {
 		if err != nil {
 			t.Fatalf("layout 2 failed: %v", err)
 		}
-		for r := 0; r < 6; r++ {
-			for c := 0; c < 3; c++ {
-				v1, _ := c1.At(r, c)
-				v2, _ := c2.At(r, c)
-				if v1 != v2 {
-					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
-				}
-			}
-		}
+		assertEqualMatrices(t, "seeded 3D layout", c1, c2)
 	})
 
 	t.Run("invalid parameters", func(t *testing.T) {

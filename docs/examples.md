@@ -32,6 +32,8 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/maxflow/main.go`
 - `examples/community/main.go`
 - `examples/shortest_path/main.go`
+- `examples/random/main.go`
+- `examples/layout/main.go`
 
 ### Usage & Verification
 Users can run any standalone example using:
