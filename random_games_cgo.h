@@ -32,4 +32,10 @@ igraph_error_t go_igraph_tree_game(
     igraph_bool_t directed,
     igraph_random_tree_t method);
 
+igraph_error_t go_igraph_degree_sequence_game(
+    igraph_t *graph,
+    const igraph_vector_int_t *out_deg,
+    const igraph_vector_int_t *in_deg,
+    igraph_degseq_t method);
+
 #endif
