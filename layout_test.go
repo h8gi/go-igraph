@@ -615,3 +615,324 @@ func TestLayoutSugiyama(t *testing.T) {
 		}
 	})
 }
+
+func TestLayoutFruchtermanReingold(t *testing.T) {
+	t.Run("unweighted and weighted with initial coordinates and bounds", func(t *testing.T) {
+		g, err := igraph.NewRing(5, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(123)
+		coords, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{
+			Seed:  &seed,
+			NIter: 100,
+		})
+		if err != nil {
+			t.Fatalf("LayoutFruchtermanReingold failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 5 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
+		}
+
+		// Initial coordinates reuse
+		initCoords, _ := igraph.NewMatrixFromRows([][]float64{
+			{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4},
+		})
+		minX := []float64{-10, -10, -10, -10, -10}
+		maxX := []float64{10, 10, 10, 10, 10}
+		minY := []float64{-10, -10, -10, -10, -10}
+		maxY := []float64{10, 10, 10, 10, 10}
+		weights := []float64{1.0, 1.0, 1.0, 1.0, 1.0}
+
+		coordsInit, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{
+			Seed:               &seed,
+			NIter:              50,
+			Weights:            weights,
+			InitialCoordinates: &initCoords,
+			MinX:               minX,
+			MaxX:               maxX,
+			MinY:               minY,
+			MaxY:               maxY,
+		})
+		if err != nil {
+			t.Fatalf("LayoutFruchtermanReingold with initial coords failed: %v", err)
+		}
+		if r, c := coordsInit.Dims(); r != 5 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
+		}
+	})
+
+	t.Run("seed reproducibility and concurrent isolation", func(t *testing.T) {
+		g, err := igraph.NewRing(10, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(999)
+		c1, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 50})
+		if err != nil {
+			t.Fatalf("Layout 1 failed: %v", err)
+		}
+		c2, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 50})
+		if err != nil {
+			t.Fatalf("Layout 2 failed: %v", err)
+		}
+
+		for r := 0; r < 10; r++ {
+			for c := 0; c < 2; c++ {
+				v1, _ := c1.At(r, c)
+				v2, _ := c2.At(r, c)
+				if v1 != v2 {
+					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+
+		var wg sync.WaitGroup
+		for i := 0; i < 5; i++ {
+			wg.Add(1)
+			go func(seedVal uint64) {
+				defer wg.Done()
+				s := seedVal
+				_, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{Seed: &s, NIter: 20})
+				if err != nil {
+					t.Errorf("concurrent LayoutFruchtermanReingold failed: %v", err)
+				}
+			}(uint64(50 + i))
+		}
+		wg.Wait()
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{NIter: -1}); err == nil {
+			t.Error("expected error for negative NIter")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{Weights: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched Weights length")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{MinX: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched MinX length")
+		}
+		badInit, _ := igraph.NewMatrixFromRows([][]float64{{0, 0}, {1, 1}})
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{InitialCoordinates: &badInit}); err == nil {
+			t.Error("expected error for mismatched InitialCoordinates dimensions")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutKamadaKawai(t *testing.T) {
+	t.Run("unweighted and weighted with initial coordinates and bounds", func(t *testing.T) {
+		g, err := igraph.NewRing(5, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(123)
+		coords, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{
+			Seed:    &seed,
+			MaxIter: 100,
+		})
+		if err != nil {
+			t.Fatalf("LayoutKamadaKawai failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 5 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
+		}
+
+		initCoords, _ := igraph.NewMatrixFromRows([][]float64{
+			{0, 0}, {1, 1}, {2, 2}, {3, 3}, {4, 4},
+		})
+		minX := []float64{-10, -10, -10, -10, -10}
+		maxX := []float64{10, 10, 10, 10, 10}
+		weights := []float64{1.0, 1.0, 1.0, 1.0, 1.0}
+
+		coordsInit, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{
+			Seed:               &seed,
+			MaxIter:            50,
+			Weights:            weights,
+			InitialCoordinates: &initCoords,
+			MinX:               minX,
+			MaxX:               maxX,
+		})
+		if err != nil {
+			t.Fatalf("LayoutKamadaKawai with initial coords failed: %v", err)
+		}
+		if r, c := coordsInit.Dims(); r != 5 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (5, 2)", r, c)
+		}
+	})
+
+	t.Run("seed reproducibility and concurrent isolation", func(t *testing.T) {
+		g, err := igraph.NewRing(10, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(888)
+		c1, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{Seed: &seed, MaxIter: 50})
+		if err != nil {
+			t.Fatalf("Layout 1 failed: %v", err)
+		}
+		c2, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{Seed: &seed, MaxIter: 50})
+		if err != nil {
+			t.Fatalf("Layout 2 failed: %v", err)
+		}
+
+		for r := 0; r < 10; r++ {
+			for c := 0; c < 2; c++ {
+				v1, _ := c1.At(r, c)
+				v2, _ := c2.At(r, c)
+				if v1 != v2 {
+					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+
+		var wg sync.WaitGroup
+		for i := 0; i < 5; i++ {
+			wg.Add(1)
+			go func(seedVal uint64) {
+				defer wg.Done()
+				s := seedVal
+				_, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{Seed: &s, MaxIter: 20})
+				if err != nil {
+					t.Errorf("concurrent LayoutKamadaKawai failed: %v", err)
+				}
+			}(uint64(50 + i))
+		}
+		wg.Wait()
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{MaxIter: -1}); err == nil {
+			t.Error("expected error for negative MaxIter")
+		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{Weights: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched Weights length")
+		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{MinX: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched MinX length")
+		}
+		badInit, _ := igraph.NewMatrixFromRows([][]float64{{0, 0}, {1, 1}})
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{InitialCoordinates: &badInit}); err == nil {
+			t.Error("expected error for mismatched InitialCoordinates dimensions")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutKamadaKawai(igraph.KamadaKawaiOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutMDS(t *testing.T) {
+	t.Run("auto distances and custom distance matrix 2D and 3D", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		coords2D, err := g.LayoutMDS(nil, 2, igraph.MDSOptions{})
+		if err != nil {
+			t.Fatalf("LayoutMDS 2D auto failed: %v", err)
+		}
+		if r, c := coords2D.Dims(); r != 4 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (4, 2)", r, c)
+		}
+
+		coords3D, err := g.LayoutMDS(nil, 3, igraph.MDSOptions{})
+		if err != nil {
+			t.Fatalf("LayoutMDS 3D auto failed: %v", err)
+		}
+		if r, c := coords3D.Dims(); r != 4 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (4, 3)", r, c)
+		}
+
+		// Custom distance matrix
+		distMat, _ := igraph.NewMatrixFromRows([][]float64{
+			{0, 1, 2, 1},
+			{1, 0, 1, 2},
+			{2, 1, 0, 1},
+			{1, 2, 1, 0},
+		})
+		coordsCustom, err := g.LayoutMDS(&distMat, 2, igraph.MDSOptions{})
+		if err != nil {
+			t.Fatalf("LayoutMDS custom distances failed: %v", err)
+		}
+		if r, c := coordsCustom.Dims(); r != 4 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (4, 2)", r, c)
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutMDS(nil, 1, igraph.MDSOptions{}); err == nil {
+			t.Error("expected error for dimension 1")
+		}
+		if _, err := g.LayoutMDS(nil, 4, igraph.MDSOptions{}); err == nil {
+			t.Error("expected error for dimension 4")
+		}
+
+		badDist, _ := igraph.NewMatrixFromRows([][]float64{{0, 1}, {1, 0}})
+		if _, err := g.LayoutMDS(&badDist, 2, igraph.MDSOptions{}); err == nil {
+			t.Error("expected error for mismatched distance matrix dimensions")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutMDS(nil, 2, igraph.MDSOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutMDS(nil, 2, igraph.MDSOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
