@@ -34,4 +34,4 @@ COPY . .
 RUN go vet ./... \
     && go test ./...
 
-CMD ["go", "test", "./...", "-coverprofile=coverage.out"]
+CMD ["go", "test", "-coverpkg=github.com/h8gi/go-igraph", "./...", "-coverprofile=coverage.out"]
