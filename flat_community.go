@@ -133,7 +133,7 @@ func (g *Graph) executeFlat(fn func() (CommunityPartition, error)) (CommunityPar
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
 //
-// //igraph:bind igraph_community_multilevel
+//igraph:bind igraph_community_multilevel
 func (g *Graph) CommunityMultilevel(options MultilevelOptions) (CommunityPartition, error) {
 	return g.executeFlat(func() (CommunityPartition, error) {
 		vcount := int(C.igraph_vcount(&g.graph))
@@ -202,8 +202,9 @@ func (g *Graph) CommunityMultilevel(options MultilevelOptions) (CommunityPartiti
 // CommunityLeiden finds community structure using the Leiden algorithm.
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
+// If InitialMembership is non-empty, Start is automatically treated as true.
 //
-// //igraph:bind igraph_community_leiden
+//igraph:bind igraph_community_leiden
 func (g *Graph) CommunityLeiden(options LeidenOptions) (CommunityPartition, error) {
 	return g.executeFlat(func() (CommunityPartition, error) {
 		vcount := int(C.igraph_vcount(&g.graph))
@@ -313,7 +314,7 @@ func (g *Graph) CommunityLeiden(options LeidenOptions) (CommunityPartition, erro
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
 //
-// //igraph:bind igraph_community_label_propagation
+//igraph:bind igraph_community_label_propagation
 func (g *Graph) CommunityLabelPropagation(options LabelPropagationOptions) (CommunityPartition, error) {
 	return g.executeFlat(func() (CommunityPartition, error) {
 		vcount := int(C.igraph_vcount(&g.graph))
@@ -404,8 +405,9 @@ func (g *Graph) CommunityLabelPropagation(options LabelPropagationOptions) (Comm
 // CommunityInfomap finds community structure by minimizing the map equation description length.
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
+// Modularity field in the returned CommunityPartition contains the calculated codelength score.
 //
-// //igraph:bind igraph_community_infomap
+//igraph:bind igraph_community_infomap
 func (g *Graph) CommunityInfomap(options InfomapOptions) (CommunityPartition, error) {
 	return g.executeFlat(func() (CommunityPartition, error) {
 		vcount := int(C.igraph_vcount(&g.graph))
@@ -479,7 +481,7 @@ func (g *Graph) CommunityInfomap(options InfomapOptions) (CommunityPartition, er
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
 //
-// //igraph:bind igraph_community_fluid_communities
+//igraph:bind igraph_community_fluid_communities
 func (g *Graph) CommunityFluid(noOfCommunities int, options FluidOptions) (CommunityPartition, error) {
 	return g.executeFlat(func() (CommunityPartition, error) {
 		vcount := int(C.igraph_vcount(&g.graph))

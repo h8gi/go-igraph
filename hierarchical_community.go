@@ -61,7 +61,7 @@ func (g *Graph) executeHierarchical(weights []float64, fn func(weightsVec *realV
 // Inputs are borrowed; returned HierarchicalCommunity is Go-owned.
 // Nil weights select an unweighted calculation.
 //
-// //igraph:bind igraph_community_fastgreedy
+//igraph:bind igraph_community_fastgreedy
 func (g *Graph) CommunityFastGreedy(weights []float64) (HierarchicalCommunity, error) {
 	return g.executeHierarchical(weights, func(weightsVec *realVector, mergesMat *C.igraph_matrix_int_t, modVec *C.igraph_vector_t) (C.igraph_error_t, string) {
 		return C.go_igraph_community_fastgreedy(&g.graph, edgeWeightPointer(weightsVec), mergesMat, modVec, nil), "igraph_community_fastgreedy"
@@ -73,7 +73,7 @@ func (g *Graph) CommunityFastGreedy(weights []float64) (HierarchicalCommunity, e
 // Inputs are borrowed; returned HierarchicalCommunity is Go-owned.
 // Nil weights select an unweighted calculation.
 //
-// //igraph:bind igraph_community_walktrap
+//igraph:bind igraph_community_walktrap
 func (g *Graph) CommunityWalktrap(weights []float64, steps int) (HierarchicalCommunity, error) {
 	cSteps, err := intToIgraphInt(steps, "steps")
 	if err != nil {
@@ -89,7 +89,7 @@ func (g *Graph) CommunityWalktrap(weights []float64, steps int) (HierarchicalCom
 // Inputs are borrowed; returned HierarchicalCommunity is Go-owned.
 // Nil weights select an unweighted calculation.
 //
-// //igraph:bind igraph_community_edge_betweenness
+//igraph:bind igraph_community_edge_betweenness
 func (g *Graph) CommunityEdgeBetweenness(weights []float64, directed bool) (HierarchicalCommunity, error) {
 	return g.executeHierarchical(weights, func(weightsVec *realVector, mergesMat *C.igraph_matrix_int_t, modVec *C.igraph_vector_t) (C.igraph_error_t, string) {
 		return C.go_igraph_community_edge_betweenness(&g.graph, nil, nil, mergesMat, nil, modVec, nil, booltoint(directed), edgeWeightPointer(weightsVec), nil), "igraph_community_edge_betweenness"
@@ -101,7 +101,7 @@ func (g *Graph) CommunityEdgeBetweenness(weights []float64, directed bool) (Hier
 // Inputs are borrowed; returned HierarchicalCommunity is Go-owned.
 // Nil weights select an unweighted calculation.
 //
-// //igraph:bind igraph_community_eb_get_merges
+//igraph:bind igraph_community_eb_get_merges
 func (g *Graph) CommunityEBGetMerges(edges []int, weights []float64, directed bool) (HierarchicalCommunity, error) {
 	edgesVec, err := newIntVector(edges)
 	if err != nil {

@@ -18,7 +18,7 @@ var rngMutex sync.Mutex
 // withRNG acquires the package RNG lock, sets the global C igraph seed if seed is non-nil,
 // runs fn, and unlocks.
 //
-// //igraph:internal igraph_rng_seed
+//igraph:internal igraph_rng_seed
 func withRNG(seed *uint64, fn func() error) error {
 	rngMutex.Lock()
 	defer rngMutex.Unlock()
@@ -108,7 +108,7 @@ func (h HierarchicalCommunity) OptimalMembership() (CommunityPartition, error) {
 //
 // Input membership is borrowed and copied; returned slices are Go-owned.
 //
-// //igraph:bind igraph_reindex_membership
+//igraph:bind igraph_reindex_membership
 func ReindexMembership(membership []int) (reindexed []int, newToOld []int, count int, err error) {
 	if len(membership) == 0 {
 		return []int{}, []int{}, 0, nil
@@ -148,7 +148,7 @@ func ReindexMembership(membership []int) (reindexed []int, newToOld []int, count
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
 //
-// //igraph:bind igraph_community_to_membership
+//igraph:bind igraph_community_to_membership
 func CommunityToMembership(merges [][2]int, nodeCount int, steps int) (CommunityPartition, error) {
 	if nodeCount <= 0 {
 		return CommunityPartition{
@@ -212,7 +212,7 @@ func CommunityToMembership(merges [][2]int, nodeCount int, steps int) (Community
 //
 // Inputs are borrowed; returned CommunityPartition is Go-owned.
 //
-// //igraph:bind igraph_le_community_to_membership
+//igraph:bind igraph_le_community_to_membership
 func LeadingEigenvectorCommunityToMembership(merges [][2]int, steps int) (CommunityPartition, error) {
 	if len(merges) == 0 && steps == 0 {
 		return CommunityPartition{
