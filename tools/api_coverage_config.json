@@ -3,5 +3,9 @@
   "version": "1.0.1",
   "release_url": "https://github.com/igraph/igraph/releases/tag/1.0.1",
   "source_archive_url": "https://github.com/igraph/igraph/releases/download/1.0.1/igraph-1.0.1.tar.gz",
-  "intentionally_unsupported": []
+  "intentionally_unsupported": [
+    "igraph_layout_umap",
+    "igraph_layout_umap_3d",
+    "igraph_layout_umap_compute_weights"
+  ]
 }

@@ -1059,3 +1059,330 @@ func TestLayoutMDS(t *testing.T) {
 		}
 	})
 }
+
+func TestLayoutRandom3D(t *testing.T) {
+	t.Run("dimensions and seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewRing(6, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(42)
+		c1, err := g.LayoutRandom3D(igraph.LayoutRandomOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("LayoutRandom3D failed: %v", err)
+		}
+		if r, c := c1.Dims(); r != 6 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (6, 3)", r, c)
+		}
+		c2, err := g.LayoutRandom3D(igraph.LayoutRandomOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("LayoutRandom3D second call failed: %v", err)
+		}
+		for r := 0; r < 6; r++ {
+			for c := 0; c < 3; c++ {
+				v1, _ := c1.At(r, c)
+				v2, _ := c2.At(r, c)
+				if v1 != v2 {
+					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutRandom3D(igraph.LayoutRandomOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutRandom3D(igraph.LayoutRandomOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutGrid3D(t *testing.T) {
+	t.Run("explicit and automatic extents", func(t *testing.T) {
+		g, err := igraph.NewRing(8, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		coords, err := g.LayoutGrid3D(2, 2)
+		if err != nil {
+			t.Fatalf("LayoutGrid3D failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 8 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (8, 3)", r, c)
+		}
+		// Two full 2x2 layers: vertex 0 and vertex 4 share x/y but differ in z.
+		z0, _ := coords.At(0, 2)
+		z4, _ := coords.At(4, 2)
+		if z0 == z4 {
+			t.Errorf("vertices 0 and 4 should be on different layers, both at z=%v", z0)
+		}
+
+		auto, err := g.LayoutGrid3D(0, 0)
+		if err != nil {
+			t.Fatalf("LayoutGrid3D auto failed: %v", err)
+		}
+		if r, c := auto.Dims(); r != 8 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (8, 3)", r, c)
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutGrid3D(-1, 2); err == nil {
+			t.Error("expected error for negative width")
+		}
+		if _, err := g.LayoutGrid3D(2, -1); err == nil {
+			t.Error("expected error for negative height")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutGrid3D(2, 2); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutGrid3D(2, 2); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutSphere(t *testing.T) {
+	t.Run("unit sphere placement", func(t *testing.T) {
+		g, err := igraph.NewRing(10, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		coords, err := g.LayoutSphere()
+		if err != nil {
+			t.Fatalf("LayoutSphere failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 10 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (10, 3)", r, c)
+		}
+		for r := 0; r < 10; r++ {
+			x, _ := coords.At(r, 0)
+			y, _ := coords.At(r, 1)
+			z, _ := coords.At(r, 2)
+			radius := math.Sqrt(x*x + y*y + z*z)
+			if math.Abs(radius-1) > 1e-9 {
+				t.Errorf("vertex %d at radius %v, want 1", r, radius)
+			}
+		}
+
+		again, err := g.LayoutSphere()
+		if err != nil {
+			t.Fatalf("LayoutSphere second call failed: %v", err)
+		}
+		for r := 0; r < 10; r++ {
+			for c := 0; c < 3; c++ {
+				v1, _ := coords.At(r, c)
+				v2, _ := again.At(r, c)
+				if v1 != v2 {
+					t.Errorf("layout not deterministic at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutSphere(); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutSphere(); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutFruchtermanReingold3D(t *testing.T) {
+	t.Run("dimensions, bounds, and initial coordinates", func(t *testing.T) {
+		g, err := igraph.NewRing(5, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(7)
+		coords, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 50})
+		if err != nil {
+			t.Fatalf("LayoutFruchtermanReingold3D failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 5 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (5, 3)", r, c)
+		}
+
+		initCoords, _ := igraph.NewMatrixFromRows([][]float64{
+			{0, 0, 0}, {1, 1, 1}, {2, 2, 2}, {3, 3, 3}, {4, 4, 4},
+		})
+		bound := []float64{5, 5, 5, 5, 5}
+		negBound := []float64{-5, -5, -5, -5, -5}
+		coordsBounded, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{
+			Seed:               &seed,
+			NIter:              50,
+			Weights:            []float64{1, 1, 1, 1, 1},
+			InitialCoordinates: &initCoords,
+			MinX:               negBound, MaxX: bound,
+			MinY: negBound, MaxY: bound,
+			MinZ: negBound, MaxZ: bound,
+		})
+		if err != nil {
+			t.Fatalf("LayoutFruchtermanReingold3D with bounds failed: %v", err)
+		}
+		for r := 0; r < 5; r++ {
+			z, _ := coordsBounded.At(r, 2)
+			if z < -5 || z > 5 {
+				t.Errorf("vertex %d z=%v outside [-5, 5]", r, z)
+			}
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewRing(6, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(99)
+		c1, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 30})
+		if err != nil {
+			t.Fatalf("layout 1 failed: %v", err)
+		}
+		c2, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 30})
+		if err != nil {
+			t.Fatalf("layout 2 failed: %v", err)
+		}
+		for r := 0; r < 6; r++ {
+			for c := 0; c < 3; c++ {
+				v1, _ := c1.At(r, c)
+				v2, _ := c2.At(r, c)
+				if v1 != v2 {
+					t.Errorf("mismatch at (%d, %d): %v vs %v", r, c, v1, v2)
+				}
+			}
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{MinZ: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched MinZ length")
+		}
+		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{MaxZ: []float64{0, 0, math.NaN(), 0}}); err == nil {
+			t.Error("expected error for NaN MaxZ")
+		}
+		badInit, _ := igraph.NewMatrixFromRows([][]float64{{0, 0}, {1, 1}, {2, 2}, {3, 3}})
+		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{InitialCoordinates: &badInit}); err == nil {
+			t.Error("expected error for 2-column InitialCoordinates in 3D layout")
+		}
+		// The 2D variant must reject z-axis bounds.
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{MinZ: []float64{0, 0, 0, 0}}); err == nil {
+			t.Error("expected error for MinZ on 2D layout")
+		}
+		if _, err := g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{MaxZ: []float64{0, 0, 0, 0}}); err == nil {
+			t.Error("expected error for MaxZ on 2D layout")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutFruchtermanReingold3D(igraph.FruchtermanReingoldOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutKamadaKawai3D(t *testing.T) {
+	t.Run("dimensions and empty graph", func(t *testing.T) {
+		g, err := igraph.NewRing(5, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		seed := uint64(11)
+		coords, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{Seed: &seed, MaxIter: 50})
+		if err != nil {
+			t.Fatalf("LayoutKamadaKawai3D failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 5 || c != 3 {
+			t.Fatalf("got dims (%d, %d), want (5, 3)", r, c)
+		}
+
+		empty, err := igraph.NewGraphFromEdges(0, nil, false)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer empty.Close()
+		emptyCoords, err := empty.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{})
+		if err != nil {
+			t.Fatalf("LayoutKamadaKawai3D on empty graph failed: %v", err)
+		}
+		if r, _ := emptyCoords.Dims(); r != 0 {
+			t.Errorf("got %d rows, want 0", r)
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewRing(4, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{MinZ: []float64{1.0}}); err == nil {
+			t.Error("expected error for mismatched MinZ length")
+		}
+		badInit, _ := igraph.NewMatrixFromRows([][]float64{{0, 0}, {1, 1}, {2, 2}, {3, 3}})
+		if _, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{InitialCoordinates: &badInit}); err == nil {
+			t.Error("expected error for 2-column InitialCoordinates in 3D layout")
+		}
+		if _, err := g.LayoutKamadaKawai(igraph.KamadaKawaiOptions{MinZ: []float64{0, 0, 0, 0}}); err == nil {
+			t.Error("expected error for MinZ on 2D layout")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
