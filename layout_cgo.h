@@ -55,4 +55,36 @@ igraph_error_t go_igraph_layout_sugiyama(
     igraph_integer_t maxiter,
     const igraph_vector_t *weights);
 
+igraph_error_t go_igraph_layout_fruchterman_reingold(
+    const igraph_t *graph,
+    igraph_matrix_t *res,
+    igraph_bool_t use_seed,
+    igraph_integer_t niter,
+    igraph_real_t start_temp,
+    igraph_layout_grid_t grid,
+    const igraph_vector_t *weights,
+    const igraph_vector_t *minx,
+    const igraph_vector_t *maxx,
+    const igraph_vector_t *miny,
+    const igraph_vector_t *maxy);
+
+igraph_error_t go_igraph_layout_kamada_kawai(
+    const igraph_t *graph,
+    igraph_matrix_t *res,
+    igraph_bool_t use_seed,
+    igraph_integer_t maxiter,
+    igraph_real_t epsilon,
+    igraph_real_t kkconst,
+    const igraph_vector_t *weights,
+    const igraph_vector_t *minx,
+    const igraph_vector_t *maxx,
+    const igraph_vector_t *miny,
+    const igraph_vector_t *maxy);
+
+igraph_error_t go_igraph_layout_mds(
+    const igraph_t *graph,
+    igraph_matrix_t *res,
+    const igraph_matrix_t *dist,
+    igraph_integer_t dim);
+
 #endif

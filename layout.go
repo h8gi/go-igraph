@@ -6,7 +6,10 @@ package igraph
 #include "layout_cgo.h"
 */
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"math"
+)
 
 // DegMode controls edge direction interpretation in layout algorithms.
 // It is an alias for DirectionMode (DegOut, DegIn, DegAll).
@@ -34,6 +37,60 @@ type SugiyamaOptions struct {
 	MaxIter int
 	// Weights specifies optional edge weights for crossing reduction.
 	Weights []float64
+}
+
+// FruchtermanReingoldOptions controls parameters for the Fruchterman-Reingold 2D layout algorithm.
+type FruchtermanReingoldOptions struct {
+	// Seed is an optional seed for thread-safe reproducible execution.
+	Seed *uint64
+	// NIter is the number of iterations (default 500 if 0; negative is an error).
+	NIter int
+	// StartTemp is the starting temperature, the maximum vertex movement in
+	// the first iteration (default sqrt(V) if 0; negative is an error).
+	StartTemp float64
+	// Weights specifies optional edge weights.
+	Weights []float64
+	// InitialCoordinates provides optional starting coordinates (matrix must have rows == V and cols == 2).
+	InitialCoordinates *Matrix
+	// MinX, MaxX, MinY, MaxY optionally bound vertex coordinates (slice
+	// lengths must match vertex count and must not contain NaN; ±Inf
+	// disables the bound on that side).
+	MinX []float64
+	MaxX []float64
+	MinY []float64
+	MaxY []float64
+}
+
+// KamadaKawaiOptions controls parameters for the Kamada-Kawai 2D layout algorithm.
+type KamadaKawaiOptions struct {
+	// Seed is an optional seed for thread-safe reproducible execution.
+	Seed *uint64
+	// MaxIter is the maximum number of iterations (default 500 * V if 0; negative is an error).
+	MaxIter int
+	// Epsilon is the convergence threshold: iteration stops early once the
+	// largest movement drops below it. Zero disables the early stop and runs
+	// all MaxIter iterations; negative is an error.
+	Epsilon float64
+	// KKConst is the Kamada-Kawai vertex attraction constant (default V, or
+	// 1 for an empty graph, if 0; negative is an error).
+	KKConst float64
+	// Weights specifies optional edge weights.
+	Weights []float64
+	// InitialCoordinates provides optional starting coordinates (matrix must have rows == V and cols == 2).
+	InitialCoordinates *Matrix
+	// MinX, MaxX, MinY, MaxY optionally bound vertex coordinates (slice
+	// lengths must match vertex count and must not contain NaN; ±Inf
+	// disables the bound on that side).
+	MinX []float64
+	MaxX []float64
+	MinY []float64
+	MaxY []float64
+}
+
+// MDSOptions controls options for Multi-Dimensional Scaling (MDS) layout.
+type MDSOptions struct {
+	// Seed is an optional seed for thread-safe reproducible execution.
+	Seed *uint64
 }
 
 // newOrderVertexSelector validates order slice and converts it to cVertexSelector.
@@ -439,5 +496,341 @@ func (g *Graph) LayoutSugiyama(layers []int, options SugiyamaOptions) (Matrix, e
 	if code != C.IGRAPH_SUCCESS {
 		return Matrix{}, igraphError("calculate Sugiyama layout", int(code))
 	}
+	return cMat.matrix()
+}
+
+// newOptionalCoordinateBound validates and marshals one per-axis coordinate
+// bound slice. NaN entries are rejected because upstream comparisons treat
+// them as "no bound" and would silently ignore them; ±Inf is allowed and
+// disables the bound on that side.
+func newOptionalCoordinateBound(name string, values []float64, vertexCount int) (*realVector, error) {
+	if len(values) == 0 {
+		return nil, nil
+	}
+	if len(values) != vertexCount {
+		return nil, fmt.Errorf("igraph: %s length %d does not match vertex count %d", name, len(values), vertexCount)
+	}
+	for index, value := range values {
+		if math.IsNaN(value) {
+			return nil, fmt.Errorf("igraph: %s at index %d must not be NaN", name, index)
+		}
+	}
+	return newRealVector(values)
+}
+
+// forceLayoutInputs marshals the inputs shared by the force-directed layout
+// bindings: optional edge weights, per-axis coordinate bounds, and the
+// coordinate matrix optionally seeded from initial coordinates.
+type forceLayoutInputs struct {
+	weights *realVector
+	minX    *realVector
+	maxX    *realVector
+	minY    *realVector
+	maxY    *realVector
+	coords  *cMatrix
+	useSeed C.igraph_bool_t
+}
+
+func newForceLayoutInputs(weights, minX, maxX, minY, maxY []float64, initial *Matrix, numVertices, numEdges int) (*forceLayoutInputs, error) {
+	in := &forceLayoutInputs{}
+	ok := false
+	defer func() {
+		if !ok {
+			in.close()
+		}
+	}()
+
+	var err error
+	if in.weights, err = newOptionalEdgeWeights(weights, numEdges); err != nil {
+		return nil, err
+	}
+	bounds := []struct {
+		name   string
+		values []float64
+		dst    **realVector
+	}{
+		{"MinX", minX, &in.minX},
+		{"MaxX", maxX, &in.maxX},
+		{"MinY", minY, &in.minY},
+		{"MaxY", maxY, &in.maxY},
+	}
+	for _, bound := range bounds {
+		if *bound.dst, err = newOptionalCoordinateBound(bound.name, bound.values, numVertices); err != nil {
+			return nil, err
+		}
+	}
+	if initial != nil {
+		rows, cols := initial.Dims()
+		if rows != numVertices || cols != 2 {
+			return nil, fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension 2", rows, cols, numVertices)
+		}
+		if in.coords, err = newCMatrix(*initial); err != nil {
+			return nil, err
+		}
+		in.useSeed = booltoint(true)
+	} else {
+		if in.coords, err = newCMatrix(Matrix{}); err != nil {
+			return nil, err
+		}
+		in.useSeed = booltoint(false)
+	}
+	ok = true
+	return in, nil
+}
+
+func (in *forceLayoutInputs) close() {
+	for _, vector := range []*realVector{in.weights, in.minX, in.maxX, in.minY, in.maxY} {
+		if vector != nil {
+			vector.close()
+		}
+	}
+	if in.coords != nil {
+		in.coords.close()
+	}
+}
+
+// LayoutFruchtermanReingold computes a 2D force-directed layout using the Fruchterman-Reingold algorithm.
+// Public input slices and matrices are borrowed/copied and returned values are Go-owned.
+//
+//igraph:bind igraph_layout_fruchterman_reingold
+func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	numVertices := int(C.igraph_vcount(&g.graph))
+	numEdges := int(C.igraph_ecount(&g.graph))
+
+	if options.NIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: NIter must be non-negative: %d", options.NIter)
+	}
+	nIter := options.NIter
+	if nIter == 0 {
+		nIter = 500
+	}
+
+	if options.StartTemp < 0 {
+		return Matrix{}, fmt.Errorf("igraph: StartTemp must be non-negative: %v", options.StartTemp)
+	}
+	startTemp := options.StartTemp
+	if startTemp == 0 {
+		startTemp = math.Sqrt(float64(numVertices))
+	}
+
+	inputs, err := newForceLayoutInputs(options.Weights, options.MinX, options.MaxX, options.MinY, options.MaxY, options.InitialCoordinates, numVertices, numEdges)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer inputs.close()
+
+	cNIter, err := intToIgraphInt(nIter, "NIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+
+	var runErr error
+	errRNG := withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_fruchterman_reingold(
+			&g.graph,
+			&inputs.coords.value,
+			inputs.useSeed,
+			cNIter,
+			C.igraph_real_t(startTemp),
+			C.IGRAPH_LAYOUT_AUTOGRID,
+			edgeWeightPointer(inputs.weights),
+			edgeWeightPointer(inputs.minX),
+			edgeWeightPointer(inputs.maxX),
+			edgeWeightPointer(inputs.minY),
+			edgeWeightPointer(inputs.maxY),
+		)
+		if code != C.IGRAPH_SUCCESS {
+			runErr = igraphError("calculate Fruchterman-Reingold layout", int(code))
+			return runErr
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return Matrix{}, errRNG
+	}
+	if runErr != nil {
+		return Matrix{}, runErr
+	}
+
+	return inputs.coords.matrix()
+}
+
+// LayoutKamadaKawai computes a 2D force-directed layout using the Kamada-Kawai algorithm.
+// Public input slices and matrices are borrowed/copied and returned values are Go-owned.
+//
+//igraph:bind igraph_layout_kamada_kawai
+func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	numVertices := int(C.igraph_vcount(&g.graph))
+	numEdges := int(C.igraph_ecount(&g.graph))
+
+	if options.MaxIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: MaxIter must be non-negative: %d", options.MaxIter)
+	}
+	maxIter := options.MaxIter
+	if maxIter == 0 {
+		maxIter = 500 * numVertices
+		if maxIter == 0 {
+			maxIter = 100
+		}
+	}
+
+	if options.Epsilon < 0 {
+		return Matrix{}, fmt.Errorf("igraph: Epsilon must be non-negative: %v", options.Epsilon)
+	}
+
+	if options.KKConst < 0 {
+		return Matrix{}, fmt.Errorf("igraph: KKConst must be non-negative: %v", options.KKConst)
+	}
+	kkconst := options.KKConst
+	if kkconst == 0 {
+		kkconst = float64(numVertices)
+		if kkconst == 0 {
+			kkconst = 1
+		}
+	}
+
+	inputs, err := newForceLayoutInputs(options.Weights, options.MinX, options.MaxX, options.MinY, options.MaxY, options.InitialCoordinates, numVertices, numEdges)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer inputs.close()
+
+	cMaxIter, err := intToIgraphInt(maxIter, "MaxIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+
+	var runErr error
+	errRNG := withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_kamada_kawai(
+			&g.graph,
+			&inputs.coords.value,
+			inputs.useSeed,
+			cMaxIter,
+			C.igraph_real_t(options.Epsilon),
+			C.igraph_real_t(kkconst),
+			edgeWeightPointer(inputs.weights),
+			edgeWeightPointer(inputs.minX),
+			edgeWeightPointer(inputs.maxX),
+			edgeWeightPointer(inputs.minY),
+			edgeWeightPointer(inputs.maxY),
+		)
+		if code != C.IGRAPH_SUCCESS {
+			runErr = igraphError("calculate Kamada-Kawai layout", int(code))
+			return runErr
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return Matrix{}, errRNG
+	}
+	if runErr != nil {
+		return Matrix{}, runErr
+	}
+
+	return inputs.coords.matrix()
+}
+
+// LayoutMDS computes a layout using Multi-Dimensional Scaling based on vertex distance matrix.
+// If distances is nil, shortest path distances between all vertex pairs are computed automatically.
+// If distances is non-nil, its dimensions must be square and match vertex count, and it must be
+// symmetric: upstream does not verify symmetry and leaves the result for asymmetric input
+// unspecified, so asymmetric matrices are rejected here.
+// dim specifies layout dimension (must be 2 or 3; default 2 if <= 0).
+// Public input matrices are borrowed and returned values are Go-owned.
+//
+//igraph:bind igraph_layout_mds
+func (g *Graph) LayoutMDS(distances *Matrix, dim int, options MDSOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	numVertices := int(C.igraph_vcount(&g.graph))
+
+	if dim <= 0 {
+		dim = 2
+	}
+	if dim != 2 && dim != 3 {
+		return Matrix{}, fmt.Errorf("igraph: layout dimension must be 2 or 3: %d", dim)
+	}
+
+	var cDistPtr *C.igraph_matrix_t
+	if distances != nil {
+		rows, cols := distances.Dims()
+		if rows != numVertices || cols != numVertices {
+			return Matrix{}, fmt.Errorf("igraph: distance matrix dimensions (%d, %d) do not match vertex count %d", rows, cols, numVertices)
+		}
+		for r := 0; r < rows; r++ {
+			for c := r + 1; c < cols; c++ {
+				upper, _ := distances.At(r, c)
+				lower, _ := distances.At(c, r)
+				if upper != lower {
+					return Matrix{}, fmt.Errorf("igraph: distance matrix must be symmetric: element (%d, %d) is %v but element (%d, %d) is %v", r, c, upper, c, r, lower)
+				}
+			}
+		}
+		cDist, err := newCMatrix(*distances)
+		if err != nil {
+			return Matrix{}, err
+		}
+		defer cDist.close()
+		cDistPtr = &cDist.value
+	}
+
+	cMat, err := newCMatrix(Matrix{})
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer cMat.close()
+
+	cDim, err := intToIgraphInt(dim, "dimension")
+	if err != nil {
+		return Matrix{}, err
+	}
+
+	var runErr error
+	errRNG := withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_mds(
+			&g.graph,
+			&cMat.value,
+			cDistPtr,
+			cDim,
+		)
+		if code != C.IGRAPH_SUCCESS {
+			runErr = igraphError("calculate MDS layout", int(code))
+			return runErr
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return Matrix{}, errRNG
+	}
+	if runErr != nil {
+		return Matrix{}, runErr
+	}
+
 	return cMat.matrix()
 }
