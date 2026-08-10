@@ -212,7 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 and 6 are complete. Milestone 7 connectivity, flows, and cuts is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
+Status: Milestones 5, 6, and 7 are complete. Milestone 8 reproducible random graphs is the next separate milestone. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -307,20 +307,13 @@ Completion criteria:
 Goal: cover network robustness and capacity analysis on top of the graph and
 result ownership rules established by Milestone 5.
 
-Status: planned. To be delivered as a sequence of focused issues:
+Status: complete. Delivered as a sequence of focused issues:
 
 - core flow and cut result types (`MaxFlowResult`, `MinCutResult`, `STMinCutResult`), capacity validation, and max-flow / min-cut algorithms ([#94](https://github.com/h8gi/go-igraph/issues/94));
 - edge and vertex connectivity, adhesion, cohesion, and edge-/vertex-disjoint paths ([#95](https://github.com/h8gi/go-igraph/issues/95));
 - cut enumeration (`AllSTCuts` and `AllSTMincuts`) with safe multi-vector extraction ([#96](https://github.com/h8gi/go-igraph/issues/96));
 - residual graphs, Gomory-Hu tree, dominator tree, and Tarjan reduction as independently owned graph results ([#97](https://github.com/h8gi/go-igraph/issues/97)); and
 - this final contract audit, integration pipeline, executable examples, and documentation update ([#98](https://github.com/h8gi/go-igraph/issues/98)).
-
-Planned areas:
-
-- maximum flow and minimum cuts (s-t and global maxflow/mincut, values, partitions, cut edge lists);
-- edge and vertex connectivity, adhesion, cohesion, and edge-/vertex-disjoint path counts;
-- source-target cut enumeration (`AllSTCuts` and `AllSTMincuts`) with bounded Go memory structures; and
-- residual graphs, reverse residual graphs, Gomory-Hu trees, dominator trees, and Even-Tarjan reductions as independently owned graph results.
 
 Completion criteria:
 
@@ -331,24 +324,47 @@ Completion criteria:
 - integration pipelines combine max flow, min cut, connectivity, residual graphs, Gomory-Hu trees, and dominator trees; and
 - statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
 
+Completion evidence:
+
+- core flow result structs expose flow values, edge flow vectors, cut vertex/edge partitions, and tree graph outputs;
+- capacity slice validation strictly checks length matching `g.NumEdges()` and non-negative values, treating `nil` as unit capacity `1.0`;
+- residual graphs, Gomory-Hu trees, dominator trees, and Even-Tarjan reductions return independently owned `*Graph` instances that survive parent closure;
+- failure-path tests cover out-of-bounds sources/targets, negative capacities, invalid parameters, disconnected graphs, initialization failures, and use after `Close`;
+- integration suite verifies max flow, min cut, connectivity, Gomory-Hu trees, and dominator trees;
+- executable max-flow example demonstrates capacity networks and residual graphs; and
+- `make verify` enforces formatting, vet, behavioral tests, statement coverage (>= 90.0%), and inventory report freshness.
+
 ### Milestone 8: Reproducible random graphs
 
 Goal: apply and harden the stochastic-execution contract established for
 Milestone 6 through a useful first slice of graph generators and random
 transformations.
 
+Status: planned. To be delivered as a sequence of focused issues:
+
+- Erdős-Rényi (G(n,m), G(n,p)), k-regular, and random tree generator APIs ([#111](https://github.com/h8gi/go-igraph/issues/111));
+- degree-sequence graph generator and degree sequence validation APIs ([#112](https://github.com/h8gi/go-igraph/issues/112));
+- Barabási-Albert preferential attachment, Watts-Strogatz small-world, and Stochastic Block Model (SBM) generator APIs ([#113](https://github.com/h8gi/go-igraph/issues/113));
+- graph rewiring, random walk, and random spanning tree APIs ([#114](https://github.com/h8gi/go-igraph/issues/114)); and
+- final contract audit, integration pipeline, executable examples, and documentation update ([#115](https://github.com/h8gi/go-igraph/issues/115)).
+
 Planned areas:
 
-- the shared seed and reproducibility policy under concurrent generator calls;
-- Erdős-Rényi, degree-sequence, and preferential-attachment families;
-- rewiring and sampling operations; and
-- validation for graphical sequences, size overflow, and model-specific
-  parameter domains.
+- shared RNG seed infrastructure and reproducibility policy under concurrent generator calls;
+- Erdős-Rényi (G(n,m), G(n,p)), degree-sequence, k-regular, random tree, Barabási-Albert, Watts-Strogatz, and Stochastic Block Model (SBM) generators;
+- in-place edge rewiring, random graph edge rewiring, random walks, and random spanning tree sampling; and
+- validation for graphical sequences, size overflow, probability bounds, and model-specific parameter domains.
 
-The public API should expose model concepts rather than C RNG objects. Equal
-inputs and seeds must have a documented reproducibility scope, and failure or
-an interrupted call must not leave package-wide random state in a surprising
-state.
+Completion criteria:
+
+- all random graph generators and stochastic operations accept an optional `Seed *uint64` option and use the package-wide thread-safe `withRNG` contract;
+- generator parameters ($n \ge 0$, $m \ge 0$, $0 \le p \le 1$, degree sequences) are validated before calling C/igraph functions;
+- graph generators return independently owned `*Graph` instances that survive source and caller scope without memory leaks;
+- mutating operations (`Rewire`) are atomic on failure and leave receiver state unchanged if parameter validation fails;
+- vector/path sampling operations (`RandomWalk`, `RandomSpanningTree`) return Go-owned slices and handle optional borrowed weight slices;
+- failure-path tests cover invalid parameter domains, negative/overflow counts, non-graphical degree sequences, out-of-bounds start vertices, and use after `Close`;
+- integration pipelines combine random graph generation, rewiring, random walks, and downstream graph analysis; and
+- statement coverage remains above the CI threshold (>= 90.0%), generated inventory is updated, and `make verify` passes.
 
 ### Milestone 9: Layouts and embeddings
 
