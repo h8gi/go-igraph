@@ -22,11 +22,15 @@ func createBenchmarkGraph(t *testing.T) *igraph.Graph {
 }
 
 func TestCommunityLeadingEigenvector(t *testing.T) {
+	seed := uint64(42)
+
 	t.Run("benchmark graph", func(t *testing.T) {
 		g := createBenchmarkGraph(t)
 		defer g.Close()
 
-		part, err := g.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{})
+		part, err := g.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{
+			Seed: &seed,
+		})
 		if err != nil {
 			t.Fatalf("CommunityLeadingEigenvector failed: %v", err)
 		}
@@ -53,6 +57,7 @@ func TestCommunityLeadingEigenvector(t *testing.T) {
 			Steps:             2,
 			Start:             true,
 			InitialMembership: initialMem,
+			Seed:              &seed,
 		})
 		if err != nil {
 			t.Fatalf("CommunityLeadingEigenvector with options failed: %v", err)
@@ -69,7 +74,9 @@ func TestCommunityLeadingEigenvector(t *testing.T) {
 		}
 		defer g.Close()
 
-		part, err := g.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{})
+		part, err := g.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{
+			Seed: &seed,
+		})
 		if err != nil {
 			t.Fatalf("CommunityLeadingEigenvector failed: %v", err)
 		}
@@ -79,26 +86,25 @@ func TestCommunityLeadingEigenvector(t *testing.T) {
 	})
 
 	t.Run("disconnected graph", func(t *testing.T) {
-		g, err := igraph.NewFull(4, false, false)
-		if err != nil {
-			t.Fatalf("Full failed: %v", err)
-		}
-		defer g.Close()
+		g1 := createBenchmarkGraph(t)
+		defer g1.Close()
 
-		g2, err := igraph.NewFull(4, false, false)
+		g2, err := igraph.NewRing(5, false, false)
 		if err != nil {
-			t.Fatalf("Full 2 failed: %v", err)
+			t.Fatalf("Ring failed: %v", err)
 		}
 		defer g2.Close()
 
-		res, err := g.DisjointUnion(g2)
+		res, err := g1.DisjointUnion(g2)
 		if err != nil {
 			t.Fatalf("DisjointUnion failed: %v", err)
 		}
 		gDis := res.Graph
 		defer gDis.Close()
 
-		part, err := gDis.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{})
+		part, err := gDis.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{
+			Seed: &seed,
+		})
 		if err != nil {
 			t.Fatalf("CommunityLeadingEigenvector on disconnected graph failed: %v", err)
 		}

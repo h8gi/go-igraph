@@ -93,7 +93,7 @@ func TestMilestone6CommunityIntegrationPipeline(t *testing.T) {
 	}
 
 	// 4. Spectral & Exact Community Detection (Leading Eigenvector, Spinglass, Optimal Modularity)
-	lePart, err := g.CommunityLeadingEigenvector(LeadingEigenvectorOptions{})
+	lePart, err := g.CommunityLeadingEigenvector(LeadingEigenvectorOptions{Seed: &seed})
 	if err != nil {
 		t.Fatalf("CommunityLeadingEigenvector failed: %v", err)
 	}

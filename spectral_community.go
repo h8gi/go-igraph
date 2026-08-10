@@ -64,6 +64,8 @@ type LeadingEigenvectorOptions struct {
 	Start bool
 	// InitialMembership optionally provides initial community membership (must match vertex count).
 	InitialMembership []int
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
 }
 
 // SpinglassOptions controls the Spinglass community detection algorithm.
@@ -128,69 +130,81 @@ type SpinglassSingleResult struct {
 //
 //igraph:bind igraph_community_leading_eigenvector
 func (g *Graph) CommunityLeadingEigenvector(options LeadingEigenvectorOptions) (CommunityPartition, error) {
-	return g.executeFlat(func() (CommunityPartition, error) {
-		vcount := int(C.igraph_vcount(&g.graph))
-		if vcount == 0 {
-			return partitionFromMembership(nil, math.NaN())
-		}
-
-		weightsVec, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
-		if err != nil {
-			return CommunityPartition{}, err
-		}
-		if weightsVec != nil {
-			defer weightsVec.close()
-		}
-
-		maxIter, tol, err := validateSpectralSolver(options.Solver)
-		if err != nil {
-			return CommunityPartition{}, err
-		}
-
-		steps := options.Steps
-		if steps <= 0 {
-			steps = -1
-		}
-
-		var initMembership []int
-		start := options.Start
-		if len(options.InitialMembership) > 0 {
-			if len(options.InitialMembership) != vcount {
-				return CommunityPartition{}, fmt.Errorf("igraph: invalid initial membership length: %d (expected %d)", len(options.InitialMembership), vcount)
+	var partition CommunityPartition
+	err := withRNG(options.Seed, func() error {
+		p, err := g.executeFlat(func() (CommunityPartition, error) {
+			vcount := int(C.igraph_vcount(&g.graph))
+			if vcount == 0 {
+				return partitionFromMembership(nil, math.NaN())
 			}
-			start = true
-			initMembership = options.InitialMembership
-		}
 
-		memVec, err := newIntVector(initMembership)
+			weightsVec, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
+			if err != nil {
+				return CommunityPartition{}, err
+			}
+			if weightsVec != nil {
+				defer weightsVec.close()
+			}
+
+			maxIter, tol, err := validateSpectralSolver(options.Solver)
+			if err != nil {
+				return CommunityPartition{}, err
+			}
+
+			steps := options.Steps
+			if steps <= 0 {
+				steps = -1
+			}
+
+			var initMembership []int
+			start := options.Start
+			if len(options.InitialMembership) > 0 {
+				if len(options.InitialMembership) != vcount {
+					return CommunityPartition{}, fmt.Errorf("igraph: invalid initial membership length: %d (expected %d)", len(options.InitialMembership), vcount)
+				}
+				start = true
+				initMembership = options.InitialMembership
+			}
+
+			memVec, err := newIntVector(initMembership)
+			if err != nil {
+				return CommunityPartition{}, err
+			}
+			defer memVec.close()
+
+			var modularity C.igraph_real_t
+			code := C.go_igraph_community_leading_eigenvector(
+				&g.graph,
+				edgeWeightPointer(weightsVec),
+				nil,
+				&memVec.value,
+				C.igraph_integer_t(steps),
+				C.int(maxIter),
+				C.igraph_real_t(tol),
+				&modularity,
+				booltoint(start),
+			)
+			if code != 0 {
+				return CommunityPartition{}, igraphError("igraph_community_leading_eigenvector", int(code))
+			}
+
+			memSlice, err := memVec.slice()
+			if err != nil {
+				return CommunityPartition{}, err
+			}
+
+			return partitionFromMembership(memSlice, float64(modularity))
+		})
 		if err != nil {
-			return CommunityPartition{}, err
+			return err
 		}
-		defer memVec.close()
-
-		var modularity C.igraph_real_t
-		code := C.go_igraph_community_leading_eigenvector(
-			&g.graph,
-			edgeWeightPointer(weightsVec),
-			nil,
-			&memVec.value,
-			C.igraph_integer_t(steps),
-			C.int(maxIter),
-			C.igraph_real_t(tol),
-			&modularity,
-			booltoint(start),
-		)
-		if code != 0 {
-			return CommunityPartition{}, igraphError("igraph_community_leading_eigenvector", int(code))
-		}
-
-		memSlice, err := memVec.slice()
-		if err != nil {
-			return CommunityPartition{}, err
-		}
-
-		return partitionFromMembership(memSlice, float64(modularity))
+		partition = p
+		return nil
 	})
+	if err != nil {
+		return CommunityPartition{}, err
+	}
+	return partition, nil
 }
 
 // CommunitySpinglass finds community structure using simulated annealing and a spinglass model.
