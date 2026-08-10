@@ -173,7 +173,7 @@ func KRegularGame(n int, k int, directed bool, multiple bool, options KRegularOp
 	if err := validateConstructorSize("vertex degree", k); err != nil {
 		return nil, err
 	}
-	if !multiple && n > 0 && k >= n {
+	if !multiple && (n > 0 || k > 0) && k >= n {
 		return nil, fmt.Errorf("igraph: simple k-regular degree %d must be smaller than vertex count %d", k, n)
 	}
 	if !directed && n%2 != 0 && k%2 != 0 {
@@ -436,11 +436,11 @@ func BarabasiGame(n int, m int, power float64, zeroAppeal float64, directed bool
 	if err := validateConstructorSize("out-degree m", m); err != nil {
 		return nil, err
 	}
-	if math.IsNaN(power) {
-		return nil, fmt.Errorf("igraph: power must not be NaN")
+	if math.IsNaN(power) || math.IsInf(power, 0) {
+		return nil, fmt.Errorf("igraph: power must be finite, got %g", power)
 	}
-	if zeroAppeal < 0 || math.IsNaN(zeroAppeal) {
-		return nil, fmt.Errorf("igraph: zero-appeal must be >= 0, got %g", zeroAppeal)
+	if zeroAppeal < 0 || math.IsNaN(zeroAppeal) || math.IsInf(zeroAppeal, 0) {
+		return nil, fmt.Errorf("igraph: zero-appeal must be non-negative finite, got %g", zeroAppeal)
 	}
 	cAlgo, err := options.Algorithm.cValue()
 	if err != nil {
@@ -888,14 +888,13 @@ func (g *Graph) RandomWalk(start int, steps int, mode DirectionMode, weights []f
 	return vSlice, eSlice, nil
 }
 
-// RandomSpanningTree samples a random spanning tree from the graph.
+// RandomSpanningTree samples a uniform random spanning tree from the graph.
 //
-// Input weights slice is borrowed for the duration of the call.
 // Returns a slice of edge IDs belonging to the sampled spanning tree.
 // A non-nil options.Seed makes the sample reproducible under the package RNG contract.
 //
 //igraph:bind igraph_random_spanning_tree
-func (g *Graph) RandomSpanningTree(weights []float64, options SpanningTreeOptions) ([]int, error) {
+func (g *Graph) RandomSpanningTree(options SpanningTreeOptions) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
 	}
@@ -903,14 +902,6 @@ func (g *Graph) RandomSpanningTree(weights []float64, options SpanningTreeOption
 	defer g.mu.RUnlock()
 	if g.closed {
 		return nil, ErrClosed
-	}
-
-	cWeights, err := validateOptionalEdgeWeights(g, weights)
-	if err != nil {
-		return nil, err
-	}
-	if cWeights != nil {
-		defer cWeights.close()
 	}
 
 	vid := -1

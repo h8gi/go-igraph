@@ -1234,7 +1234,7 @@ func TestRandomSpanningTree(t *testing.T) {
 		}
 		defer g.Close()
 
-		treeEdges, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		treeEdges, err := g.RandomSpanningTree(igraph.SpanningTreeOptions{Seed: &seed})
 		if err != nil {
 			t.Fatalf("RandomSpanningTree failed: %v", err)
 		}
@@ -1243,7 +1243,7 @@ func TestRandomSpanningTree(t *testing.T) {
 		}
 
 		root := 2
-		treeEdgesRoot, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{
+		treeEdgesRoot, err := g.RandomSpanningTree(igraph.SpanningTreeOptions{
 			Seed: &seed,
 			Root: &root,
 		})
@@ -1262,11 +1262,11 @@ func TestRandomSpanningTree(t *testing.T) {
 		}
 		defer g.Close()
 
-		first, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		first, err := g.RandomSpanningTree(igraph.SpanningTreeOptions{Seed: &seed})
 		if err != nil {
 			t.Fatalf("RandomSpanningTree failed: %v", err)
 		}
-		second, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		second, err := g.RandomSpanningTree(igraph.SpanningTreeOptions{Seed: &seed})
 		if err != nil {
 			t.Fatalf("RandomSpanningTree failed on second run: %v", err)
 		}
@@ -1284,19 +1284,13 @@ func TestRandomSpanningTree(t *testing.T) {
 		defer g.Close()
 
 		badRoot := 99
-		if _, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Root: &badRoot}); err == nil {
+		if _, err := g.RandomSpanningTree(igraph.SpanningTreeOptions{Root: &badRoot}); err == nil {
 			t.Errorf("expected error for root out of bounds")
-		}
-		if _, err := g.RandomSpanningTree([]float64{1.0}, igraph.SpanningTreeOptions{}); err == nil {
-			t.Errorf("expected error for weights slice length mismatch")
-		}
-		if _, err := g.RandomSpanningTree([]float64{-1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, igraph.SpanningTreeOptions{}); err == nil {
-			t.Errorf("expected error for negative weight value")
 		}
 
 		closed, _ := igraph.NewFull(4, false, false)
 		closed.Close()
-		if _, err := closed.RandomSpanningTree(nil, igraph.SpanningTreeOptions{}); err == nil {
+		if _, err := closed.RandomSpanningTree(igraph.SpanningTreeOptions{}); err == nil {
 			t.Errorf("expected ErrClosed for closed graph")
 		}
 	})
