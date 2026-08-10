@@ -338,6 +338,9 @@ func TestFlatCommunityEdgeCasesAndValidation(t *testing.T) {
 	if _, err := gActive.CommunityLeiden(LeidenOptions{Start: false, NIterations: 1}); err != nil {
 		t.Errorf("CommunityLeiden with Start false failed: %v", err)
 	}
+	if _, err := gActive.CommunityLeiden(LeidenOptions{Start: true, NIterations: 1}); err != nil {
+		t.Errorf("CommunityLeiden with Start true and empty InitialMembership failed: %v", err)
+	}
 
 	// Invalid edge weights length
 	if _, err := gActive.CommunityMultilevel(MultilevelOptions{Weights: []float64{1.0}}); err == nil {

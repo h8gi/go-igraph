@@ -259,6 +259,8 @@ func (g *Graph) CommunityLeiden(options LeidenOptions) (CommunityPartition, erro
 				return CommunityPartition{}, fmt.Errorf("igraph: invalid initial membership length: %d (expected %d)", len(options.InitialMembership), vcount)
 			}
 			useStart = true
+		} else {
+			useStart = false
 		}
 
 		var memVec *intVector
