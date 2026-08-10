@@ -974,3 +974,330 @@ func TestSBMGame(t *testing.T) {
 		}
 	})
 }
+
+func TestRewire(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("in-place rewiring preserves degree sequence", func(t *testing.T) {
+		g, err := igraph.NewFull(6, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		degBefore, err := g.Degree(igraph.AllVertices(), igraph.DegreeOptions{Direction: igraph.DirectionAll})
+		if err != nil {
+			t.Fatalf("Degree failed: %v", err)
+		}
+
+		if err := g.Rewire(20, igraph.RewireSimple, igraph.RewireOptions{Seed: &seed}); err != nil {
+			t.Fatalf("Rewire failed: %v", err)
+		}
+
+		degAfter, err := g.Degree(igraph.AllVertices(), igraph.DegreeOptions{Direction: igraph.DirectionAll})
+		if err != nil {
+			t.Fatalf("Degree failed after rewire: %v", err)
+		}
+
+		if !reflect.DeepEqual(degBefore, degAfter) {
+			t.Errorf("expected degree sequence to be preserved, got %v vs %v", degAfter, degBefore)
+		}
+	})
+
+	t.Run("atomic failure leaves receiver unchanged", func(t *testing.T) {
+		g, err := igraph.NewFull(4, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		edgesBefore := mustEdges(t, g)
+
+		if err := g.Rewire(-1, igraph.RewireSimple, igraph.RewireOptions{}); err == nil {
+			t.Errorf("expected error for negative trial count")
+		}
+
+		edgesAfter := mustEdges(t, g)
+		if !reflect.DeepEqual(edgesBefore, edgesAfter) {
+			t.Errorf("expected graph to remain unchanged on validation failure")
+		}
+	})
+
+	t.Run("invalid mode and closed graph", func(t *testing.T) {
+		g, err := igraph.NewFull(4, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+
+		if err := g.Rewire(10, igraph.RewireMode(99), igraph.RewireOptions{}); err == nil {
+			t.Errorf("expected error for invalid RewireMode")
+		}
+
+		g.Close()
+		if err := g.Rewire(10, igraph.RewireSimple, igraph.RewireOptions{}); err == nil {
+			t.Errorf("expected ErrClosed for closed graph")
+		}
+	})
+}
+
+func TestRewireEdges(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("independent rewired graph", func(t *testing.T) {
+		g, err := igraph.NewFull(6, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		rewired, err := g.RewireEdges(0.5, false, false, igraph.RewireOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RewireEdges failed: %v", err)
+		}
+		defer rewired.Close()
+
+		v1, _ := mustCounts(t, g)
+		v2, _ := mustCounts(t, rewired)
+		if v1 != v2 {
+			t.Errorf("expected vertex count %d, got %d", v1, v2)
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewFull(8, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		first, err := g.RewireEdges(0.3, false, false, igraph.RewireOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RewireEdges failed: %v", err)
+		}
+		defer first.Close()
+
+		second, err := g.RewireEdges(0.3, false, false, igraph.RewireOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RewireEdges failed on second run: %v", err)
+		}
+		defer second.Close()
+
+		if !reflect.DeepEqual(mustEdges(t, first), mustEdges(t, second)) {
+			t.Errorf("expected identical edge lists for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewFull(4, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		for _, prob := range []float64{-0.1, 1.1, math.NaN()} {
+			if _, err := g.RewireEdges(prob, false, false, igraph.RewireOptions{}); err == nil {
+				t.Errorf("expected error for invalid probability %g", prob)
+			}
+		}
+
+		closed, _ := igraph.NewFull(4, false, false)
+		closed.Close()
+		if _, err := closed.RewireEdges(0.5, false, false, igraph.RewireOptions{}); err == nil {
+			t.Errorf("expected ErrClosed for closed graph")
+		}
+	})
+}
+
+func TestRandomWalk(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("unweighted and weighted walk", func(t *testing.T) {
+		g, err := igraph.NewFull(6, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		vPath, ePath, err := g.RandomWalk(0, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomWalk failed: %v", err)
+		}
+		if len(vPath) != 6 || len(ePath) != 5 {
+			t.Errorf("expected 6 vertices and 5 edges in walk path, got %d and %d", len(vPath), len(ePath))
+		}
+
+		weights := make([]float64, 6*5/2)
+		for i := range weights {
+			weights[i] = 1.0
+		}
+		vPathW, ePathW, err := g.RandomWalk(0, 5, igraph.DirectionOut, weights, igraph.RandomWalkOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomWalk with weights failed: %v", err)
+		}
+		if len(vPathW) != 6 || len(ePathW) != 5 {
+			t.Errorf("expected 6 vertices and 5 edges in weighted walk path, got %d and %d", len(vPathW), len(ePathW))
+		}
+	})
+
+	t.Run("stuck mode on isolated vertex", func(t *testing.T) {
+		g, err := igraph.ErdosRenyiGNM(5, 0, true, false, igraph.ErdosRenyiOptions{})
+		if err != nil {
+			t.Fatalf("ErdosRenyiGNM failed: %v", err)
+		}
+		defer g.Close()
+
+		// Stuck error mode
+		_, _, err = g.RandomWalk(0, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{
+			StuckMode: igraph.RandomWalkStuckError,
+		})
+		if err == nil {
+			t.Errorf("expected error when random walk gets stuck in StuckError mode")
+		}
+
+		// Stuck return mode returns partial path
+		vPath, ePath, err := g.RandomWalk(0, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{
+			StuckMode: igraph.RandomWalkStuckReturn,
+		})
+		if err != nil {
+			t.Fatalf("RandomWalk with StuckReturn failed: %v", err)
+		}
+		if len(vPath) != 1 || len(ePath) != 0 {
+			t.Errorf("expected path of length 1 (start vertex only) when stuck, got %v and %v", vPath, ePath)
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewFull(10, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		v1, e1, err := g.RandomWalk(0, 8, igraph.DirectionOut, nil, igraph.RandomWalkOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomWalk failed: %v", err)
+		}
+		v2, e2, err := g.RandomWalk(0, 8, igraph.DirectionOut, nil, igraph.RandomWalkOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomWalk failed on second run: %v", err)
+		}
+
+		if !reflect.DeepEqual(v1, v2) || !reflect.DeepEqual(e1, e2) {
+			t.Errorf("expected identical walk paths for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewFull(5, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, _, err := g.RandomWalk(-1, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for start < 0")
+		}
+		if _, _, err := g.RandomWalk(10, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for start >= vcount")
+		}
+		if _, _, err := g.RandomWalk(0, -1, igraph.DirectionOut, nil, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for steps < 0")
+		}
+		if _, _, err := g.RandomWalk(0, 5, igraph.DirectionMode(99), nil, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for invalid DirectionMode")
+		}
+		if _, _, err := g.RandomWalk(0, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{StuckMode: igraph.RandomWalkStuckMode(99)}); err == nil {
+			t.Errorf("expected error for invalid RandomWalkStuckMode")
+		}
+		if _, _, err := g.RandomWalk(0, 5, igraph.DirectionOut, []float64{1.0}, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for weights length mismatch")
+		}
+		if _, _, err := g.RandomWalk(0, 5, igraph.DirectionOut, []float64{-1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected error for negative weight value")
+		}
+
+		closed, _ := igraph.NewFull(4, false, false)
+		closed.Close()
+		if _, _, err := closed.RandomWalk(0, 5, igraph.DirectionOut, nil, igraph.RandomWalkOptions{}); err == nil {
+			t.Errorf("expected ErrClosed for closed graph")
+		}
+	})
+}
+
+func TestRandomSpanningTree(t *testing.T) {
+	seed := uint64(42)
+
+	t.Run("unweighted and root option", func(t *testing.T) {
+		g, err := igraph.NewFull(6, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		treeEdges, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomSpanningTree failed: %v", err)
+		}
+		if len(treeEdges) != 5 {
+			t.Errorf("expected 5 edges in spanning tree of 6 vertices, got %d", len(treeEdges))
+		}
+
+		root := 2
+		treeEdgesRoot, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{
+			Seed: &seed,
+			Root: &root,
+		})
+		if err != nil {
+			t.Fatalf("RandomSpanningTree with Root failed: %v", err)
+		}
+		if len(treeEdgesRoot) != 5 {
+			t.Errorf("expected 5 edges in spanning tree with Root, got %d", len(treeEdgesRoot))
+		}
+	})
+
+	t.Run("seed reproducibility", func(t *testing.T) {
+		g, err := igraph.NewFull(10, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		first, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomSpanningTree failed: %v", err)
+		}
+		second, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Seed: &seed})
+		if err != nil {
+			t.Fatalf("RandomSpanningTree failed on second run: %v", err)
+		}
+
+		if !reflect.DeepEqual(first, second) {
+			t.Errorf("expected identical spanning tree edge lists for the same seed")
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewFull(5, false, false)
+		if err != nil {
+			t.Fatalf("NewFull failed: %v", err)
+		}
+		defer g.Close()
+
+		badRoot := 99
+		if _, err := g.RandomSpanningTree(nil, igraph.SpanningTreeOptions{Root: &badRoot}); err == nil {
+			t.Errorf("expected error for root out of bounds")
+		}
+		if _, err := g.RandomSpanningTree([]float64{1.0}, igraph.SpanningTreeOptions{}); err == nil {
+			t.Errorf("expected error for weights slice length mismatch")
+		}
+		if _, err := g.RandomSpanningTree([]float64{-1, 1, 1, 1, 1, 1, 1, 1, 1, 1}, igraph.SpanningTreeOptions{}); err == nil {
+			t.Errorf("expected error for negative weight value")
+		}
+
+		closed, _ := igraph.NewFull(4, false, false)
+		closed.Close()
+		if _, err := closed.RandomSpanningTree(nil, igraph.SpanningTreeOptions{}); err == nil {
+			t.Errorf("expected ErrClosed for closed graph")
+		}
+	})
+}
