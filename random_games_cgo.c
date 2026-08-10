@@ -84,3 +84,38 @@ igraph_error_t go_igraph_sbm_game(
         graph, pref_matrix, block_sizes, directed, allowed_edge_types));
 }
 
+igraph_error_t go_igraph_rewire(
+    igraph_t *graph,
+    igraph_int_t n,
+    igraph_edge_type_sw_t allowed_edge_types) {
+    GO_IGRAPH_CALL(igraph_rewire(graph, n, allowed_edge_types, NULL));
+}
+
+igraph_error_t go_igraph_rewire_edges(
+    igraph_t *graph,
+    igraph_real_t prob,
+    igraph_edge_type_sw_t allowed_edge_types) {
+    GO_IGRAPH_CALL(igraph_rewire_edges(graph, prob, allowed_edge_types));
+}
+
+igraph_error_t go_igraph_random_walk(
+    const igraph_t *graph,
+    const igraph_vector_t *weights,
+    igraph_vector_int_t *vertices,
+    igraph_vector_int_t *edges,
+    igraph_int_t start,
+    igraph_neimode_t mode,
+    igraph_int_t steps,
+    igraph_random_walk_stuck_t stuck) {
+    GO_IGRAPH_CALL(igraph_random_walk(
+        graph, weights, vertices, edges, start, mode, steps, stuck));
+}
+
+igraph_error_t go_igraph_random_spanning_tree(
+    const igraph_t *graph,
+    igraph_vector_int_t *res,
+    igraph_int_t vid) {
+    GO_IGRAPH_CALL(igraph_random_spanning_tree(graph, res, vid));
+}
+
+

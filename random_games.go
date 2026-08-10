@@ -2,6 +2,7 @@ package igraph
 
 /*
 #include <igraph.h>
+#include "algorithm_cgo.h"
 #include "random_games_cgo.h"
 */
 import "C"
@@ -172,7 +173,7 @@ func KRegularGame(n int, k int, directed bool, multiple bool, options KRegularOp
 	if err := validateConstructorSize("vertex degree", k); err != nil {
 		return nil, err
 	}
-	if !multiple && n > 0 && k >= n {
+	if !multiple && (n > 0 || k > 0) && k >= n {
 		return nil, fmt.Errorf("igraph: simple k-regular degree %d must be smaller than vertex count %d", k, n)
 	}
 	if !directed && n%2 != 0 && k%2 != 0 {
@@ -435,11 +436,11 @@ func BarabasiGame(n int, m int, power float64, zeroAppeal float64, directed bool
 	if err := validateConstructorSize("out-degree m", m); err != nil {
 		return nil, err
 	}
-	if math.IsNaN(power) {
-		return nil, fmt.Errorf("igraph: power must not be NaN")
+	if math.IsNaN(power) || math.IsInf(power, 0) {
+		return nil, fmt.Errorf("igraph: power must be finite, got %g", power)
 	}
-	if zeroAppeal < 0 || math.IsNaN(zeroAppeal) {
-		return nil, fmt.Errorf("igraph: zero-appeal must be >= 0, got %g", zeroAppeal)
+	if zeroAppeal < 0 || math.IsNaN(zeroAppeal) || math.IsInf(zeroAppeal, 0) {
+		return nil, fmt.Errorf("igraph: zero-appeal must be non-negative finite, got %g", zeroAppeal)
 	}
 	cAlgo, err := options.Algorithm.cValue()
 	if err != nil {
@@ -607,4 +608,329 @@ func SBMGame(n int, prefMatrix Matrix, blockSizes []int, directed bool, loops bo
 			cEdgeTypes,
 		)
 	})
+}
+
+func validateOptionalEdgeWeights(g *Graph, weights []float64) (*realVector, error) {
+	if weights == nil {
+		return nil, nil
+	}
+	numEdges := int(C.igraph_ecount(&g.graph))
+	if len(weights) != numEdges {
+		return nil, fmt.Errorf("igraph: weights slice length (%d) must match number of edges (%d)", len(weights), numEdges)
+	}
+	for i, w := range weights {
+		if math.IsNaN(w) || w < 0 || math.IsInf(w, 0) {
+			return nil, fmt.Errorf("igraph: weight value at index %d must be non-negative finite: %v", i, w)
+		}
+	}
+	return newRealVector(weights)
+}
+
+// RewireMode specifies the allowed edge types during graph rewiring.
+type RewireMode uint8
+
+const (
+	// RewireSimple allows simple edges only (no self-loops, no multiple edges).
+	RewireSimple RewireMode = iota
+	// RewireLoops allows self-loops but no multiple edges.
+	RewireLoops
+	// RewireMulti allows multiple edges between distinct vertices but no self-loops.
+	RewireMulti
+	// RewireLoopsAndMulti allows both self-loops and multiple edges.
+	RewireLoopsAndMulti
+)
+
+func (mode RewireMode) cValue() (C.igraph_edge_type_sw_t, error) {
+	switch mode {
+	case RewireSimple:
+		return C.IGRAPH_SIMPLE_SW, nil
+	case RewireLoops:
+		return C.IGRAPH_LOOPS_SW, nil
+	case RewireMulti:
+		return C.IGRAPH_MULTI_SW, nil
+	case RewireLoopsAndMulti:
+		return C.IGRAPH_LOOPS_SW | C.IGRAPH_MULTI_SW, nil
+	default:
+		return 0, fmt.Errorf("igraph: invalid rewire mode: %d", mode)
+	}
+}
+
+// RewireOptions contains options for graph edge rewiring operations.
+type RewireOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+}
+
+// RandomWalkStuckMode specifies the behavior when a random walk reaches a dead end.
+type RandomWalkStuckMode uint8
+
+const (
+	// RandomWalkStuckError returns an error when a random walk is stuck.
+	RandomWalkStuckError RandomWalkStuckMode = iota
+	// RandomWalkStuckReturn returns the partial path recorded so far when a random walk is stuck.
+	RandomWalkStuckReturn
+)
+
+func (mode RandomWalkStuckMode) cValue() (C.igraph_random_walk_stuck_t, error) {
+	switch mode {
+	case RandomWalkStuckError:
+		return C.IGRAPH_RANDOM_WALK_STUCK_ERROR, nil
+	case RandomWalkStuckReturn:
+		return C.IGRAPH_RANDOM_WALK_STUCK_RETURN, nil
+	default:
+		return 0, fmt.Errorf("igraph: invalid random walk stuck mode: %d", mode)
+	}
+}
+
+// RandomWalkOptions contains options for random walk sampling.
+type RandomWalkOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+	// StuckMode controls behavior when a walk reaches a dead end without outgoing edges.
+	StuckMode RandomWalkStuckMode
+}
+
+// SpanningTreeOptions contains options for random spanning tree sampling.
+type SpanningTreeOptions struct {
+	// Seed optionally seeds the package random number generator.
+	Seed *uint64
+	// Root optionally specifies the root vertex ID. If Root is nil or *Root < 0,
+	// C/igraph chooses an arbitrary root vertex.
+	Root *int
+}
+
+// Rewire randomizes the edges of the receiver graph in-place by performing n trial swaps,
+// preserving the degree sequence.
+//
+// The receiver graph is mutated atomically on success. If parameter validation or
+// execution fails, the receiver graph remains unchanged. Options are read only for
+// the duration of the call. A non-nil options.Seed makes the operation reproducible
+// under the package RNG contract.
+//
+//igraph:bind igraph_rewire
+func (g *Graph) Rewire(n int, mode RewireMode, options RewireOptions) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+
+	if err := validateConstructorSize("rewire trial count", n); err != nil {
+		return err
+	}
+	cMode, err := mode.cValue()
+	if err != nil {
+		return err
+	}
+
+	var replacement C.igraph_t
+	if code := C.go_igraph_copy(&replacement, &g.graph); code != C.IGRAPH_SUCCESS {
+		return igraphError("copy graph for rewire", int(code))
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			C.igraph_destroy(&replacement)
+		}
+	}()
+
+	errRNG := withRNG(options.Seed, func() error {
+		if code := C.go_igraph_rewire(&replacement, C.igraph_int_t(n), cMode); code != C.IGRAPH_SUCCESS {
+			return igraphError("igraph_rewire", int(code))
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return errRNG
+	}
+
+	C.igraph_destroy(&g.graph)
+	g.graph = replacement
+	committed = true
+	return nil
+}
+
+// RewireEdges returns a new graph created by rewiring each edge of the receiver
+// with probability prob.
+//
+// The returned graph is independently Go-owned and must be closed by the caller.
+// The receiver graph is not modified. Options are read only for the duration of
+// the call. A non-nil options.Seed makes the operation reproducible under the package
+// RNG contract.
+//
+//igraph:bind igraph_rewire_edges
+func (g *Graph) RewireEdges(prob float64, loops bool, multiple bool, options RewireOptions) (*Graph, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+
+	if prob < 0 || prob > 1 || math.IsNaN(prob) {
+		return nil, fmt.Errorf("igraph: probability must be between 0 and 1, got %g", prob)
+	}
+	cEdgeTypes, err := edgeTypeFromFlags(loops, multiple).cValue()
+	if err != nil {
+		return nil, err
+	}
+
+	var clone C.igraph_t
+	if code := C.go_igraph_copy(&clone, &g.graph); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("copy graph for rewire edges", int(code))
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			C.igraph_destroy(&clone)
+		}
+	}()
+
+	errRNG := withRNG(options.Seed, func() error {
+		if code := C.go_igraph_rewire_edges(&clone, C.igraph_real_t(prob), cEdgeTypes); code != C.IGRAPH_SUCCESS {
+			return igraphError("igraph_rewire_edges", int(code))
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return nil, errRNG
+	}
+
+	committed = true
+	return adoptInitializedGraph(&clone), nil
+}
+
+// RandomWalk performs a random walk of up to steps length starting at vertex start.
+//
+// Input weights slice is borrowed for the duration of the call.
+// Returns two slices: the sequence of visited vertex IDs and traversed edge IDs.
+// A non-nil options.Seed makes the walk reproducible under the package RNG contract.
+//
+//igraph:bind igraph_random_walk
+func (g *Graph) RandomWalk(start int, steps int, mode DirectionMode, weights []float64, options RandomWalkOptions) ([]int, []int, error) {
+	if g == nil {
+		return nil, nil, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return nil, nil, ErrClosed
+	}
+
+	numVertices := int(C.igraph_vcount(&g.graph))
+	if start < 0 || start >= numVertices {
+		return nil, nil, fmt.Errorf("igraph: start vertex ID out of range [0, %d): %d", numVertices, start)
+	}
+	if err := validateConstructorSize("step count", steps); err != nil {
+		return nil, nil, err
+	}
+	cMode, err := mode.cValue()
+	if err != nil {
+		return nil, nil, err
+	}
+	cStuck, err := options.StuckMode.cValue()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cWeights, err := validateOptionalEdgeWeights(g, weights)
+	if err != nil {
+		return nil, nil, err
+	}
+	if cWeights != nil {
+		defer cWeights.close()
+	}
+
+	cVertices, err := newIntVector(nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer cVertices.close()
+
+	cEdges, err := newIntVector(nil)
+	if err != nil {
+		return nil, nil, err
+	}
+	defer cEdges.close()
+
+	errRNG := withRNG(options.Seed, func() error {
+		if code := C.go_igraph_random_walk(
+			&g.graph,
+			edgeWeightPointer(cWeights),
+			&cVertices.value,
+			&cEdges.value,
+			C.igraph_int_t(start),
+			cMode,
+			C.igraph_int_t(steps),
+			cStuck,
+		); code != C.IGRAPH_SUCCESS {
+			return igraphError("igraph_random_walk", int(code))
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return nil, nil, errRNG
+	}
+
+	vSlice, err := cVertices.slice()
+	if err != nil {
+		return nil, nil, err
+	}
+	eSlice, err := cEdges.slice()
+	if err != nil {
+		return nil, nil, err
+	}
+	return vSlice, eSlice, nil
+}
+
+// RandomSpanningTree samples a uniform random spanning tree from the graph.
+//
+// Returns a slice of edge IDs belonging to the sampled spanning tree.
+// A non-nil options.Seed makes the sample reproducible under the package RNG contract.
+//
+//igraph:bind igraph_random_spanning_tree
+func (g *Graph) RandomSpanningTree(options SpanningTreeOptions) ([]int, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+
+	vid := -1
+	if options.Root != nil {
+		if *options.Root < 0 || *options.Root >= int(C.igraph_vcount(&g.graph)) {
+			return nil, fmt.Errorf("igraph: root vertex ID out of range [0, %d): %d", int(C.igraph_vcount(&g.graph)), *options.Root)
+		}
+		vid = *options.Root
+	}
+
+	cTreeEdges, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
+	}
+	defer cTreeEdges.close()
+
+	errRNG := withRNG(options.Seed, func() error {
+		if code := C.go_igraph_random_spanning_tree(
+			&g.graph,
+			&cTreeEdges.value,
+			C.igraph_int_t(vid),
+		); code != C.IGRAPH_SUCCESS {
+			return igraphError("igraph_random_spanning_tree", int(code))
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return nil, errRNG
+	}
+
+	return cTreeEdges.slice()
 }
