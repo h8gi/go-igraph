@@ -12,17 +12,18 @@ import (
 )
 
 func main() {
+	const numVertices = 12
 	seed := uint64(2026)
 
 	fmt.Println("=== Milestone 9: Layouts & Embeddings Demo ===")
 
 	// 1. Generate a reproducible scale-free network.
-	g, err := igraph.BarabasiGame(12, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
+	g, err := igraph.BarabasiGame(numVertices, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
 	if err != nil {
 		log.Fatalf("BarabasiGame failed: %v", err)
 	}
 	defer g.Close()
-	fmt.Println("1. Generated a 12-vertex Barabási-Albert graph.")
+	fmt.Printf("1. Generated a %d-vertex Barabási-Albert graph.\n", numVertices)
 
 	// 2. Deterministic layouts need no seed: identical calls give identical
 	// coordinates.
@@ -36,8 +37,8 @@ func main() {
 
 	// 3. A seeded Fruchterman-Reingold run refines the circle layout inside
 	// per-axis bounds; the same seed always reproduces the same layout.
-	bound := make([]float64, 12)
-	negBound := make([]float64, 12)
+	bound := make([]float64, numVertices)
+	negBound := make([]float64, numVertices)
 	for i := range bound {
 		bound[i] = 5
 		negBound[i] = -5

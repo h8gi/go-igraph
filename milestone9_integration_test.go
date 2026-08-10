@@ -110,29 +110,26 @@ func TestMilestone9IntegrationPipeline(t *testing.T) {
 
 // TestMilestone9ConcurrentSeedIsolation verifies that concurrently executed
 // seeded layout and embedding calls produce exactly the results of their
-// serial counterparts, demonstrating thread safety and seed isolation.
+// serial counterparts, demonstrating thread safety and seed isolation. Each
+// goroutine works on its own graph so that calls genuinely interleave instead
+// of serializing on a shared per-graph mutex.
 func TestMilestone9ConcurrentSeedIsolation(t *testing.T) {
-	g, err := igraph.NewRing(12, false, false)
-	if err != nil {
-		t.Fatalf("NewRing failed: %v", err)
-	}
-	defer g.Close()
-
 	type run struct {
 		name    string
-		compute func(seed uint64) (igraph.Matrix, error)
+		seed    uint64
+		compute func(g *igraph.Graph, seed uint64) (igraph.Matrix, error)
 	}
 	runs := []run{
-		{"FruchtermanReingold", func(seed uint64) (igraph.Matrix, error) {
+		{"FruchtermanReingold", 100, func(g *igraph.Graph, seed uint64) (igraph.Matrix, error) {
 			return g.LayoutFruchtermanReingold(igraph.FruchtermanReingoldOptions{Seed: &seed, NIter: 50})
 		}},
-		{"KamadaKawai3D", func(seed uint64) (igraph.Matrix, error) {
+		{"KamadaKawai3D", 101, func(g *igraph.Graph, seed uint64) (igraph.Matrix, error) {
 			return g.LayoutKamadaKawai3D(igraph.KamadaKawaiOptions{Seed: &seed, MaxIter: 50})
 		}},
-		{"Random3D", func(seed uint64) (igraph.Matrix, error) {
+		{"Random3D", 102, func(g *igraph.Graph, seed uint64) (igraph.Matrix, error) {
 			return g.LayoutRandom3D(igraph.LayoutRandomOptions{Seed: &seed})
 		}},
-		{"AdjacencySpectralEmbedding", func(seed uint64) (igraph.Matrix, error) {
+		{"AdjacencySpectralEmbedding", 103, func(g *igraph.Graph, seed uint64) (igraph.Matrix, error) {
 			result, err := g.AdjacencySpectralEmbedding(3, igraph.SpectralEmbeddingOptions{Seed: &seed})
 			if err != nil {
 				return igraph.Matrix{}, err
@@ -140,32 +137,43 @@ func TestMilestone9ConcurrentSeedIsolation(t *testing.T) {
 			return result.X, nil
 		}},
 	}
+	newRing := func() *igraph.Graph {
+		g, err := igraph.NewRing(12, false, false)
+		if err != nil {
+			t.Fatalf("NewRing failed: %v", err)
+		}
+		return g
+	}
 
-	// Serial reference results, one distinct seed per run.
+	// Serial reference results, one graph and one distinct seed per run.
 	references := make([]igraph.Matrix, len(runs))
 	for i, r := range runs {
-		reference, err := r.compute(uint64(100 + i))
+		g := newRing()
+		reference, err := r.compute(g, r.seed)
+		g.Close()
 		if err != nil {
 			t.Fatalf("serial %s failed: %v", r.name, err)
 		}
 		references[i] = reference
 	}
 
-	// Re-run everything concurrently, several times per seed, and require
-	// exact agreement with the serial references.
+	// Re-run everything concurrently on independent graphs, several times
+	// per seed, and require exact agreement with the serial references.
 	var wg sync.WaitGroup
 	for round := 0; round < 3; round++ {
 		for i, r := range runs {
+			g := newRing()
 			wg.Add(1)
-			go func(index int, r run) {
+			go func(index int, r run, g *igraph.Graph) {
 				defer wg.Done()
-				result, err := r.compute(uint64(100 + index))
+				defer g.Close()
+				result, err := r.compute(g, r.seed)
 				if err != nil {
 					t.Errorf("concurrent %s failed: %v", r.name, err)
 					return
 				}
 				assertEqualMatrices(t, r.name, references[index], result)
-			}(i, r)
+			}(i, r, g)
 		}
 	}
 	wg.Wait()

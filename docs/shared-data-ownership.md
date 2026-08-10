@@ -12,6 +12,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | `Path` | Go-owned result value | none | vertex and edge slices remain valid after the graph is closed; an unreachable target has `Found == false` and non-nil empty slices |
+| `*SpectralEmbeddingResult` | Go-owned result value | none | `X`, `Y`, and `SingularValues` are Go-owned copies and remain valid after the graph is closed; `Y` is an empty matrix for undirected graphs and `SingularValues` is empty for edgeless graphs |
 | `DiameterResult` | Go-owned result value | none | scalar fields and its `Path` remain valid after the graph is closed; when no diameter path exists, endpoint IDs are -1 and path slices are non-nil empty slices |
 | `AveragePathLengthResult` | Go-owned result value | none | contains scalar length and unreachable ordered-pair count; retains no graph or C resource |
 | transitivity and density results | Go-owned scalar or slice | none | scalar results retain no resource; local-transitivity slices remain valid and mutable after graph closure |
