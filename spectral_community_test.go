@@ -2,6 +2,7 @@ package igraph_test
 
 import (
 	"math"
+	"reflect"
 	"testing"
 
 	"github.com/h8gi/go-igraph"
@@ -42,6 +43,17 @@ func TestCommunityLeadingEigenvector(t *testing.T) {
 		}
 		if math.IsNaN(part.Modularity) || part.Modularity <= 0 {
 			t.Errorf("expected positive modularity, got %f", part.Modularity)
+		}
+
+		// Reproducibility check
+		part2, err := g.CommunityLeadingEigenvector(igraph.LeadingEigenvectorOptions{
+			Seed: &seed,
+		})
+		if err != nil {
+			t.Fatalf("CommunityLeadingEigenvector reproducibility call failed: %v", err)
+		}
+		if !reflect.DeepEqual(part.Membership, part2.Membership) || part.Modularity != part2.Modularity {
+			t.Errorf("seed reproducibility mismatch: got %v (mod %f), want %v (mod %f)", part2.Membership, part2.Modularity, part.Membership, part.Modularity)
 		}
 	})
 
