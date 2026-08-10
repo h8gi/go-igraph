@@ -50,7 +50,9 @@ type FruchtermanReingoldOptions struct {
 	StartTemp float64
 	// Weights specifies optional edge weights.
 	Weights []float64
-	// InitialCoordinates provides optional starting coordinates (matrix must have rows == V and cols == 2).
+	// InitialCoordinates provides optional starting coordinates (matrix must
+	// have rows == V and cols matching the layout dimension: 2 for
+	// LayoutFruchtermanReingold, 3 for LayoutFruchtermanReingold3D).
 	InitialCoordinates *Matrix
 	// MinX, MaxX, MinY, MaxY optionally bound vertex coordinates (slice
 	// lengths must match vertex count and must not contain NaN; ±Inf
@@ -59,6 +61,10 @@ type FruchtermanReingoldOptions struct {
 	MaxX []float64
 	MinY []float64
 	MaxY []float64
+	// MinZ, MaxZ optionally bound the z coordinate under the same rules;
+	// they apply only to the 3D variant and must be nil for the 2D layout.
+	MinZ []float64
+	MaxZ []float64
 }
 
 // KamadaKawaiOptions controls parameters for the Kamada-Kawai 2D layout algorithm.
@@ -76,7 +82,9 @@ type KamadaKawaiOptions struct {
 	KKConst float64
 	// Weights specifies optional edge weights.
 	Weights []float64
-	// InitialCoordinates provides optional starting coordinates (matrix must have rows == V and cols == 2).
+	// InitialCoordinates provides optional starting coordinates (matrix must
+	// have rows == V and cols matching the layout dimension: 2 for
+	// LayoutKamadaKawai, 3 for LayoutKamadaKawai3D).
 	InitialCoordinates *Matrix
 	// MinX, MaxX, MinY, MaxY optionally bound vertex coordinates (slice
 	// lengths must match vertex count and must not contain NaN; ±Inf
@@ -85,6 +93,10 @@ type KamadaKawaiOptions struct {
 	MaxX []float64
 	MinY []float64
 	MaxY []float64
+	// MinZ, MaxZ optionally bound the z coordinate under the same rules;
+	// they apply only to the 3D variant and must be nil for the 2D layout.
+	MinZ []float64
+	MaxZ []float64
 }
 
 // MDSOptions controls options for Multi-Dimensional Scaling (MDS) layout.
@@ -518,6 +530,12 @@ func newOptionalCoordinateBound(name string, values []float64, vertexCount int) 
 	return newRealVector(values)
 }
 
+// forceLayoutBounds groups the per-axis coordinate bound slices shared by the
+// force-directed layout options.
+type forceLayoutBounds struct {
+	minX, maxX, minY, maxY, minZ, maxZ []float64
+}
+
 // forceLayoutInputs marshals the inputs shared by the force-directed layout
 // bindings: optional edge weights, per-axis coordinate bounds, and the
 // coordinate matrix optionally seeded from initial coordinates.
@@ -527,11 +545,17 @@ type forceLayoutInputs struct {
 	maxX    *realVector
 	minY    *realVector
 	maxY    *realVector
+	minZ    *realVector
+	maxZ    *realVector
 	coords  *cMatrix
 	useSeed C.igraph_bool_t
 }
 
-func newForceLayoutInputs(weights, minX, maxX, minY, maxY []float64, initial *Matrix, numVertices, numEdges int) (*forceLayoutInputs, error) {
+func newForceLayoutInputs(weights []float64, bounds forceLayoutBounds, initial *Matrix, dim, numVertices, numEdges int) (*forceLayoutInputs, error) {
+	if dim == 2 && (len(bounds.minZ) > 0 || len(bounds.maxZ) > 0) {
+		return nil, fmt.Errorf("igraph: MinZ and MaxZ apply only to 3D layouts")
+	}
+
 	in := &forceLayoutInputs{}
 	ok := false
 	defer func() {
@@ -544,25 +568,27 @@ func newForceLayoutInputs(weights, minX, maxX, minY, maxY []float64, initial *Ma
 	if in.weights, err = newOptionalEdgeWeights(weights, numEdges); err != nil {
 		return nil, err
 	}
-	bounds := []struct {
+	axes := []struct {
 		name   string
 		values []float64
 		dst    **realVector
 	}{
-		{"MinX", minX, &in.minX},
-		{"MaxX", maxX, &in.maxX},
-		{"MinY", minY, &in.minY},
-		{"MaxY", maxY, &in.maxY},
+		{"MinX", bounds.minX, &in.minX},
+		{"MaxX", bounds.maxX, &in.maxX},
+		{"MinY", bounds.minY, &in.minY},
+		{"MaxY", bounds.maxY, &in.maxY},
+		{"MinZ", bounds.minZ, &in.minZ},
+		{"MaxZ", bounds.maxZ, &in.maxZ},
 	}
-	for _, bound := range bounds {
-		if *bound.dst, err = newOptionalCoordinateBound(bound.name, bound.values, numVertices); err != nil {
+	for _, axis := range axes {
+		if *axis.dst, err = newOptionalCoordinateBound(axis.name, axis.values, numVertices); err != nil {
 			return nil, err
 		}
 	}
 	if initial != nil {
 		rows, cols := initial.Dims()
-		if rows != numVertices || cols != 2 {
-			return nil, fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension 2", rows, cols, numVertices)
+		if rows != numVertices || cols != dim {
+			return nil, fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension %d", rows, cols, numVertices, dim)
 		}
 		if in.coords, err = newCMatrix(*initial); err != nil {
 			return nil, err
@@ -579,7 +605,7 @@ func newForceLayoutInputs(weights, minX, maxX, minY, maxY []float64, initial *Ma
 }
 
 func (in *forceLayoutInputs) close() {
-	for _, vector := range []*realVector{in.weights, in.minX, in.maxX, in.minY, in.maxY} {
+	for _, vector := range []*realVector{in.weights, in.minX, in.maxX, in.minY, in.maxY, in.minZ, in.maxZ} {
 		if vector != nil {
 			vector.close()
 		}
@@ -589,11 +615,33 @@ func (in *forceLayoutInputs) close() {
 	}
 }
 
+func (options FruchtermanReingoldOptions) bounds() forceLayoutBounds {
+	return forceLayoutBounds{options.MinX, options.MaxX, options.MinY, options.MaxY, options.MinZ, options.MaxZ}
+}
+
+func (options KamadaKawaiOptions) bounds() forceLayoutBounds {
+	return forceLayoutBounds{options.MinX, options.MaxX, options.MinY, options.MaxY, options.MinZ, options.MaxZ}
+}
+
 // LayoutFruchtermanReingold computes a 2D force-directed layout using the Fruchterman-Reingold algorithm.
 // Public input slices and matrices are borrowed/copied and returned values are Go-owned.
 //
 //igraph:bind igraph_layout_fruchterman_reingold
 func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (Matrix, error) {
+	return g.layoutFruchtermanReingold(options, 2)
+}
+
+// LayoutFruchtermanReingold3D computes a 3D force-directed layout using the Fruchterman-Reingold algorithm.
+// It shares FruchtermanReingoldOptions with the 2D variant; InitialCoordinates must have
+// 3 columns and MinZ/MaxZ bound the third axis.
+// Public input slices and matrices are borrowed/copied and returned values are Go-owned.
+//
+//igraph:bind igraph_layout_fruchterman_reingold_3d
+func (g *Graph) LayoutFruchtermanReingold3D(options FruchtermanReingoldOptions) (Matrix, error) {
+	return g.layoutFruchtermanReingold(options, 3)
+}
+
+func (g *Graph) layoutFruchtermanReingold(options FruchtermanReingoldOptions, dim int) (Matrix, error) {
 	if g == nil {
 		return Matrix{}, ErrClosed
 	}
@@ -622,7 +670,7 @@ func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (M
 		startTemp = math.Sqrt(float64(numVertices))
 	}
 
-	inputs, err := newForceLayoutInputs(options.Weights, options.MinX, options.MaxX, options.MinY, options.MaxY, options.InitialCoordinates, numVertices, numEdges)
+	inputs, err := newForceLayoutInputs(options.Weights, options.bounds(), options.InitialCoordinates, dim, numVertices, numEdges)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -633,6 +681,11 @@ func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (M
 		return Matrix{}, err
 	}
 
+	operation := "calculate Fruchterman-Reingold layout"
+	if dim == 3 {
+		operation = "calculate 3D Fruchterman-Reingold layout"
+	}
+
 	var runErr error
 	errRNG := withRNG(options.Seed, func() error {
 		code := C.go_igraph_layout_fruchterman_reingold(
@@ -641,15 +694,17 @@ func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (M
 			inputs.useSeed,
 			cNIter,
 			C.igraph_real_t(startTemp),
-			C.IGRAPH_LAYOUT_AUTOGRID,
 			edgeWeightPointer(inputs.weights),
 			edgeWeightPointer(inputs.minX),
 			edgeWeightPointer(inputs.maxX),
 			edgeWeightPointer(inputs.minY),
 			edgeWeightPointer(inputs.maxY),
+			edgeWeightPointer(inputs.minZ),
+			edgeWeightPointer(inputs.maxZ),
+			C.int(dim),
 		)
 		if code != C.IGRAPH_SUCCESS {
-			runErr = igraphError("calculate Fruchterman-Reingold layout", int(code))
+			runErr = igraphError(operation, int(code))
 			return runErr
 		}
 		return nil
@@ -669,6 +724,20 @@ func (g *Graph) LayoutFruchtermanReingold(options FruchtermanReingoldOptions) (M
 //
 //igraph:bind igraph_layout_kamada_kawai
 func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
+	return g.layoutKamadaKawai(options, 2)
+}
+
+// LayoutKamadaKawai3D computes a 3D force-directed layout using the Kamada-Kawai algorithm.
+// It shares KamadaKawaiOptions with the 2D variant; InitialCoordinates must have
+// 3 columns and MinZ/MaxZ bound the third axis.
+// Public input slices and matrices are borrowed/copied and returned values are Go-owned.
+//
+//igraph:bind igraph_layout_kamada_kawai_3d
+func (g *Graph) LayoutKamadaKawai3D(options KamadaKawaiOptions) (Matrix, error) {
+	return g.layoutKamadaKawai(options, 3)
+}
+
+func (g *Graph) layoutKamadaKawai(options KamadaKawaiOptions, dim int) (Matrix, error) {
 	if g == nil {
 		return Matrix{}, ErrClosed
 	}
@@ -707,7 +776,7 @@ func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
 		}
 	}
 
-	inputs, err := newForceLayoutInputs(options.Weights, options.MinX, options.MaxX, options.MinY, options.MaxY, options.InitialCoordinates, numVertices, numEdges)
+	inputs, err := newForceLayoutInputs(options.Weights, options.bounds(), options.InitialCoordinates, dim, numVertices, numEdges)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -716,6 +785,11 @@ func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
 	cMaxIter, err := intToIgraphInt(maxIter, "MaxIter")
 	if err != nil {
 		return Matrix{}, err
+	}
+
+	operation := "calculate Kamada-Kawai layout"
+	if dim == 3 {
+		operation = "calculate 3D Kamada-Kawai layout"
 	}
 
 	var runErr error
@@ -732,9 +806,12 @@ func (g *Graph) LayoutKamadaKawai(options KamadaKawaiOptions) (Matrix, error) {
 			edgeWeightPointer(inputs.maxX),
 			edgeWeightPointer(inputs.minY),
 			edgeWeightPointer(inputs.maxY),
+			edgeWeightPointer(inputs.minZ),
+			edgeWeightPointer(inputs.maxZ),
+			C.int(dim),
 		)
 		if code != C.IGRAPH_SUCCESS {
-			runErr = igraphError("calculate Kamada-Kawai layout", int(code))
+			runErr = igraphError(operation, int(code))
 			return runErr
 		}
 		return nil
@@ -832,5 +909,111 @@ func (g *Graph) LayoutMDS(distances *Matrix, dim int, options MDSOptions) (Matri
 		return Matrix{}, runErr
 	}
 
+	return cMat.matrix()
+}
+
+// LayoutRandom3D computes a 3D random layout where coordinates are uniformly distributed.
+// LayoutRandomOptions allows specifying a random seed for thread-safe reproducible execution.
+// Returned values are Go-owned.
+//
+//igraph:bind igraph_layout_random_3d
+func (g *Graph) LayoutRandom3D(options LayoutRandomOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	cMat, err := newCMatrix(Matrix{})
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer cMat.close()
+
+	errRNG := withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_random_3d(&g.graph, &cMat.value)
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate 3D random layout", int(code))
+		}
+		return nil
+	})
+	if errRNG != nil {
+		return Matrix{}, errRNG
+	}
+	return cMat.matrix()
+}
+
+// LayoutGrid3D computes a 3D regular grid layout with the specified width and height;
+// vertices fill each width x height layer before starting the next one. A width or
+// height of zero lets upstream choose the extent automatically.
+// Returned values are Go-owned.
+//
+//igraph:bind igraph_layout_grid_3d
+func (g *Graph) LayoutGrid3D(width int, height int) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	if width < 0 {
+		return Matrix{}, fmt.Errorf("igraph: width must be non-negative: %d", width)
+	}
+	if height < 0 {
+		return Matrix{}, fmt.Errorf("igraph: height must be non-negative: %d", height)
+	}
+
+	cMat, err := newCMatrix(Matrix{})
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer cMat.close()
+
+	cWidth, err := intToIgraphInt(width, "grid width")
+	if err != nil {
+		return Matrix{}, err
+	}
+	cHeight, err := intToIgraphInt(height, "grid height")
+	if err != nil {
+		return Matrix{}, err
+	}
+
+	code := C.go_igraph_layout_grid_3d(&g.graph, &cMat.value, cWidth, cHeight)
+	if code != C.IGRAPH_SUCCESS {
+		return Matrix{}, igraphError("calculate 3D grid layout", int(code))
+	}
+	return cMat.matrix()
+}
+
+// LayoutSphere places vertices approximately uniformly on the surface of a unit sphere.
+// The placement is deterministic. Returned values are Go-owned.
+//
+//igraph:bind igraph_layout_sphere
+func (g *Graph) LayoutSphere() (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	cMat, err := newCMatrix(Matrix{})
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer cMat.close()
+
+	code := C.go_igraph_layout_sphere(&g.graph, &cMat.value)
+	if code != C.IGRAPH_SUCCESS {
+		return Matrix{}, igraphError("calculate sphere layout", int(code))
+	}
 	return cMat.matrix()
 }

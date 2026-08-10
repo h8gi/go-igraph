@@ -126,4 +126,7 @@ igraph_error_t go_igraph_centralization_eigenvector(
 igraph_error_t go_igraph_centralization_eigenvector_tmax(
     const igraph_t *, igraph_real_t *, igraph_neimode_t);
 
+void go_igraph_arpack_options(
+    igraph_arpack_options_t *, int, igraph_real_t);
+
 #endif

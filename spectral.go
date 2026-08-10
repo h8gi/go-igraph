@@ -321,6 +321,9 @@ func validateSpectralSolver(options SpectralSolverOptions) (int, float64, error)
 	if options.MaxIterations < 0 {
 		return 0, 0, fmt.Errorf("igraph: solver maximum iterations must be non-negative: %d", options.MaxIterations)
 	}
+	if options.MaxIterations > math.MaxInt32 {
+		return 0, 0, fmt.Errorf("igraph: solver maximum iterations must not exceed %d: %d", math.MaxInt32, options.MaxIterations)
+	}
 	if math.IsNaN(options.Tolerance) || math.IsInf(options.Tolerance, 0) || options.Tolerance < 0 {
 		return 0, 0, fmt.Errorf("igraph: solver tolerance must be finite and non-negative: %v", options.Tolerance)
 	}

@@ -305,7 +305,7 @@ igraph_error_t go_igraph_edge_betweenness(
         graph, weights, result, edges, directed, normalized));
 }
 
-static void go_igraph_arpack_options(
+void go_igraph_arpack_options(
     igraph_arpack_options_t *options, int max_iterations,
     igraph_real_t tolerance) {
     igraph_arpack_options_init(options);
