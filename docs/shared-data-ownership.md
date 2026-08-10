@@ -32,6 +32,9 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
+| `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
+| `HierarchicalCommunity` | Go-owned result value and slices | none | merges matrix, step modularities, and node count remain valid and mutable after graph closure; `MembershipAt` and `OptimalMembership` return Go-owned `CommunityPartition` structs |
+| `SpinglassSingleResult` | Go-owned result value and slices | none | community member vertex IDs, cohesion, adhesion, inner links, and outer links remain valid after graph closure |
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.

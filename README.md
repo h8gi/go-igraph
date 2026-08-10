@@ -30,17 +30,20 @@ Milestone 3's fundamental algorithms include degree and neighborhoods,
 components, BFS/DFS, shortest paths and distance matrices, density, diameter,
 average path length, and transitivity. Milestone 4 adds selector-aware
 closeness, harmonic and betweenness centrality, eigenvector centrality, HITS,
-standard and personalized PageRank, and graph centralization. Milestone 5 is
-complete: it adds atomic selector-based deletion, independently owned induced
-and edge subgraphs, connected-component graph decomposition, atomic
-simplification and direction conversion, common graph operators, articulation
-points, bridges, and biconnected components. These APIs share deterministic
-multi-graph locking and explicit source-to-result mapping rules, including
-`RemovedID`, structural parallel-edge conventions, and an availability flag
-when one-to-many provenance cannot fit `IDMapping`. Community structure remains
-the next separate milestone. Executable examples demonstrate selector order,
-weighted distances, restricted traversal, distance centrality, personalized
-ranking, deletion mappings, and independently closed component graphs.
+standard and personalized PageRank, and graph centralization. Milestone 5 adds
+atomic selector-based deletion, independently owned induced and edge subgraphs,
+connected-component graph decomposition, atomic simplification and direction
+conversion, common graph operators, articulation points, bridges, and biconnected
+components. Milestone 6 is complete: it adds community structure algorithms,
+including modularity metrics and matrix calculations, flat community detection
+(Multilevel, Leiden, Label Propagation, Infomap, Fluid), hierarchical community
+detection and dendrogram cuts (Walktrap, FastGreedy, Edge Betweenness), spectral and
+optimization community detection (Leading Eigenvector, Spinglass, Optimal Modularity),
+and community partition comparison metrics (VI, NMI, Split-Join, Rand, Adjusted Rand).
+All returned community partitions and dendrograms are Go-owned and survive source
+graph closure. Executable examples demonstrate selector order, weighted distances,
+restricted traversal, distance centrality, personalized ranking, deletion mappings,
+component graphs, flat community detection, and dendrogram cuts.
 
 The generated [API coverage report](docs/api-coverage.md) compares the functions
 exported by a pinned upstream igraph release with explicit `//igraph:bind` and

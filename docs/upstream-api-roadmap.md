@@ -286,21 +286,24 @@ Completion evidence:
 Goal: provide a coherent partition API rather than unrelated wrappers for
 individual community-detection functions.
 
-Planned areas:
+Status: complete. Delivered as a sequence of focused issues:
 
-- partition quality and structure metrics such as modularity and coreness;
-- an initial representative set of flat community algorithms, including
-  multilevel or Leiden and label propagation;
-- hierarchical algorithms such as fast-greedy, walktrap, or edge
-  betweenness, after a common merge representation is defined; and
-- Go-owned partition and hierarchy results with membership, group sizes,
-  quality values, and algorithm-specific diagnostics where meaningful.
+- partition types (`CommunityPartition`, `HierarchicalCommunity`), merge matrix
+  conventions, continuous 0-indexed membership, and thread-safe C RNG seed locking ([#80](https://github.com/h8gi/go-igraph/issues/80));
+- coreness, trussness, modularity calculation, and modularity matrix APIs ([#81](https://github.com/h8gi/go-igraph/issues/81));
+- flat community detection algorithms (Multilevel/Louvain, Leiden, Label Propagation, Infomap, Fluid) ([#82](https://github.com/h8gi/go-igraph/issues/82));
+- hierarchical community detection and dendrogram cuts (Walktrap, FastGreedy, Edge Betweenness) ([#83](https://github.com/h8gi/go-igraph/issues/83));
+- spectral, simulated annealing, and exact optimization algorithms (Leading Eigenvector, Spinglass, SpinglassSingle, Optimal Modularity) ([#84](https://github.com/h8gi/go-igraph/issues/84));
+- community partition comparison metrics (VI, NMI, Split-Join, Rand, Adjusted Rand) ([#85](https://github.com/h8gi/go-igraph/issues/85)); and
+- this final contract audit, integration pipeline, executable examples, and documentation update ([#86](https://github.com/h8gi/go-igraph/issues/86)).
 
-Weighted, directed, resolution, initial-membership, and fixed-membership
-semantics must be explicit. Before exposing a randomized algorithm, the
-package must also define a shared stochastic-execution contract covering how
-seeding, concurrent calls, and C/igraph's RNG state interact; reproducibility
-must not depend on an undocumented global side effect.
+Completion criteria:
+
+- all public APIs consistently communicate partition, dendrogram, and comparison behavior and expose no C graph, vector, matrix, enum, pointer, or RNG types;
+- borrowed inputs, Go-owned result structs, continuous 0-indexed membership vectors, and reproducible RNG options are documented;
+- failure-path tests cover initialization failure, upstream errors, invalid parameters, out-of-bounds steps, empty/degenerate graphs, repeated closure, and use after Close;
+- integration pipelines combine partitioning, quality evaluation, dendrogram cut extraction, and partition comparison; and
+- statement coverage remains above the CI threshold (>= 90.0%) and `make verify` passes.
 
 ### Milestone 7: Connectivity, flows, and cuts
 

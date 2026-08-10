@@ -5,12 +5,14 @@
 // return ErrClosed. Selectors, Matrix, Path, ConnectedComponents,
 // articulation-point and bridge slices, BiconnectedComponents, IDMapping,
 // GraphIDMapping, subgraph and graph-operator result provenance, traversal
-// results, structural results, centrality results, and centralization results
-// are Go-owned and never require Close. Graphs returned by subgraph,
+// results, structural results, centrality results, centralization results,
+// CommunityPartition, HierarchicalCommunity, and SpinglassSingleResult are
+// Go-owned and never require Close. Graphs returned by subgraph,
 // decomposition, and graph-operator APIs are independently owned and must each
 // be closed.
-// Every returned slice, nested slice, matrix, and path remains valid after the
-// source graph or temporary C resource is closed.
+// Every returned slice, nested slice, matrix, path, community partition, and
+// hierarchical community dendrogram remains valid after the source graph or
+// temporary C resource is closed.
 //
 // Algorithm option and selector inputs are borrowed only for a call; any slice
 // passed to C is first copied into temporary C storage. DirectionOut is the
@@ -36,6 +38,17 @@
 // stable order. Component graphs own separate C resources; ID mappings,
 // composition provenance, articulation points, bridges, and biconnected nested
 // collections are non-nil Go-owned values that survive source closure.
+//
+// Community structure APIs provide flat algorithms (Multilevel, Leiden,
+// Label Propagation, Infomap, Fluid), hierarchical algorithms (Walktrap,
+// FastGreedy, Edge Betweenness), spectral algorithms (Leading Eigenvector),
+// simulated annealing (Spinglass, SpinglassSingle), and exact optimization
+// (Optimal Modularity). All returned community membership vectors use contiguous
+// 0-indexed integer cluster IDs. Hierarchical communities expose dendrogram cuts
+// via MembershipAt and OptimalMembership. Community comparison metrics
+// (CompareCommunities, SplitJoinDistance) evaluate partition distance (VI, Split-Join)
+// and similarity (NMI, Rand, Adjusted Rand). Stochastic algorithms accept an optional
+// Seed parameter for reproducible random execution protected by a global package RNG lock.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined
