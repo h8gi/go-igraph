@@ -1,4 +1,4 @@
-.PHONY: coverage coverage-check coverage-tool-test docker-test docker-coverage docker-coverage-check format-check verify
+.PHONY: coverage coverage-check coverage-tool-test docker-test docker-coverage docker-coverage-check format-check verify c-ref
 
 IGRAPH_VERSION ?= 1.0.1
 DOCKER_IMAGE ?= go-igraph-test
@@ -12,6 +12,10 @@ coverage-check:
 
 coverage-tool-test:
 	python3 -m unittest discover -s tools -p 'test_*.py' -v
+
+c-ref:
+	python3 tools/igraph_c_ref.py lookup $(SYMBOL)
+
 
 format-check:
 	@unformatted="$$(gofmt -l .)"; \
