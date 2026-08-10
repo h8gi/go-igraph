@@ -366,3 +366,252 @@ func TestLayoutRandom(t *testing.T) {
 		}
 	})
 }
+
+func TestLayoutReingoldTilford(t *testing.T) {
+	t.Run("tree graph layout with nil and custom roots", func(t *testing.T) {
+		g, err := igraph.NewKaryTree(7, 2, igraph.TreeOut)
+		if err != nil {
+			t.Fatalf("NewKaryTree failed: %v", err)
+		}
+		defer g.Close()
+
+		coords, err := g.LayoutReingoldTilford(igraph.DegOut, nil)
+		if err != nil {
+			t.Fatalf("LayoutReingoldTilford(nil) failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 7 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (7, 2)", r, c)
+		}
+
+		coordsRoots, err := g.LayoutReingoldTilford(igraph.DegOut, []int{0})
+		if err != nil {
+			t.Fatalf("LayoutReingoldTilford([]int{0}) failed: %v", err)
+		}
+		if r, c := coordsRoots.Dims(); r != 7 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (7, 2)", r, c)
+		}
+	})
+
+	t.Run("invalid root ID or mode", func(t *testing.T) {
+		g, err := igraph.NewKaryTree(5, 2, igraph.TreeOut)
+		if err != nil {
+			t.Fatalf("NewKaryTree failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutReingoldTilford(igraph.DegOut, []int{99}); err == nil {
+			t.Error("expected error for out of bounds root ID")
+		}
+		if _, err := g.LayoutReingoldTilford(igraph.DegOut, []int{-1}); err == nil {
+			t.Error("expected error for negative root ID")
+		}
+		if _, err := g.LayoutReingoldTilford(igraph.DegMode(99), nil); err == nil {
+			t.Error("expected error for invalid DegMode")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutReingoldTilford(igraph.DegOut, nil); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutReingoldTilford(igraph.DegOut, nil); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutReingoldTilfordCircular(t *testing.T) {
+	t.Run("tree graph circular layout with nil and custom roots", func(t *testing.T) {
+		g, err := igraph.NewKaryTree(7, 2, igraph.TreeOut)
+		if err != nil {
+			t.Fatalf("NewKaryTree failed: %v", err)
+		}
+		defer g.Close()
+
+		coords, err := g.LayoutReingoldTilfordCircular(igraph.DegOut, nil)
+		if err != nil {
+			t.Fatalf("LayoutReingoldTilfordCircular(nil) failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 7 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (7, 2)", r, c)
+		}
+
+		coordsRoots, err := g.LayoutReingoldTilfordCircular(igraph.DegOut, []int{0})
+		if err != nil {
+			t.Fatalf("LayoutReingoldTilfordCircular([]int{0}) failed: %v", err)
+		}
+		if r, c := coordsRoots.Dims(); r != 7 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (7, 2)", r, c)
+		}
+	})
+
+	t.Run("invalid root ID or mode", func(t *testing.T) {
+		g, err := igraph.NewKaryTree(5, 2, igraph.TreeOut)
+		if err != nil {
+			t.Fatalf("NewKaryTree failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutReingoldTilfordCircular(igraph.DegOut, []int{99}); err == nil {
+			t.Error("expected error for out of bounds root ID")
+		}
+		if _, err := g.LayoutReingoldTilfordCircular(igraph.DegOut, []int{-1}); err == nil {
+			t.Error("expected error for negative root ID")
+		}
+		if _, err := g.LayoutReingoldTilfordCircular(igraph.DegMode(99), nil); err == nil {
+			t.Error("expected error for invalid DegMode")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutReingoldTilfordCircular(igraph.DegOut, nil); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutReingoldTilfordCircular(igraph.DegOut, nil); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutBipartite(t *testing.T) {
+	t.Run("bipartite graph layout and empty graph", func(t *testing.T) {
+		g, err := igraph.NewGraphFromEdges(4, []igraph.Edge{
+			{From: 0, To: 2},
+			{From: 0, To: 3},
+			{From: 1, To: 2},
+			{From: 1, To: 3},
+		}, false)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer g.Close()
+
+		types := []bool{false, false, true, true}
+		coords, err := g.LayoutBipartite(types, 1.0, 1.0, 100)
+		if err != nil {
+			t.Fatalf("LayoutBipartite failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 4 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (4, 2)", r, c)
+		}
+
+		emptyG, _ := igraph.NewGraph()
+		defer emptyG.Close()
+		coordsEmpty, err := emptyG.LayoutBipartite([]bool{}, 1.0, 1.0, 100)
+		if err != nil {
+			t.Fatalf("LayoutBipartite empty failed: %v", err)
+		}
+		if r, c := coordsEmpty.Dims(); r != 0 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (0, 2)", r, c)
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewGraphFromEdges(4, nil, false)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutBipartite([]bool{true}, 1.0, 1.0, 100); err == nil {
+			t.Error("expected error for mismatched types length")
+		}
+		if _, err := g.LayoutBipartite([]bool{true, false, true, false}, 1.0, 1.0, -1); err == nil {
+			t.Error("expected error for negative maxIter")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutBipartite([]bool{}, 1.0, 1.0, 100); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutBipartite([]bool{true, false, true}, 1.0, 1.0, 100); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
+
+func TestLayoutSugiyama(t *testing.T) {
+	t.Run("sugiyama layout unweighted and weighted", func(t *testing.T) {
+		g, err := igraph.NewGraphFromEdges(3, []igraph.Edge{
+			{From: 0, To: 1},
+			{From: 1, To: 2},
+			{From: 0, To: 2},
+		}, true)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer g.Close()
+
+		coords, err := g.LayoutSugiyama(nil, igraph.SugiyamaOptions{})
+		if err != nil {
+			t.Fatalf("LayoutSugiyama failed: %v", err)
+		}
+		if r, c := coords.Dims(); r != 3 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (3, 2)", r, c)
+		}
+
+		layers := []int{0, 1, 2}
+		weights := []float64{1.0, 2.0, 1.5}
+		coordsCustom, err := g.LayoutSugiyama(layers, igraph.SugiyamaOptions{
+			HGap:    2.0,
+			VGap:    2.0,
+			MaxIter: 50,
+			Weights: weights,
+		})
+		if err != nil {
+			t.Fatalf("LayoutSugiyama with options failed: %v", err)
+		}
+		if r, c := coordsCustom.Dims(); r != 3 || c != 2 {
+			t.Fatalf("got dims (%d, %d), want (3, 2)", r, c)
+		}
+	})
+
+	t.Run("invalid parameters", func(t *testing.T) {
+		g, err := igraph.NewGraphFromEdges(3, []igraph.Edge{
+			{From: 0, To: 1},
+		}, true)
+		if err != nil {
+			t.Fatalf("NewGraphFromEdges failed: %v", err)
+		}
+		defer g.Close()
+
+		if _, err := g.LayoutSugiyama([]int{0}, igraph.SugiyamaOptions{}); err == nil {
+			t.Error("expected error for mismatched layers length")
+		}
+		if _, err := g.LayoutSugiyama([]int{0, -1, 1}, igraph.SugiyamaOptions{}); err == nil {
+			t.Error("expected error for negative layer value")
+		}
+		if _, err := g.LayoutSugiyama(nil, igraph.SugiyamaOptions{MaxIter: -1}); err == nil {
+			t.Error("expected error for negative maxIter")
+		}
+		if _, err := g.LayoutSugiyama(nil, igraph.SugiyamaOptions{Weights: []float64{1.0, 2.0}}); err == nil {
+			t.Error("expected error for mismatched weights length")
+		}
+	})
+
+	t.Run("closed and nil graph", func(t *testing.T) {
+		var nilG *igraph.Graph
+		if _, err := nilG.LayoutSugiyama(nil, igraph.SugiyamaOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for nil graph", err)
+		}
+
+		g, _ := igraph.NewGraphFromEdges(3, nil, false)
+		g.Close()
+		if _, err := g.LayoutSugiyama(nil, igraph.SugiyamaOptions{}); err != igraph.ErrClosed {
+			t.Errorf("got %v, want ErrClosed for closed graph", err)
+		}
+	})
+}
