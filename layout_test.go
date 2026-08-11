@@ -555,6 +555,13 @@ func TestLayoutSugiyama(t *testing.T) {
 		if r, c := coords.Dims(); r != 3 || c != 2 {
 			t.Fatalf("got dims (%d, %d), want (3, 2)", r, c)
 		}
+		// Verify Y coordinates (column 1) are distinct across layers with default VGap=1.0
+		y0, _ := coords.At(0, 1)
+		y1, _ := coords.At(1, 1)
+		y2, _ := coords.At(2, 1)
+		if y0 == y1 && y1 == y2 {
+			t.Errorf("layer Y coordinates collapsed with default VGap: %v, %v, %v", y0, y1, y2)
+		}
 
 		layers := []int{0, 1, 2}
 		weights := []float64{1.0, 2.0, 1.5}

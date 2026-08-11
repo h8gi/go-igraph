@@ -29,11 +29,11 @@ type LayoutRandomOptions struct {
 
 // SugiyamaOptions controls parameters for the Sugiyama layered layout.
 type SugiyamaOptions struct {
-	// HGap is the horizontal gap between vertices.
+	// HGap is the horizontal gap between vertices (default 1.0 if 0).
 	HGap float64
-	// VGap is the vertical gap between layers.
+	// VGap is the vertical gap between layers (default 1.0 if 0).
 	VGap float64
-	// MaxIter is the maximum number of iterations.
+	// MaxIter is the maximum number of iterations (default 100 if 0; negative is an error).
 	MaxIter int
 	// Weights specifies optional edge weights for crossing reduction.
 	Weights []float64
@@ -475,6 +475,19 @@ func (g *Graph) LayoutSugiyama(layers []int, options SugiyamaOptions) (Matrix, e
 	if options.MaxIter < 0 {
 		return Matrix{}, fmt.Errorf("igraph: maxIter must be non-negative: %d", options.MaxIter)
 	}
+	maxIter := options.MaxIter
+	if maxIter == 0 {
+		maxIter = 100
+	}
+
+	hGap := options.HGap
+	if hGap == 0 {
+		hGap = 1.0
+	}
+	vGap := options.VGap
+	if vGap == 0 {
+		vGap = 1.0
+	}
 
 	weightsVec, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
 	if err != nil {
@@ -490,7 +503,7 @@ func (g *Graph) LayoutSugiyama(layers []int, options SugiyamaOptions) (Matrix, e
 	}
 	defer cMat.close()
 
-	cMaxIter, err := intToIgraphInt(options.MaxIter, "maxIter")
+	cMaxIter, err := intToIgraphInt(maxIter, "maxIter")
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -500,8 +513,8 @@ func (g *Graph) LayoutSugiyama(layers []int, options SugiyamaOptions) (Matrix, e
 		&cMat.value,
 		nil,
 		cLayersPtr,
-		C.igraph_real_t(options.HGap),
-		C.igraph_real_t(options.VGap),
+		C.igraph_real_t(hGap),
+		C.igraph_real_t(vGap),
 		cMaxIter,
 		edgeWeightPointer(weightsVec),
 	)
