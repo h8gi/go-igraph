@@ -513,7 +513,8 @@ APIs for cliques and independent vertex sets without exposing C callbacks, file
 handles, sentinel bounds, or unbounded exponential result collection.
 
 Status: in progress as a dependency-ordered sequence of focused issues. The
-shared contracts and scalar operations from #167 are implemented:
+shared contracts and scalar operations from #167 and bounded ordinary/largest
+clique enumeration and histograms from #168 are implemented:
 
 - this roadmap, shared contract, and issue-order plan
   ([#166](https://github.com/h8gi/go-igraph/issues/166));
