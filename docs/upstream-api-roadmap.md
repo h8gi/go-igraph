@@ -212,7 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 10 are complete. Milestone 10 is implemented and
+Status: Milestones 5 through 10 are complete. Milestone 11 is planned and
 tracked by focused GitHub issues. The later domain milestones below remain
 candidates. Later milestone numbers express dependency order, not a commitment
 to bind every function in the named upstream headers; each milestone must still
@@ -506,9 +506,90 @@ Completion evidence:
   24 functions from `igraph_isomorphism.h`, and `make verify` passes with the
   statement coverage floor at 90.0%.
 
+### Milestone 11: Cliques and independent vertex sets
+
+Goal: provide coherent scalar, histogram, and explicitly bounded enumeration
+APIs for cliques and independent vertex sets without exposing C callbacks, file
+handles, sentinel bounds, or unbounded exponential result collection.
+
+Status: planned as a dependency-ordered sequence of focused issues:
+
+- this roadmap, shared contract, and issue-order plan
+  ([#166](https://github.com/h8gi/go-igraph/issues/166));
+- clique-family membership decisions, scalar extrema, and shared size-range and
+  bounded-result types ([#167](https://github.com/h8gi/go-igraph/issues/167));
+- bounded clique enumeration, largest-clique enumeration, and clique-size
+  histograms ([#168](https://github.com/h8gi/go-igraph/issues/168));
+- bounded maximal-clique enumeration, counts, histograms, and subset-seeded
+  search ([#169](https://github.com/h8gi/go-igraph/issues/169));
+- positive-integer weighted clique queries and bounded maximum-weight results
+  ([#170](https://github.com/h8gi/go-igraph/issues/170));
+- bounded ordinary, maximal, and largest independent vertex set enumeration
+  ([#171](https://github.com/h8gi/go-igraph/issues/171)); and
+- the final contract audit, integration pipeline, executable examples,
+  inventory review, and documentation update
+  ([#172](https://github.com/h8gi/go-igraph/issues/172)).
+
+Completion criteria:
+
+- all exponential collection APIs require an explicit positive result limit
+  and report exact truncation by determining whether at least one additional
+  matching result exists; upstream unlimited sentinels are never public;
+- size and weight ranges use Go-native optional bounds with consistent inclusive
+  semantics, reject inconsistent values before entering C, and do not overload
+  zero with upstream's "unlimited" meaning;
+- ordinary, largest, maximal, subset-seeded, weighted, and independent-set
+  results share one documented bounded-enumeration shape; all returned nested
+  slices and histograms are non-nil Go-owned values that survive graph closure;
+- graph and slice/selector inputs are borrowed only for the synchronous call,
+  explicit vertex IDs and positive integer vertex weights are validated and
+  copied into temporary C storage, and no C pointer or storage escapes;
+- direction, loop, parallel-edge, empty-graph, result-order, maximal-versus-
+  maximum, and subset-seed semantics are explicit and tested against pinned
+  igraph 1.0.1;
+- callbacks used for exact early termination remain internal,
+  `igraph_maximal_cliques_file` stays unsupported, and unbounded largest-result
+  functions are composed behind the bounded public contract rather than exposed
+  directly;
+- initialization and upstream failures, integer/count conversion overflow,
+  partial nested-list conversion, normal internal early stop, invalid ranges,
+  limits, subsets, and weights, and use after `Close` have focused coverage; and
+- integration and race tests, package and standalone examples, generated
+  inventory checks, ownership documentation, and `make verify` pass against
+  pinned igraph 1.0.1 while statement coverage remains at or above 90.0%.
+
+Execution order: #166 establishes this plan. #167 defines the common public
+vocabulary and scalar operations. #168 then establishes the reusable bounded
+enumeration implementation. #169, #170, and #171 build independently on those
+contracts, with #169 reusing subset materialization and #170 adding the stricter
+positive-integer weight boundary. #172 is the final cross-feature audit.
+
+Shared contract: collection-returning enumeration accepts an explicit positive
+maximum result count and returns both a non-nil Go-owned `[][]int`-style value
+and whether another result existed. Implementations may request one extra result
+or stop an internal callback after the extra match, but must check the
+`limit + 1` conversion for overflow and must not expose callback execution.
+Each returned vertex set is canonicalized when upstream ordering is not
+guaranteed; outer enumeration order is not a compatibility promise unless the
+pinned upstream API documents it.
+
+Optional lower and upper size bounds have inclusive semantics and are distinct
+from the required result limit. Weighted APIs expose positive integer weights
+because pinned igraph 1.0.1 supports only positive integer weights and otherwise
+truncates real inputs. A weight slice must contain exactly one value per vertex.
+Subset maximal-clique search documents the upstream initial-vertex/search
+semantics and does not present the subset as an induced-subgraph filter.
+
+Graph inputs and input slices/selectors are borrowed only until the synchronous
+call returns; explicit input values are copied into temporary C storage. Scalar
+results, histograms, and all nested collections are Go-owned. Read-only methods
+share the graph's existing lock and serialize safely with `Close`. Public APIs
+expose no C vectors, callback/function pointers, file handles, or upstream
+sentinel constants.
+
 ### Later domain milestones
 
-Cliques, cycles, motifs, and graphlets; bipartite and spatial analysis;
+Cycles, motifs, and graphlets; bipartite and spatial analysis;
 attributes and richer import/export; and other specialized upstream domains
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
