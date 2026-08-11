@@ -53,3 +53,17 @@ igraph_error_t go_igraph_minimum_cycle_basis(
     GO_IGRAPH_CALL(igraph_minimum_cycle_basis(
         graph, NULL, result, bfs_cutoff, complete, use_cycle_order));
 }
+
+igraph_error_t go_igraph_feedback_arc_set(
+        const igraph_t *graph, igraph_vector_int_t *result,
+        const igraph_vector_t *weights, igraph_fas_algorithm_t algorithm) {
+    GO_IGRAPH_CALL(igraph_feedback_arc_set(
+        graph, result, weights, algorithm));
+}
+
+igraph_error_t go_igraph_feedback_vertex_set(
+        const igraph_t *graph, igraph_vector_int_t *result,
+        const igraph_vector_t *weights) {
+    GO_IGRAPH_CALL(igraph_feedback_vertex_set(
+        graph, result, weights, IGRAPH_FVS_EXACT_IP));
+}

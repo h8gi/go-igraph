@@ -24,14 +24,6 @@
       }
     },
     "deferred": {
-      "igraph_feedback_arc_set": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for Milestone 12 feedback edge-set work."
-      },
-      "igraph_feedback_vertex_set": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for Milestone 12 feedback vertex-set work."
-      }
     },
     "intentionally_unsupported": {
       "igraph_simple_cycles_callback": {

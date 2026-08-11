@@ -28,5 +28,11 @@ igraph_error_t go_igraph_minimum_cycle_basis(
     const igraph_t *graph, igraph_vector_int_list_t *result,
     igraph_real_t bfs_cutoff, igraph_bool_t complete,
     igraph_bool_t use_cycle_order);
+igraph_error_t go_igraph_feedback_arc_set(
+    const igraph_t *graph, igraph_vector_int_t *result,
+    const igraph_vector_t *weights, igraph_fas_algorithm_t algorithm);
+igraph_error_t go_igraph_feedback_vertex_set(
+    const igraph_t *graph, igraph_vector_int_t *result,
+    const igraph_vector_t *weights);
 
 #endif
