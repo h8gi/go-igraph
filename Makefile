@@ -1,4 +1,4 @@
-.PHONY: coverage coverage-check coverage-tool-test docker-test docker-coverage docker-coverage-check format-check verify c-ref
+.PHONY: coverage coverage-check coverage-tool-test docker-test docker-race docker-coverage docker-coverage-check format-check verify c-ref
 
 IGRAPH_VERSION ?= 1.0.1
 DOCKER_IMAGE ?= go-igraph-test
@@ -34,4 +34,7 @@ docker-coverage: docker-test
 docker-coverage-check: docker-test
 	docker run --rm $(DOCKER_IMAGE) sh -c 'go test -coverpkg=github.com/h8gi/go-igraph ./... -coverprofile=/tmp/coverage.out && coverage=$$(go tool cover -func=/tmp/coverage.out | awk "/^total:/ { sub(/%/, \"\", \$$3); print \$$3 }") && echo "statement coverage: $$coverage% (minimum $(COVERAGE_MIN)%)" && awk -v coverage="$$coverage" -v minimum="$(COVERAGE_MIN)" "BEGIN { exit coverage >= minimum ? 0 : 1 }"'
 
-verify: format-check docker-coverage-check coverage-tool-test coverage-check
+docker-race: docker-test
+	docker run --rm $(DOCKER_IMAGE) go test -race ./...
+
+verify: format-check docker-coverage-check docker-race coverage-tool-test coverage-check

@@ -512,11 +512,11 @@ Goal: provide coherent scalar, histogram, and explicitly bounded enumeration
 APIs for cliques and independent vertex sets without exposing C callbacks, file
 handles, sentinel bounds, or unbounded exponential result collection.
 
-Status: in progress as a dependency-ordered sequence of focused issues. The
+Status: complete as a dependency-ordered sequence of focused issues. The
 shared contracts and scalar operations from #167 and bounded ordinary/largest
 clique enumeration and histograms from #168, plus maximal-clique queries from
 #169, positive-integer weighted queries from #170, and bounded independent-set
-enumeration from #171, are implemented:
+enumeration from #171, plus the cross-feature audit from #172, are implemented:
 
 - this roadmap, shared contract, and issue-order plan
   ([#166](https://github.com/h8gi/go-igraph/issues/166));
@@ -573,6 +573,16 @@ maximum result count and returns both a non-nil Go-owned `[][]int`-style value
 and whether another result existed. Implementations may request one extra result
 or stop an internal callback after the extra match, but must check the
 `limit + 1` conversion for overflow and must not expose callback execution.
+
+Final `igraph_cliques.h` disposition: the twelve bounded/scalar operations in
+the generated inventory are user-facing. The callback and file-output APIs
+(`igraph_cliques_callback`, `igraph_maximal_cliques_callback`, and
+`igraph_maximal_cliques_file`) are intentionally not public because they would
+expose callback or C/stdio ownership. The three unbounded collectors
+(`igraph_largest_cliques`, `igraph_largest_weighted_cliques`, and
+`igraph_largest_independent_vertex_sets`) are intentionally replaced by the
+bounded composed APIs `LargestCliques`, `MaximumWeightCliques`, and
+`LargestIndependentVertexSets`. No function in that header remains deferred.
 Each returned vertex set is canonicalized when upstream ordering is not
 guaranteed; outer enumeration order is not a compatibility promise unless the
 pinned upstream API documents it.
