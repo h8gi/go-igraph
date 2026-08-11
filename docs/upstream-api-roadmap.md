@@ -8,6 +8,11 @@ The generated [API coverage report](api-coverage.md) remains the inventory of
 the pinned upstream release. GitHub milestones and issues should track the
 execution of the work described here.
 
+The [package architecture decision](package-architecture.md) defines why the
+binding remains one public Go package and how to interpret completeness. Raw C
+declaration coverage is an inventory dimension, not a product-completion
+percentage.
+
 ## Principles
 
 - Design an idiomatic Go API instead of reproducing C signatures mechanically.
@@ -42,6 +47,14 @@ distinguishes:
 - internal implementation dependencies;
 - intentionally unsupported functions;
 - missing functions.
+
+For roadmap decisions, a missing inventory entry is further classified as
+composed, intentionally unsupported, or deferred. A domain is complete when
+each relevant upstream declaration has a reviewed disposition and its coherent
+Go-facing contract satisfies the definition of done; its one-to-one binding
+percentage does not need to reach 100%. The generated report does not yet model
+all of these domain-level dispositions, so the roadmap and coverage
+configuration remain authoritative where they differ from the raw count.
 
 ## Milestone 1: Core graph API
 
@@ -608,6 +621,14 @@ attributes and richer import/export; and other specialized upstream domains
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
 merely to increase the inventory percentage.
+
+Before choosing the next domain milestone, improve the coverage model so it
+can distinguish composed APIs and deferred domains from truly unreviewed
+declarations. Select the next domain by user value, shared-infrastructure
+readiness, and the ability to define a complete Go ownership and concurrency
+contract. The architecture decision recommends cycle analysis as the first
+candidate, followed separately by motifs and graphlets after their sampling,
+callback, weighted, and RNG contracts are designed.
 
 Across all future milestones, interruption and progress callbacks should stay
 internal until they can cross the Go/C boundary without weakening concurrency,

@@ -81,6 +81,7 @@ lifetime, copying, nil, empty, and failure-path behavior.
 - [Runnable and package examples](docs/examples.md)
 - [Upstream API roadmap](docs/upstream-api-roadmap.md)
 - [Generated API coverage report](docs/api-coverage.md)
+- [Package architecture and coverage strategy](docs/package-architecture.md)
 
 ## Contributing
 
