@@ -42,6 +42,8 @@ func (g *Graph) CanonicalPermutation(vertexColors []int) ([]int, error) {
 // CanonicalGraph returns an independently owned canonical form and its
 // source-to-canonical permutation. The result survives source closure and its
 // Graph must be closed by the caller.
+//
+//igraph:internal igraph_permute_vertices
 func (g *Graph) CanonicalGraph(vertexColors []int) (CanonicalGraphResult, error) {
 	var result CanonicalGraphResult
 	err := withLockedGraphs([]*Graph{g}, func(graphs []*C.igraph_t) error {
@@ -142,7 +144,6 @@ func (g *Graph) AutomorphismGroupSize(vertexColors []int) (*big.Int, error) {
 	return result, err
 }
 
-//igraph:internal igraph_permute_vertices
 func canonicalPermutationLocked(graph *C.igraph_t, vertexColors []int) ([]int, error) {
 	colors, err := prepareCanonicalInput(graph, vertexColors)
 	if err != nil {

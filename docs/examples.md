@@ -15,6 +15,7 @@ Examples are grouped by functional domain:
 - `example_centrality_test.go`: Centrality metrics (closeness, betweenness, PageRank).
 - `example_community_test.go`: Community detection algorithms (multilevel, walktrap, etc.).
 - `example_flow_test.go`: Network flows, cuts, and connectivity.
+- `example_isomorphism_test.go`: Isomorphism decisions, explicit mappings, bounded enumeration, canonical graphs, and automorphisms.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).
@@ -34,6 +35,7 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/shortest_path/main.go`
 - `examples/random/main.go`
 - `examples/layout/main.go`
+- `examples/isomorphism/main.go`
 
 ### Usage & Verification
 Users can run any standalone example using:

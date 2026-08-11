@@ -258,6 +258,7 @@ func ladFirstMapping(pattern, target *C.igraph_t, domains [][]int, induced bool)
 	return true, values, nil
 }
 
+//igraph:internal igraph_vector_int_list_push_back_copy
 func newLADDomainList(domains [][]int) (*intVectorList, error) {
 	list, err := newIntVectorList()
 	if err != nil {

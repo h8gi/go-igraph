@@ -16,6 +16,7 @@ package igraph
 import "C"
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -201,7 +202,16 @@ type intVectorList struct {
 //igraph:internal igraph_vector_int_list_init
 func newIntVectorList() (*intVectorList, error) {
 	result := &intVectorList{}
-	if code := C.go_igraph_vector_int_list_init(&result.value, 0); code != C.IGRAPH_SUCCESS {
+	return initializeIntVectorList(result, func() int {
+		return int(C.go_igraph_vector_int_list_init(&result.value, 0))
+	})
+}
+
+func initializeIntVectorList(result *intVectorList, initializer func() int) (*intVectorList, error) {
+	if result == nil || initializer == nil {
+		return nil, errors.New("igraph: integer vector list initializer is nil")
+	}
+	if code := initializer(); code != int(C.IGRAPH_SUCCESS) {
 		return nil, igraphError("initialize integer vector list", int(code))
 	}
 	return result, nil
@@ -210,6 +220,14 @@ func newIntVectorList() (*intVectorList, error) {
 //igraph:internal igraph_vector_int_list_size
 //igraph:internal igraph_vector_int_list_get_ptr
 func (list *intVectorList) slices() ([][]int, error) {
+	return list.slicesWithHooks(intVectorListSliceHooks{})
+}
+
+type intVectorListSliceHooks struct {
+	beforeConvert func(index int) error
+}
+
+func (list *intVectorList) slicesWithHooks(hooks intVectorListSliceHooks) ([][]int, error) {
 	size, err := igraphIntToInt(
 		C.go_igraph_vector_int_list_size(&list.value),
 		"integer vector list length",
@@ -219,6 +237,11 @@ func (list *intVectorList) slices() ([][]int, error) {
 	}
 	result := make([][]int, size)
 	for i := range result {
+		if hooks.beforeConvert != nil {
+			if err := hooks.beforeConvert(i); err != nil {
+				return nil, fmt.Errorf("igraph: convert integer vector list element %d: %w", i, err)
+			}
+		}
 		vector := C.go_igraph_vector_int_list_get(&list.value, C.igraph_int_t(i))
 		result[i], err = intVectorSlice(vector)
 		if err != nil {
