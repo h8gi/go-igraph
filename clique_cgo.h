@@ -12,6 +12,12 @@ igraph_error_t go_igraph_clique_number(const igraph_t *, igraph_int_t *);
 igraph_error_t go_igraph_independence_number(const igraph_t *, igraph_int_t *);
 igraph_error_t go_igraph_cliques(const igraph_t *, igraph_vector_int_list_t *,
                                  igraph_int_t, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_independent_vertex_sets(
+    const igraph_t *, igraph_vector_int_list_t *, igraph_int_t, igraph_int_t,
+    igraph_int_t);
+igraph_error_t go_igraph_maximal_independent_vertex_sets(
+    const igraph_t *, igraph_vector_int_list_t *, igraph_int_t, igraph_int_t,
+    igraph_int_t);
 igraph_error_t go_igraph_clique_size_hist(const igraph_t *, igraph_vector_t *,
                                           igraph_int_t, igraph_int_t);
 igraph_error_t go_igraph_maximal_cliques(

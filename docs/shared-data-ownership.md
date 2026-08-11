@@ -162,6 +162,15 @@ expose upstream zero/negative sentinel conventions. `MaximumWeightCliques`
 computes the scalar optimum and bounded ties under one graph lock and one
 normalized temporary graph, while all returned sets remain Go-owned.
 
+Independent-vertex-set enumeration uses the same borrowed graph, inclusive
+optional size range, positive result limit, exact truncation, canonical inner
+vertex ordering, and Go-owned nested-slice contracts as clique enumeration.
+Ordinary, maximal, and composed largest-set queries all ignore direction,
+loops, and parallel edges through temporary graph normalization. Empty graphs
+return a non-nil empty result, including where pinned igraph would otherwise
+represent the empty set as one maximal result. No outer result order is
+promised.
+
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
 closing it repeatedly or in any order relative to sibling results is safe.

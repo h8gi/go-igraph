@@ -37,6 +37,22 @@ igraph_error_t go_igraph_cliques(const igraph_t *graph,
         graph, result, min_size, max_size, max_results));
 }
 
+igraph_error_t go_igraph_independent_vertex_sets(
+    const igraph_t *graph, igraph_vector_int_list_t *result,
+    igraph_int_t min_size, igraph_int_t max_size,
+    igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_independent_vertex_sets(
+        graph, result, min_size, max_size, max_results));
+}
+
+igraph_error_t go_igraph_maximal_independent_vertex_sets(
+    const igraph_t *graph, igraph_vector_int_list_t *result,
+    igraph_int_t min_size, igraph_int_t max_size,
+    igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_maximal_independent_vertex_sets(
+        graph, result, min_size, max_size, max_results));
+}
+
 igraph_error_t go_igraph_clique_size_hist(const igraph_t *graph,
                                           igraph_vector_t *result,
                                           igraph_int_t min_size,

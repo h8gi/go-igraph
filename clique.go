@@ -292,6 +292,109 @@ func (g *Graph) LargestCliques(maxResults int) (VertexSetEnumeration, error) {
 	return enumerateCliquesOnSimpleGraph(simple, options)
 }
 
+// IndependentVertexSets returns at most MaxResults independent vertex sets
+// whose sizes lie in the inclusive optional range. Edge directions, loops,
+// and parallel edges are ignored. Vertex IDs within each set are sorted; no
+// outer result order is promised. The non-nil result is entirely Go-owned.
+//
+//igraph:bind igraph_independent_vertex_sets
+func (g *Graph) IndependentVertexSets(options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	return g.enumerateIndependentVertexSets(options, false)
+}
+
+// MaximalIndependentVertexSets returns at most MaxResults independent vertex
+// sets that cannot be extended and whose sizes lie in the inclusive optional
+// range. Its input and result contracts match IndependentVertexSets.
+//
+//igraph:bind igraph_maximal_independent_vertex_sets
+func (g *Graph) MaximalIndependentVertexSets(options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	return g.enumerateIndependentVertexSets(options, true)
+}
+
+func (g *Graph) enumerateIndependentVertexSets(options VertexSetEnumerationOptions, maximal bool) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	if C.igraph_vcount(&g.graph) == 0 {
+		return result, nil
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate independent vertex sets")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	return enumerateIndependentVertexSetsOnSimpleGraph(simple, options, maximal)
+}
+
+// LargestIndependentVertexSets returns at most maxResults independent vertex
+// sets of maximum cardinality. It composes IndependenceNumber with bounded
+// enumeration under one graph lock and reports exact truncation.
+func (g *Graph) LargestIndependentVertexSets(maxResults int) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	options := VertexSetEnumerationOptions{MaxResults: maxResults}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate largest independent vertex sets")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	var number C.igraph_int_t
+	if code := C.go_igraph_independence_number(simple, &number); code != C.IGRAPH_SUCCESS {
+		return result, igraphError("calculate independence number", int(code))
+	}
+	size, err := igraphIntToInt(number, "independence number")
+	if err != nil {
+		return result, err
+	}
+	if size == 0 {
+		return result, nil
+	}
+	options.Range.Minimum = &size
+	options.Range.Maximum = &size
+	return enumerateIndependentVertexSetsOnSimpleGraph(simple, options, false)
+}
+
+func enumerateIndependentVertexSetsOnSimpleGraph(graph *C.igraph_t, options VertexSetEnumerationOptions, maximal bool) (VertexSetEnumeration, error) {
+	minimum, maximum := options.Range.cBounds()
+	request := C.igraph_int_t(options.MaxResults + 1)
+	return collectCliqueEnumeration(options, cliqueEnumerationOperations{
+		newList:   newIntVectorList,
+		closeList: (*intVectorList).close,
+		query: func(list *intVectorList) error {
+			var code C.igraph_error_t
+			if maximal {
+				code = C.go_igraph_maximal_independent_vertex_sets(graph, &list.value, minimum, maximum, request)
+			} else {
+				code = C.go_igraph_independent_vertex_sets(graph, &list.value, minimum, maximum, request)
+			}
+			if code != C.IGRAPH_SUCCESS {
+				return igraphError("enumerate independent vertex sets", int(code))
+			}
+			return nil
+		},
+		listSlices: func(list *intVectorList) ([][]int, error) { return list.slices() },
+	})
+}
+
 func enumerateCliquesLocked(graph *C.igraph_t, options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
 	result := VertexSetEnumeration{Sets: make([][]int, 0)}
 	simple, err := newSimpleCliqueGraph(graph, "enumerate cliques")

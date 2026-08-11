@@ -57,7 +57,8 @@ caller-closed. Milestone 11 begins with complete-graph, clique, and independent-
 set decisions, clique and independence numbers, bounded ordinary and largest-
 clique enumeration, maximal-clique enumeration/counts/histograms and search-root
 partitioning, positive-integer weighted clique queries, bounded maximum-weight
-ties, clique-size histograms, and shared inclusive-range and
+ties, bounded ordinary/maximal/largest independent-set enumeration,
+clique-size histograms, and shared inclusive-range and
 bounded-enumeration contracts. Executable examples demonstrate selector order, weighted distances,
 restricted traversal, distance centrality, personalized ranking, deletion mappings,
 component graphs, flat community detection, dendrogram cuts, bounded matching,
