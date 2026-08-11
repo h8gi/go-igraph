@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 import tempfile
 from collections import Counter
@@ -13,6 +14,7 @@ from pathlib import Path
 from upstream_api import (
     Annotation,
     discover_annotations,
+    discover_exported_go_declarations,
     discover_go_calls,
     discover_upstream_api,
     download_or_get_source,
@@ -34,6 +36,7 @@ CONFIGURED_DISPOSITION_STATUSES = {
     "deferred": "Deferred",
     "intentionally_unsupported": "Intentionally unsupported",
 }
+GO_API_RE = re.compile(r"[A-Z][A-Za-z0-9_]*")
 
 
 def configured_dispositions(config: dict) -> dict[str, ConfiguredDisposition]:
@@ -66,7 +69,7 @@ def configured_dispositions(config: dict) -> dict[str, ConfiguredDisposition]:
             if not isinstance(rationale, str) or not rationale.strip():
                 errors.append(f"configured disposition for {name} requires a non-empty rationale")
             if status == "composed":
-                if not isinstance(go_api, str) or not go_api[:1].isupper():
+                if not isinstance(go_api, str) or not GO_API_RE.fullmatch(go_api):
                     errors.append(f"composed disposition for {name} requires an exported Go API")
             elif go_api is not None:
                 errors.append(f"configured disposition {status} for {name} must not define a Go API")
@@ -75,7 +78,7 @@ def configured_dispositions(config: dict) -> dict[str, ConfiguredDisposition]:
                 and domain.strip()
                 and isinstance(rationale, str)
                 and rationale.strip()
-                and (status != "composed" or isinstance(go_api, str) and go_api[:1].isupper())
+                and (status != "composed" or isinstance(go_api, str) and GO_API_RE.fullmatch(go_api))
                 and (status == "composed" or go_api is None)
             ):
                 dispositions[name] = ConfiguredDisposition(status, domain, rationale, go_api)
@@ -90,6 +93,7 @@ def validate_inventory(
     calls: set[str],
     annotations: list[Annotation],
     dispositions: dict[str, ConfiguredDisposition],
+    exported_go: set[str],
 ) -> None:
     errors: list[str] = []
     known = set(declarations)
@@ -104,6 +108,11 @@ def validate_inventory(
     annotated = {item.upstream for item in annotations}
     errors.extend(f"overlapping annotation and configured disposition for {name}" for name in sorted(annotated & set(dispositions)))
     unsupported = {name for name, item in dispositions.items() if item.status == "intentionally_unsupported"}
+    errors.extend(
+        f"composed disposition for {name} references missing Go API {item.go_api}"
+        for name, item in sorted(dispositions.items())
+        if item.status == "composed" and item.go_api not in exported_go
+    )
     classified = annotated | unsupported
     errors.extend(f"unclassified production C call {name}" for name in sorted(calls - classified))
     if errors:
@@ -176,7 +185,9 @@ def main() -> int:
     repo = Path(__file__).resolve().parents[1]
     config = load_config(args.config)
     output = args.output if args.output.is_absolute() else repo / args.output
-    calls, annotations = discover_go_calls(repo), discover_annotations(repo)
+    calls = discover_go_calls(repo)
+    annotations = discover_annotations(repo)
+    exported_go = discover_exported_go_declarations(repo)
     if args.source_dir:
         source = args.source_dir
     else:
@@ -184,7 +195,7 @@ def main() -> int:
     declarations = discover_upstream_api(locate_include(source))
     try:
         dispositions = configured_dispositions(config)
-        validate_inventory(declarations, calls, annotations, dispositions)
+        validate_inventory(declarations, calls, annotations, dispositions, exported_go)
     except ValueError as error:
         print(error, file=sys.stderr)
         return 1

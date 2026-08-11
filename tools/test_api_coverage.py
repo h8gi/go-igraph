@@ -13,6 +13,7 @@ from api_coverage import (
 from upstream_api import (
     Annotation,
     discover_annotations,
+    discover_exported_go_declarations,
     discover_go_calls,
     discover_upstream_api,
     production_go_files,
@@ -85,6 +86,7 @@ class ApiCoverageTest(unittest.TestCase):
                     Annotation("internal", "igraph_destroy", "close", "graph.go", 4),
                 ],
             )
+            self.assertEqual(discover_exported_go_declarations(repo), {"NewGraph"})
 
     def test_rejects_unknown_duplicate_and_unclassified_symbols(self):
         declarations = {"igraph_empty": "igraph.h", "igraph_destroy": "igraph.h"}
@@ -94,12 +96,12 @@ class ApiCoverageTest(unittest.TestCase):
             Annotation("bind", "igraph_unknown", "Unknown", "graph.go", 3),
         ]
         with self.assertRaisesRegex(ValueError, "duplicate annotation for igraph_empty"):
-            validate_inventory(declarations, {"igraph_destroy"}, annotations, {})
+            validate_inventory(declarations, {"igraph_destroy"}, annotations, {}, {"NewGraph", "Unknown"})
 
     def test_rejects_binding_on_unexported_go_symbol(self):
         annotation = Annotation("bind", "igraph_empty", "newGraph", "graph.go", 1)
         with self.assertRaisesRegex(ValueError, "binding target newGraph is not exported"):
-            validate_inventory({"igraph_empty": "igraph.h"}, set(), [annotation], {})
+            validate_inventory({"igraph_empty": "igraph.h"}, set(), [annotation], {}, set())
 
     def test_parses_structured_configured_dispositions(self):
         config = {
@@ -196,6 +198,7 @@ class ApiCoverageTest(unittest.TestCase):
                 set(),
                 [annotation],
                 {"igraph_bound": ConfiguredDisposition("deferred", "example", "Later.")},
+                {"Bound"},
             )
         with self.assertRaisesRegex(ValueError, "unknown configured disposition symbol"):
             validate_inventory(
@@ -203,6 +206,7 @@ class ApiCoverageTest(unittest.TestCase):
                 set(),
                 [],
                 {"igraph_unknown": ConfiguredDisposition("deferred", "example", "Later.")},
+                set(),
             )
         with self.assertRaisesRegex(ValueError, "unclassified production C call igraph_deferred"):
             validate_inventory(
@@ -210,6 +214,19 @@ class ApiCoverageTest(unittest.TestCase):
                 {"igraph_deferred"},
                 [],
                 {"igraph_deferred": ConfiguredDisposition("deferred", "example", "Later.")},
+                set(),
+            )
+        with self.assertRaisesRegex(ValueError, "references missing Go API MissingAPI"):
+            validate_inventory(
+                declarations,
+                set(),
+                [],
+                {
+                    "igraph_deferred": ConfiguredDisposition(
+                        "composed", "example", "Composed by another API.", "MissingAPI"
+                    )
+                },
+                set(),
             )
 
     def test_renders_all_inventory_classifications_deterministically(self):
@@ -252,12 +269,19 @@ class ApiCoverageTest(unittest.TestCase):
             },
         }
         report = render(config, declarations, annotations)
+        reordered_config = dict(config)
+        reordered_config["dispositions"] = dict(reversed(list(config["dispositions"].items())))
+        reordered_declarations = dict(reversed(list(declarations.items())))
+        self.assertEqual(report, render(reordered_config, reordered_declarations, annotations))
         self.assertIn(
             "Headers marked `(generated)` are declaration-discovery locations.",
             report,
         )
         self.assertIn("| `igraph_bound` | `b.h` | User-facing | `Bound` |", report)
         self.assertIn("- Composed APIs: **1**", report)
+        self.assertIn("- User-facing bindings: **1 / 6 (16.67%)**", report)
+        self.assertIn("- Internal dependencies: **1**", report)
+        self.assertIn("- Intentionally unsupported: **1**", report)
         self.assertIn("- Deferred declarations: **1**", report)
         self.assertIn("| `igraph_composed` | `a.h` | Composed | `Composed` |", report)
         self.assertIn("| `igraph_deferred` | `a.h` | Deferred | — |", report)

@@ -169,8 +169,8 @@ one of these dispositions:
   useful public Go API;
 - **intentionally unsupported**: exposing the function would violate the
   package's safety, ownership, concurrency, or API-design rules;
-- **deferred**: the function belongs to a domain whose Go contract and use case
-  have not yet been designed.
+- **deferred**: the declaration has been assigned to a reviewed domain, but its
+  final implementation or non-binding disposition has not landed yet.
 
 A domain is complete when every relevant declaration has a reviewed
 disposition, the user-facing feature slice is coherent, and the roadmap's
