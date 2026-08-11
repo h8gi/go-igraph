@@ -178,11 +178,19 @@ binding definition of done is satisfied. Its raw bound percentage may remain
 below 100%. The overall `181 / 2015` figure describes only one disposition and
 must not be used alone to prioritize work.
 
-Future coverage reporting should separate algorithmic public APIs from
-generated containers and low-level support declarations, show composed
-coverage explicitly, and summarize dispositions by audited domain. Until the
-tool supports those distinctions, roadmap prose and configuration remain the
-source of truth for composed, unsupported, and deferred decisions.
+The coverage report separates user-facing and internal source annotations from
+configured composed, intentionally unsupported, and deferred declarations.
+Each configured entry records a domain and concise rationale, while the roadmap
+remains the source of truth for longer API and product decisions. `Missing`
+means unreviewed; it is no longer overloaded to include explicitly deferred or
+composed work.
+
+During a domain audit, first mark reviewed but unimplemented declarations as
+deferred. Implementation moves each declaration to a source annotation when it
+becomes user-facing or internal, or to a configured composed/unsupported
+disposition when a one-to-one binding is deliberately inappropriate. The final
+audit removes every stale deferred entry in the completed domain and verifies
+that no relevant declaration remains accidentally missing.
 
 ## Consequences and next steps
 
@@ -190,9 +198,9 @@ No package move, import-path change, or compatibility layer follows from this
 decision. New domains can continue using the established feature-slice pattern.
 The next architecture work should be limited to focused follow-up issues:
 
-1. extend the coverage model and generated report with explicit composed and
-   deferred/domain-audit dispositions; and
-2. select the next domain milestone using user value and the availability of a
+1. use the composed and deferred/domain-audit dispositions during milestone
+   planning and final audits; and
+2. select each next domain milestone using user value and the availability of a
    coherent Go ownership contract, not the largest raw declaration gap.
 
 With those definitions in place, the recommended next feature domain is cycle

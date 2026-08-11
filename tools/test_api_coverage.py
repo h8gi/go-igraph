@@ -5,6 +5,8 @@ from pathlib import Path
 from unittest.mock import patch
 
 from api_coverage import (
+    ConfiguredDisposition,
+    configured_dispositions,
     render,
     validate_inventory,
 )
@@ -92,16 +94,129 @@ class ApiCoverageTest(unittest.TestCase):
             Annotation("bind", "igraph_unknown", "Unknown", "graph.go", 3),
         ]
         with self.assertRaisesRegex(ValueError, "duplicate annotation for igraph_empty"):
-            validate_inventory(declarations, {"igraph_destroy"}, annotations, set())
+            validate_inventory(declarations, {"igraph_destroy"}, annotations, {})
 
     def test_rejects_binding_on_unexported_go_symbol(self):
         annotation = Annotation("bind", "igraph_empty", "newGraph", "graph.go", 1)
         with self.assertRaisesRegex(ValueError, "binding target newGraph is not exported"):
-            validate_inventory({"igraph_empty": "igraph.h"}, set(), [annotation], set())
+            validate_inventory({"igraph_empty": "igraph.h"}, set(), [annotation], {})
+
+    def test_parses_structured_configured_dispositions(self):
+        config = {
+            "dispositions": {
+                "composed": {
+                    "igraph_composed": {
+                        "go_api": "Composed",
+                        "domain": "example",
+                        "rationale": "One Go operation composes this declaration.",
+                    }
+                },
+                "deferred": {
+                    "igraph_deferred": {
+                        "domain": "later",
+                        "rationale": "This domain has not been implemented yet.",
+                    }
+                },
+                "intentionally_unsupported": {
+                    "igraph_unsupported": {
+                        "domain": "low-level",
+                        "rationale": "The public API does not expose C handles.",
+                    }
+                },
+            }
+        }
+        self.assertEqual(
+            configured_dispositions(config),
+            {
+                "igraph_composed": ConfiguredDisposition(
+                    "composed", "example", "One Go operation composes this declaration.", "Composed"
+                ),
+                "igraph_deferred": ConfiguredDisposition(
+                    "deferred", "later", "This domain has not been implemented yet."
+                ),
+                "igraph_unsupported": ConfiguredDisposition(
+                    "intentionally_unsupported", "low-level", "The public API does not expose C handles."
+                ),
+            },
+        )
+
+    def test_rejects_malformed_and_overlapping_configured_dispositions(self):
+        with self.assertRaisesRegex(ValueError, "overlapping configured disposition for igraph_example"):
+            configured_dispositions(
+                {
+                    "dispositions": {
+                        "composed": {
+                            "igraph_example": {
+                                "go_api": "Example",
+                                "domain": "example",
+                                "rationale": "Composed.",
+                            }
+                        },
+                        "deferred": {
+                            "igraph_example": {
+                                "domain": "example",
+                                "rationale": "Deferred.",
+                            }
+                        },
+                    }
+                }
+            )
+        with self.assertRaisesRegex(ValueError, "requires an exported Go API"):
+            configured_dispositions(
+                {
+                    "dispositions": {
+                        "composed": {
+                            "igraph_example": {
+                                "go_api": "example",
+                                "domain": "example",
+                                "rationale": "Composed.",
+                            }
+                        }
+                    }
+                }
+            )
+        with self.assertRaisesRegex(ValueError, "requires a non-empty rationale"):
+            configured_dispositions(
+                {
+                    "dispositions": {
+                        "deferred": {"igraph_example": {"domain": "example", "rationale": ""}}
+                    }
+                }
+            )
+
+    def test_rejects_unknown_overlap_and_deferred_production_calls(self):
+        declarations = {
+            "igraph_bound": "a.h",
+            "igraph_deferred": "a.h",
+        }
+        annotation = Annotation("bind", "igraph_bound", "Bound", "graph.go", 1)
+        with self.assertRaisesRegex(ValueError, "overlapping annotation and configured disposition"):
+            validate_inventory(
+                declarations,
+                set(),
+                [annotation],
+                {"igraph_bound": ConfiguredDisposition("deferred", "example", "Later.")},
+            )
+        with self.assertRaisesRegex(ValueError, "unknown configured disposition symbol"):
+            validate_inventory(
+                declarations,
+                set(),
+                [],
+                {"igraph_unknown": ConfiguredDisposition("deferred", "example", "Later.")},
+            )
+        with self.assertRaisesRegex(ValueError, "unclassified production C call igraph_deferred"):
+            validate_inventory(
+                declarations,
+                {"igraph_deferred"},
+                [],
+                {"igraph_deferred": ConfiguredDisposition("deferred", "example", "Later.")},
+            )
 
     def test_renders_all_inventory_classifications_deterministically(self):
         declarations = {
             "igraph_bound": "b.h",
+            "igraph_composed": "a.h",
+            "igraph_deferred": "a.h",
             "igraph_internal": "a.h",
             "igraph_missing": "a.h",
             "igraph_unsupported": "b.h",
@@ -114,7 +229,27 @@ class ApiCoverageTest(unittest.TestCase):
             "upstream": "igraph/igraph",
             "version": "1",
             "release_url": "https://example.test",
-            "intentionally_unsupported": ["igraph_unsupported"],
+            "dispositions": {
+                "composed": {
+                    "igraph_composed": {
+                        "go_api": "Composed",
+                        "domain": "example",
+                        "rationale": "Composed by a bounded API.",
+                    }
+                },
+                "deferred": {
+                    "igraph_deferred": {
+                        "domain": "later",
+                        "rationale": "Planned for a later milestone.",
+                    }
+                },
+                "intentionally_unsupported": {
+                    "igraph_unsupported": {
+                        "domain": "low-level",
+                        "rationale": "C handles are not public.",
+                    }
+                },
+            },
         }
         report = render(config, declarations, annotations)
         self.assertIn(
@@ -122,6 +257,10 @@ class ApiCoverageTest(unittest.TestCase):
             report,
         )
         self.assertIn("| `igraph_bound` | `b.h` | User-facing | `Bound` |", report)
+        self.assertIn("- Composed APIs: **1**", report)
+        self.assertIn("- Deferred declarations: **1**", report)
+        self.assertIn("| `igraph_composed` | `a.h` | Composed | `Composed` |", report)
+        self.assertIn("| `igraph_deferred` | `a.h` | Deferred | — |", report)
         self.assertIn("| `igraph_internal` | `a.h` | Internal | `helper` |", report)
         self.assertIn("| `igraph_unsupported` | `b.h` | Intentionally unsupported | — |", report)
         self.assertIn("| `igraph_missing` | `a.h` | Missing | — |", report)

@@ -5,15 +5,95 @@
   "source_archive_url": "https://github.com/igraph/igraph/releases/download/1.0.1/igraph-1.0.1.tar.gz",
   "documentation_base_url": "https://igraph.org/c/html/latest",
   "documentation_version": "latest",
-  "intentionally_unsupported": [
-    "igraph_cliques_callback",
-    "igraph_largest_cliques",
-    "igraph_largest_independent_vertex_sets",
-    "igraph_largest_weighted_cliques",
-    "igraph_layout_umap",
-    "igraph_layout_umap_3d",
-    "igraph_layout_umap_compute_weights",
-    "igraph_maximal_cliques_callback",
-    "igraph_maximal_cliques_file"
-  ]
+  "dispositions": {
+    "composed": {
+      "igraph_largest_cliques": {
+        "go_api": "LargestCliques",
+        "domain": "cliques",
+        "rationale": "The public API composes clique-number lookup with explicitly bounded clique enumeration."
+      },
+      "igraph_largest_independent_vertex_sets": {
+        "go_api": "LargestIndependentVertexSets",
+        "domain": "cliques",
+        "rationale": "The public API composes independence-number lookup with explicitly bounded independent-set enumeration."
+      },
+      "igraph_largest_weighted_cliques": {
+        "go_api": "MaximumWeightCliques",
+        "domain": "cliques",
+        "rationale": "The public API composes weighted clique-number lookup with explicitly bounded weighted enumeration."
+      }
+    },
+    "deferred": {
+      "igraph_feedback_arc_set": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for Milestone 12 feedback edge-set work."
+      },
+      "igraph_feedback_vertex_set": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for Milestone 12 feedback vertex-set work."
+      },
+      "igraph_find_cycle": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for the Milestone 12 cycle-witness foundation."
+      },
+      "igraph_fundamental_cycles": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for Milestone 12 cycle-basis work."
+      },
+      "igraph_girth": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for the Milestone 12 cycle-witness foundation."
+      },
+      "igraph_is_acyclic": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for the Milestone 12 acyclicity foundation."
+      },
+      "igraph_is_dag": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for the Milestone 12 acyclicity foundation."
+      },
+      "igraph_minimum_cycle_basis": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for Milestone 12 cycle-basis work."
+      },
+      "igraph_simple_cycles": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for Milestone 12 bounded simple-cycle enumeration."
+      },
+      "igraph_simple_cycles_callback": {
+        "domain": "cycle-analysis",
+        "rationale": "Final internal or unsupported disposition will be decided with Milestone 12 bounded enumeration."
+      },
+      "igraph_topological_sorting": {
+        "domain": "cycle-analysis",
+        "rationale": "Planned for the Milestone 12 acyclicity foundation."
+      }
+    },
+    "intentionally_unsupported": {
+      "igraph_cliques_callback": {
+        "domain": "cliques",
+        "rationale": "A public C callback would violate the bounded Go-owned result contract."
+      },
+      "igraph_layout_umap": {
+        "domain": "layouts",
+        "rationale": "Deferred solver behavior cannot yet be exposed through a stable Go-native contract."
+      },
+      "igraph_layout_umap_3d": {
+        "domain": "layouts",
+        "rationale": "Deferred solver behavior cannot yet be exposed through a stable Go-native contract."
+      },
+      "igraph_layout_umap_compute_weights": {
+        "domain": "layouts",
+        "rationale": "Low-level UMAP solver plumbing is not a useful standalone public Go API."
+      },
+      "igraph_maximal_cliques_callback": {
+        "domain": "cliques",
+        "rationale": "A public C callback would violate the bounded Go-owned result contract."
+      },
+      "igraph_maximal_cliques_file": {
+        "domain": "cliques",
+        "rationale": "The C stdio handle and output-only contract do not fit the Go-owned result API."
+      }
+    }
+  }
 }
