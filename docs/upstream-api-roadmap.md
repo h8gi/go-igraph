@@ -515,7 +515,7 @@ handles, sentinel bounds, or unbounded exponential result collection.
 Status: in progress as a dependency-ordered sequence of focused issues. The
 shared contracts and scalar operations from #167 and bounded ordinary/largest
 clique enumeration and histograms from #168, plus maximal-clique queries from
-#169, are implemented:
+#169 and positive-integer weighted queries from #170, are implemented:
 
 - this roadmap, shared contract, and issue-order plan
   ([#166](https://github.com/h8gi/go-igraph/issues/166));

@@ -24,5 +24,10 @@ igraph_error_t go_igraph_maximal_cliques_hist(
 igraph_error_t go_igraph_maximal_cliques_subset(
     const igraph_t *, const igraph_vector_int_t *, igraph_vector_int_list_t *,
     igraph_int_t, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_weighted_cliques(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_int_list_t *,
+    igraph_bool_t, igraph_real_t, igraph_real_t, igraph_int_t);
+igraph_error_t go_igraph_weighted_clique_number(
+    const igraph_t *, const igraph_vector_t *, igraph_real_t *);
 
 #endif
