@@ -1,0 +1,13 @@
+go-igraph
+Copyright (C) 2022-2026 Hiroki Yagi
+
+SPDX-License-Identifier: GPL-2.0-or-later
+
+Except where otherwise noted, Hiroki Yagi licenses all material in this
+repository for which he holds copyright, including material in prior
+revisions, under the GNU General Public License as published by the Free
+Software Foundation, either version 2 of the License, or (at your option) any
+later version.
+
+Third-party material remains subject to its original copyright and license
+terms. See docs/licensing.md for provenance and dependency details.

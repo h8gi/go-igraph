@@ -72,3 +72,15 @@ the description. Document whether public inputs are borrowed or copied and
 whether returned values are Go-owned. New bindings should cover initialization
 failure, upstream errors, early returns, empty values, and use after `Close`
 where those paths apply.
+
+## Contribution licensing
+
+By submitting a contribution, you agree to license it under the project's
+GNU General Public License, version 2 or later (`GPL-2.0-or-later`), and you
+represent that you have the right to do so. Preserve applicable third-party
+copyright and license notices, and identify any code or documentation adapted
+from another source in the pull request.
+
+The same responsibility applies to AI-assisted contributions: contributors
+must review the resulting material and ensure that they have the rights needed
+to submit it under the project license.

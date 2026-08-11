@@ -83,6 +83,19 @@ lifetime, copying, nil, empty, and failure-path behavior.
 - [Generated API coverage report](docs/api-coverage.md)
 - [Package architecture and coverage strategy](docs/package-architecture.md)
 
+## License
+
+`go-igraph` is licensed under the GNU General Public License, version 2 or
+later (`GPL-2.0-or-later`). See [LICENSE](LICENSE) for the license text and
+[Licensing and provenance](docs/licensing.md) for the scope, upstream
+dependency, and repository-history details.
+
+`go-igraph` links to the separately distributed
+[C/igraph](https://igraph.org/) library, which is also licensed under GPL
+version 2 or later. Distributors of linked programs are responsible for
+complying with the licenses of the C/igraph build and its enabled
+dependencies.
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for local verification, Docker workflows,
