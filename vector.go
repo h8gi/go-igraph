@@ -27,7 +27,8 @@ type Vector struct {
 	closed bool
 }
 
-// NewVector allocates a zero-filled vector with size elements.
+// NewVector allocates a zero-filled vector with size elements. The returned
+// Vector is Go-owned and must be closed when no longer needed.
 //
 //igraph:bind igraph_vector_init
 func NewVector(size int) (*Vector, error) {
@@ -44,8 +45,10 @@ func NewVector(size int) (*Vector, error) {
 	return v, nil
 }
 
-// NewVectorFromSlice copies values into a newly owned vector. Nil and empty
-// inputs both create a valid zero-length vector.
+// NewVectorFromSlice copies values into a newly owned vector. The values slice is
+// borrowed and copied into C-owned memory. Nil and empty inputs both create a
+// valid zero-length vector. The returned Vector is Go-owned and must be closed
+// when no longer needed.
 func NewVectorFromSlice(values []float64) (*Vector, error) {
 	vector, err := newRealVector(values)
 	if err != nil {

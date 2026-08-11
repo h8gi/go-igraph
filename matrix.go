@@ -27,8 +27,8 @@ type Matrix struct {
 	values  []float64
 }
 
-// NewMatrix returns a rows-by-columns zero matrix. Zero-sized dimensions are
-// valid, including matrices such as 0-by-3 and 3-by-0.
+// NewMatrix returns a rows-by-columns zero matrix as a Go-owned Matrix value.
+// Zero-sized dimensions are valid, including matrices such as 0-by-3 and 3-by-0.
 func NewMatrix(rows, columns int) (Matrix, error) {
 	size, err := matrixSize(rows, columns)
 	if err != nil {
@@ -37,8 +37,9 @@ func NewMatrix(rows, columns int) (Matrix, error) {
 	return Matrix{rows: rows, columns: columns, values: make([]float64, size)}, nil
 }
 
-// NewMatrixFromRows copies a rectangular slice of rows into a Matrix. A nil or
-// empty input produces a 0-by-0 matrix. Ragged rows are rejected.
+// NewMatrixFromRows copies a rectangular slice of rows into a Go-owned Matrix.
+// The values slice is borrowed and copied. A nil or empty input produces a 0-by-0
+// matrix. Ragged rows are rejected.
 func NewMatrixFromRows(values [][]float64) (Matrix, error) {
 	if len(values) == 0 {
 		return NewMatrix(0, 0)
