@@ -40,21 +40,21 @@ where:
 
 An exported Go declaration uses `//igraph:bind` to claim a user-facing upstream
 function. `//igraph:internal` marks implementation dependencies, while the tool
-configuration records deliberately unsupported functions. The report
-distinguishes:
+configuration records composed, deferred, and deliberately unsupported
+functions with a domain and rationale. The report distinguishes:
 
 - user-facing bindings;
 - internal implementation dependencies;
+- composed APIs;
 - intentionally unsupported functions;
+- deferred declarations; and
 - missing functions.
 
-For roadmap decisions, a missing inventory entry is further classified as
-composed, intentionally unsupported, or deferred. A domain is complete when
-each relevant upstream declaration has a reviewed disposition and its coherent
-Go-facing contract satisfies the definition of done; its one-to-one binding
-percentage does not need to reach 100%. The generated report does not yet model
-all of these domain-level dispositions, so the roadmap and coverage
-configuration remain authoritative where they differ from the raw count.
+`Missing` now means that a declaration has not received a reviewed disposition.
+A domain is complete when each relevant upstream declaration has a reviewed
+disposition and its coherent Go-facing contract satisfies the definition of
+done; its one-to-one binding percentage does not need to reach 100%. The
+roadmap remains authoritative for the longer API and product rationale.
 
 ## Milestone 1: Core graph API
 

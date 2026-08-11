@@ -381,6 +381,20 @@ def discover_go_calls(repo: Path) -> set[str]:
     return calls
 
 
+def discover_exported_go_declarations(repo: Path) -> set[str]:
+    declarations: set[str] = set()
+    for path in sorted(repo.glob("*.go")):
+        if path.name.endswith("_test.go"):
+            continue
+        for line in path.read_text(encoding="utf-8").splitlines():
+            declaration = DECL_RE.match(line)
+            if declaration:
+                symbol = declaration.group(1)
+                if symbol[:1].isupper():
+                    declarations.add(symbol)
+    return declarations
+
+
 def find_cgo_call_locations(repo: Path, symbol: str) -> list[tuple[str, int, str]]:
     results: list[tuple[str, int, str]] = []
     go_pattern = re.compile(rf"\bC\.{re.escape(symbol)}\b")
