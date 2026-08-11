@@ -212,7 +212,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 9 are complete. Milestone 10 is planned and
+Status: Milestones 5 through 10 are complete. Milestone 10 is implemented and
 tracked by focused GitHub issues. The later domain milestones below remain
 candidates. Later milestone numbers express dependency order, not a commitment
 to bind every function in the named upstream headers; each milestone must still
@@ -414,7 +414,7 @@ Goal: provide coherent graph-isomorphism, subgraph-matching, canonical-labeling,
 and automorphism APIs without exposing C callbacks, algorithm-specific storage,
 or unbounded mapping collection.
 
-Status: planned as a dependency-ordered sequence of focused issues:
+Status: complete as a dependency-ordered sequence of focused issues:
 
 - shared naming, operand, locking, ownership, and general isomorphism decision
   contracts ([#151](https://github.com/h8gi/go-igraph/issues/151));
@@ -481,6 +481,30 @@ all mapping, permutation, generator, and nested mapping results are Go-owned.
 Enumeration APIs require an explicit positive bound and report whether further
 matches existed. Public APIs do not expose algorithm-specific options, C
 callbacks, function pointers, or C-owned storage.
+
+Completion evidence:
+
+- general decisions, color-aware VF2 first mappings and counts, bounded VF2
+  callback enumeration, induced/non-induced LAD with copied domains, canonical
+  labeling and graphs, automorphism generators, and exact `*big.Int` group
+  sizes are covered by focused tests;
+- `TestMilestone10IntegrationPipeline` combines canonicalization, color-aware
+  matching, bounded subgraph enumeration, automorphism generators, exact group
+  size, source closure, and continued canonical-graph use;
+- `TestMilestone10RepeatedAndReversedConcurrency` covers repeated operands and
+  reversed concurrent calls under the race detector;
+- `example_isomorphism_test.go` provides output-asserted package examples and
+  `examples/isomorphism/main.go` provides a standalone executable pipeline;
+- failure tests cover vector-list initialization and partial conversion,
+  invalid bounds, colors, domains and permutations, upstream directedness
+  failures, normal callback early stop, empty and non-match results,
+  unsupported graph shapes, and use after `Close`;
+- all returned mappings, nested mappings, canonical permutations, generators,
+  and exact sizes are Go-owned; canonical graphs are independently owned and
+  caller-closed; and
+- the regenerated inventory reports 166 user-facing bindings, including 10 of
+  24 functions from `igraph_isomorphism.h`, and `make verify` passes with the
+  statement coverage floor at 90.0%.
 
 ### Later domain milestones
 

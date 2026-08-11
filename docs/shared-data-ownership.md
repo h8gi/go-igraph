@@ -336,6 +336,7 @@ Initialization failure does not create a resource that needs destruction.
 | Wrapper | Input and result boundary | Cleanup order |
 | --- | --- | --- |
 | integer, real, boolean vectors | Go input is copied into C; results are copied back into non-nil Go slices | destroy after the upstream call or result copy |
+| integer vector list | owns its container and every copied integer vector | destroy the whole list after eager nested-slice conversion; partial conversion returns no result and still destroys every C vector |
 | string vector | each validated Go string is copied by igraph; temporary `CString` values are freed immediately | destroy the vector on a partial set failure and after successful use |
 | matrix | Go matrix data is copied into C and copied back into a new `Matrix` | destroy after the upstream call or result copy |
 | explicit selector | backing vector is copied into a regular selector | destroy backing vector immediately; destroy the regular selector after its iterator |
@@ -344,6 +345,7 @@ Initialization failure does not create a resource that needs destruction.
 | initialized graph result | ownership is moved, never copied from borrowed list storage, into exactly one public `Graph` | clear the moved-from value; the public `Graph.Close` performs the one destroy |
 | graph list | owns its container and every graph still stored in it | remove transfers one element; destroy the container on success and all remaining elements plus already adopted graphs on any failure or early return |
 | mutating replacement graph | source graph and inputs are borrowed under one lock; mapping vectors, when used, and the clone are temporary owners | destroy the clone and temporaries on every failure; on success destroy the prior graph exactly once after moving in the clone |
+| Bliss exact-size string | Bliss allocates a decimal C string | copy into a Go `big.Int`, then release with `igraph_free`; no Bliss info object or string escapes the C wrapper |
 
 No C object retains a pointer into Go memory. All C/igraph error codes are
 converted to Go errors, and each constructor cleans up any successfully

@@ -4,7 +4,7 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **166 / 2015 (8.24%)**
-- Internal dependencies: **50**
+- Internal dependencies: **51**
 - Intentionally unsupported: **3**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
@@ -1262,7 +1262,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_pagerank` | `igraph_centrality.h` | User-facing | `PageRank` |
 | `igraph_path_graph` | `igraph_constructors.h` | User-facing | `NewPath` |
 | `igraph_path_length_hist` | `igraph_paths.h` | Missing | — |
-| `igraph_permute_vertices` | `igraph_operators.h` | Internal | `canonicalPermutationLocked` |
+| `igraph_permute_vertices` | `igraph_operators.h` | Internal | `CanonicalGraph` |
 | `igraph_personalized_pagerank` | `igraph_centrality.h` | User-facing | `PageRank` |
 | `igraph_personalized_pagerank_vs` | `igraph_centrality.h` | User-facing | `PageRank` |
 | `igraph_plfit_result_calculate_p_value` | `igraph_nongraph.h` | Missing | — |
@@ -1893,7 +1893,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_vector_int_list_permute` | `igraph_attributes.h (generated)` | Missing | — |
 | `igraph_vector_int_list_pop_back` | `igraph_attributes.h (generated)` | Missing | — |
 | `igraph_vector_int_list_push_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_push_back_copy` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_push_back_copy` | `igraph_attributes.h (generated)` | Internal | `newLADDomainList` |
 | `igraph_vector_int_list_push_back_new` | `igraph_attributes.h (generated)` | Missing | — |
 | `igraph_vector_int_list_remove` | `igraph_attributes.h (generated)` | Missing | — |
 | `igraph_vector_int_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Missing | — |

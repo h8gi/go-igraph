@@ -41,9 +41,16 @@ detection and dendrogram cuts (Walktrap, FastGreedy, Edge Betweenness), spectral
 optimization community detection (Leading Eigenvector, Spinglass, Optimal Modularity),
 and community partition comparison metrics (VI, NMI, Split-Join, Rand, Adjusted Rand).
 All returned community partitions and dendrograms are Go-owned and survive source
-graph closure. Executable examples demonstrate selector order, weighted distances,
+graph closure. Milestone 10 adds general and color-aware graph isomorphism,
+explicit first mappings and exact counts, bounded VF2 and LAD mapping
+enumeration, induced LAD matching with domains, canonical graphs, automorphism
+generators, and exact arbitrary-precision automorphism group sizes. Its graph
+operands are borrowed under stable locking; mapping, permutation, generator,
+and count results are Go-owned, while canonical graphs are independently
+caller-closed. Executable examples demonstrate selector order, weighted distances,
 restricted traversal, distance centrality, personalized ranking, deletion mappings,
-component graphs, flat community detection, and dendrogram cuts.
+component graphs, flat community detection, dendrogram cuts, bounded matching,
+canonicalization, and automorphism analysis.
 
 The generated [API coverage report](docs/api-coverage.md) compares the functions
 exported by a pinned upstream igraph release with explicit `//igraph:bind` and
