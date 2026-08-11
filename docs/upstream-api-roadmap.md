@@ -212,7 +212,11 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 9 are complete. The later domain milestones below are the remaining candidates. Later milestone numbers express dependency order, not a commitment to bind every function in the named upstream headers; each milestone must still be split into reviewable issues with explicit API contracts.
+Status: Milestones 5 through 9 are complete. Milestone 10 is planned and
+tracked by focused GitHub issues. The later domain milestones below remain
+candidates. Later milestone numbers express dependency order, not a commitment
+to bind every function in the named upstream headers; each milestone must still
+be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
 into increasingly specialized domains. In particular, graph-returning
@@ -404,13 +408,69 @@ Completion evidence:
 - `example_layout_test.go` provides output-asserted package examples for the layout and embedding domain, and `examples/layout/main.go` demonstrates deterministic layouts and seed-reproducible force-directed layouts and embeddings; and
 - the regenerated inventory reports the new bindings, and `make verify` passes with statement coverage at or above 90.0%.
 
+### Milestone 10: Graph isomorphism and subgraph matching
+
+Goal: provide coherent graph-isomorphism, subgraph-matching, canonical-labeling,
+and automorphism APIs without exposing C callbacks, algorithm-specific storage,
+or unbounded mapping collection.
+
+Status: planned as a dependency-ordered sequence of focused issues:
+
+- shared naming, operand, locking, ownership, and general isomorphism decision
+  contracts ([#151](https://github.com/h8gi/go-igraph/issues/151));
+- color-aware VF2 decisions and first mappings with explicit mapping directions
+  ([#152](https://github.com/h8gi/go-igraph/issues/152));
+- VF2 counts and explicitly bounded mapping enumeration with internal early
+  termination ([#153](https://github.com/h8gi/go-igraph/issues/153));
+- induced and non-induced LAD subgraph matching with validated optional domains
+  ([#154](https://github.com/h8gi/go-igraph/issues/154));
+- canonical labeling, independently owned canonical graphs, and automorphism
+  generators and exact group sizes
+  ([#155](https://github.com/h8gi/go-igraph/issues/155)); and
+- the final contract audit, integration pipeline, executable examples, and
+  documentation update ([#156](https://github.com/h8gi/go-igraph/issues/156)).
+
+Completion criteria:
+
+- multi-graph calls borrow their operands only for the synchronous call,
+  deduplicate repeated graph pointers, and use the existing stable lock order so
+  reversed and repeated operands cannot deadlock;
+- operand roles and every mapping direction are explicit: names identify each
+  mapping's index domain and value codomain, non-matches return non-nil empty
+  mappings, and unmatched values use `RemovedID` only where the result contract
+  defines it;
+- optional vertex colors, edge colors, and LAD domains are validated and copied
+  into temporary C storage, while returned mappings, nested mapping lists,
+  canonical permutations, and automorphism generators are non-nil Go-owned
+  values that survive input graph closure;
+- exponential mapping enumeration requires an explicit positive bound and
+  reports truncation; callback execution and normal early termination remain
+  internal and no Go callback, C function pointer, Bliss structure, or raw
+  solver option appears in the public API;
+- canonical and automorphism operations reject multigraphs before invoking
+  upstream functions that document unreliable multigraph results, and every
+  independently returned canonical graph is caller-closed and survives source
+  graph closure;
+- initialization failure, upstream errors, integer conversion and count
+  overflow, normal callback early stops, partial nested-list construction,
+  empty and degenerate inputs, directedness mismatches, unsupported graph
+  shapes, and use after `Close` are covered by focused tests; and
+- integration and race tests, package and standalone examples, generated
+  inventory checks, ownership documentation, and `make verify` pass against the
+  pinned igraph release while statement coverage remains at or above 90.0%.
+
+Execution order: #151 establishes the shared contract. #152 builds on it; #153
+then reuses its colors and mapping types. #154 can proceed after #151 while
+reusing the finalized mapping convention. #155 can proceed after #151 and the
+shared nested-list ownership helpers are stable. #156 is the final audit.
+
 ### Later domain milestones
 
-Isomorphism and subgraph matching; cliques, cycles, motifs, and graphlets;
-bipartite and spatial analysis; attributes and richer import/export; and other
-specialized upstream domains remain candidates after the milestones above.
-They should advance when a concrete use case can define a coherent Go API and
-its resource model, not merely to increase the inventory percentage.
+Cliques, cycles, motifs, and graphlets; bipartite and spatial analysis;
+attributes and richer import/export; and other specialized upstream domains
+remain candidates after the milestones above. They should advance when a
+concrete use case can define a coherent Go API and its resource model, not
+merely to increase the inventory percentage.
 
 Across all future milestones, interruption and progress callbacks should stay
 internal until they can cross the Go/C boundary without weakening concurrency,
