@@ -35,6 +35,32 @@ class TestIgraphCRef(unittest.TestCase):
         self.assertIn("igraph_t", tips_text)
         self.assertIn("igraph_error_t", tips_text)
 
+    @patch("tools.igraph_c_ref.tarfile.open")
+    @patch("tools.igraph_c_ref.urllib.request.urlretrieve")
+    def test_ensure_c_igraph_source_extracts_tar(self, mock_urlretrieve, mock_taropen):
+        from tools.igraph_c_ref import ensure_c_igraph_source
+        import tempfile
+        import shutil
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            with patch("tools.igraph_c_ref.get_cache_dir", return_value=tmp_path):
+                # Setup mock tar context manager
+                mock_tar = mock_taropen.return_value.__enter__.return_value
+                (tmp_path / "igraph-1.0.1.tar.gz").touch()
+
+                # Create fake extracted directory structure that mock extractall would create
+                def fake_extractall(path, **kwargs):
+                    extract_dir = Path(path) / "igraph-1.0.1"
+                    extract_dir.mkdir(parents=True, exist_ok=True)
+                    (extract_dir / "include").mkdir(exist_ok=True)
+
+                mock_tar.extractall.side_effect = fake_extractall
+
+                res = ensure_c_igraph_source("1.0.1")
+                self.assertTrue((res / "include").exists())
+                self.assertTrue(mock_tar.extractall.called)
+
 
 if __name__ == "__main__":
     unittest.main()

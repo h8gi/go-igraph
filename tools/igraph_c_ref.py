@@ -97,7 +97,10 @@ def ensure_c_igraph_source(version: str = DEFAULT_IGRAPH_VERSION) -> Path:
 
     print(f"Extracting C igraph {version} source...", file=sys.stderr)
     with tarfile.open(tar_path, "r:gz") as tar:
-        tar.extractall(path=temp_extract)
+        if hasattr(tarfile, "data_filter"):
+            tar.extractall(path=temp_extract, filter="data")
+        else:
+            tar.extractall(path=temp_extract)
 
     children = list(temp_extract.iterdir())
     root_src = children[0] if len(children) == 1 and children[0].is_dir() else temp_extract
