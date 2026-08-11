@@ -1,5 +1,6 @@
 #include "isomorphism_cgo.h"
 #include "igraph_error_cgo.h"
+#include <string.h>
 
 igraph_error_t go_igraph_isomorphic(
     const igraph_t *left, const igraph_t *right, igraph_bool_t *result) {
@@ -141,4 +142,48 @@ igraph_error_t go_igraph_subisomorphic_lad(
     igraph_bool_t induced) {
     GO_IGRAPH_CALL(igraph_subisomorphic_lad(
         pattern, target, domains, result, mapping, NULL, induced));
+}
+
+igraph_error_t go_igraph_canonical_permutation(
+    const igraph_t *graph, const igraph_vector_int_t *colors,
+    igraph_vector_int_t *permutation) {
+    GO_IGRAPH_CALL(igraph_canonical_permutation(graph, colors, permutation));
+}
+
+igraph_error_t go_igraph_permute_vertices(
+    const igraph_t *graph, igraph_t *result,
+    const igraph_vector_int_t *permutation) {
+    GO_IGRAPH_CALL(igraph_permute_vertices(graph, result, permutation));
+}
+
+igraph_error_t go_igraph_automorphism_group(
+    const igraph_t *graph, const igraph_vector_int_t *colors,
+    igraph_vector_int_list_t *generators) {
+    GO_IGRAPH_CALL(igraph_automorphism_group(graph, colors, generators));
+}
+
+static igraph_error_t go_igraph_run_count_automorphisms_exact(
+    const igraph_t *graph, const igraph_vector_int_t *colors,
+    igraph_bliss_info_t *info) {
+    GO_IGRAPH_CALL(igraph_count_automorphisms_bliss(
+        graph, colors, IGRAPH_BLISS_FL, info));
+}
+
+igraph_error_t go_igraph_count_automorphisms_exact(
+    const igraph_t *graph, const igraph_vector_int_t *colors,
+    char **decimal) {
+    igraph_bliss_info_t info;
+    memset(&info, 0, sizeof(info));
+    igraph_error_t code = go_igraph_run_count_automorphisms_exact(
+        graph, colors, &info);
+    if (code != IGRAPH_SUCCESS) {
+        igraph_free(info.group_size);
+        return code;
+    }
+    *decimal = info.group_size;
+    return IGRAPH_SUCCESS;
+}
+
+void go_igraph_free(void *pointer) {
+    igraph_free(pointer);
 }
