@@ -56,6 +56,8 @@
 // scalar results document whether they return NaN or accept a mode that
 // substitutes zero. Centrality cutoffs use nil for unlimited paths and explicit
 // finite non-negative values otherwise; callers never pass upstream negative
-// sentinels. Public solver options expose only convergence settings and never
-// retain ARPACK, PRPACK, or other C solver objects.
+// sentinels. Feedback edge and vertex weights likewise require finite
+// non-negative values and accept zero. Public solver options expose only
+// convergence settings and never retain ARPACK, PRPACK, or other C solver
+// objects.
 package igraph
