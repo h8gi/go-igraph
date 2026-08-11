@@ -644,8 +644,10 @@ Completion criteria:
 
 - `IsAcyclic` distinguishes the general directed/undirected predicate from
   `IsDAG`, which reports false for undirected graphs, while `TopologicalSort`
-  accepts only incoming or outgoing orientation and rejects cyclic or
-  undirected inputs according to pinned igraph semantics;
+  accepts only incoming or outgoing orientation, rejects undirected graphs and
+  non-loop directed cycles, and explicitly preserves pinned igraph's unusual
+  behavior of ignoring self-loops even though the predicates report them as
+  cycles;
 - `FindCycle` and bounded simple-cycle enumeration return a shared `Cycle`
   shape whose non-nil Go-owned vertex and edge slices have equal lengths and
   matching traversal order, while acyclic/no-result cases use empty values
@@ -667,8 +669,10 @@ Completion criteria:
   igraph 1.0.1 documents and implements them as unused, rather than creating a
   misleading public contract;
 - feedback edge/vertex weights are borrowed and copied for the synchronous
-  call, length- and finiteness-checked, and documented with their pinned sign
-  and zero domain; exact versus approximate feedback behavior is explicit;
+  call and accept every finite value, including zero and negatives, because
+  pinned igraph 1.0.1 validates only length and finiteness; exact versus
+  approximate feedback behavior and the consequences of signed objectives are
+  explicit;
 - upstream implementation-specific IP enum values remain private, approximate
   feedback results are never described as minimum, and feedback-set validity
   is verified by deleting returned IDs from a copy and checking acyclicity;
@@ -713,8 +717,11 @@ performance cost; otherwise an element is an edge set, not an ordered path.
 Feedback arc APIs expose Go-native automatic-exact and Eades-approximate
 strategies, not the current IP backend constants. Feedback vertex sets expose
 the sole exact operation without a meaningless strategy selector. Nil weights
-mean unit weights; non-nil values are copied into temporary C storage and no C
-solver object or result storage escapes.
+mean unit weights; non-nil values must match the edge or vertex count and may
+contain any finite values, including zero and negatives. Exact weighted methods
+minimize total weight rather than cardinality and may therefore include
+additional zero- or negative-weight IDs. Values are copied into temporary C
+storage and no C solver object or result storage escapes.
 
 Initial reviewed disposition: all nine `igraph_cycles.h` declarations plus
 `igraph_is_acyclic` and `igraph_girth` are deferred at the start of this
