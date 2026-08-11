@@ -32,6 +32,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
 | `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
 | isomorphism decision result | Go-owned Boolean | none | both graph operands are borrowed only for the synchronous call; the result remains valid after either graph is closed |
+| `IsomorphismResult`, `SubgraphIsomorphismResult` | Go-owned mappings and Boolean | none | color inputs are borrowed and copied for the call; mapping slices are non-nil, explicitly directed, and remain valid after both graphs close |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -66,6 +67,16 @@ shapes supported by igraph's dispatcher, including multigraphs; general
 subgraph isomorphism is restricted upstream to simple graphs. Directedness
 mismatches and unsupported shapes are returned as errors rather than retained
 as package state.
+
+VF2 options pair colors by operand and color dimension. A nil pair disables
+that dimension; providing only one side is rejected. Non-nil color slices,
+including empty slices for empty graphs, are length-checked and copied into
+temporary integer vectors. VF2 inputs are checked for loops and parallel edges
+before matching because upstream requires simple graphs but does not perform
+that validation itself. Equal-size mappings use `SourceToTarget` and
+`TargetToSource`. Subgraph mappings use `PatternToTarget`; the reverse
+`TargetToPattern` mapping contains `RemovedID` for target vertices not used by
+the match. A non-match returns non-nil empty slices in every direction.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
