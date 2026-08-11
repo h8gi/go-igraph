@@ -328,6 +328,26 @@ func TestOperatorsRejectMixedDirectednessWithoutResult(t *testing.T) {
 	}
 }
 
+func TestComplementParallelEdgesRejectionAndLoops(t *testing.T) {
+	multigraph := testGraphFromEdges(t, 2, []Edge{{0, 1}, {0, 1}}, false)
+	if res, err := multigraph.Complement(false); err == nil || res.Graph != nil {
+		t.Errorf("Complement on multigraph = %#v, %v, want error", res, err)
+	}
+
+	simple := testGraphFromEdges(t, 3, []Edge{{0, 1}}, false)
+	resLoops, err := simple.Complement(true)
+	if err != nil {
+		t.Fatalf("Complement(true) error = %v", err)
+	}
+	_ = resLoops.Graph.Close()
+
+	resNoLoops, err := simple.Complement(false)
+	if err != nil {
+		t.Fatalf("Complement(false) error = %v", err)
+	}
+	_ = resNoLoops.Graph.Close()
+}
+
 func TestOperatorLockOrderingHandlesReversedAndRepeatedOperands(t *testing.T) {
 	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
 	right := testGraphFromEdges(t, 3, []Edge{{0, 2}, {2, 1}}, true)
