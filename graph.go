@@ -58,6 +58,9 @@ func (mode DirectionMode) cValue() (C.igraph_neimode_t, error) {
 	}
 }
 
+// NewGraph constructs a new empty undirected graph. The returned Graph is
+// Go-owned and must be closed when no longer needed.
+//
 //igraph:bind igraph_empty
 func NewGraph() (*Graph, error) {
 	g := &Graph{}
@@ -73,6 +76,10 @@ func NewGraph() (*Graph, error) {
 // count is never inferred from edges, so isolated vertices and empty graphs
 // are represented by the explicit vertexCount argument. Self-loops and
 // parallel edges are allowed.
+//
+// The edges input slice is borrowed and copied into C-owned memory during
+// construction. The returned Graph is Go-owned and must be closed when no
+// longer needed.
 //
 //igraph:bind igraph_create
 func NewGraphFromEdges(vertexCount int, edges []Edge, directed bool) (*Graph, error) {
@@ -113,6 +120,12 @@ func NewGraphFromEdges(vertexCount int, edges []Edge, directed bool) (*Graph, er
 	return g, nil
 }
 
+// NewLattice creates a regular square lattice graph.
+//
+// The dimensions input slice is borrowed and copied into C-owned memory during
+// construction. The returned Graph is Go-owned and must be closed when no
+// longer needed.
+//
 //igraph:bind igraph_square_lattice
 func NewLattice(dimensions []int, neighbors int, directed, mutual, circular bool) (*Graph, error) {
 	if len(dimensions) == 0 {
@@ -263,7 +276,7 @@ func (g *Graph) Clone() (*Graph, error) {
 }
 
 // Neighbors returns adjacent vertex IDs in the requested direction. Parallel
-// edges produce repeated IDs.
+// edges produce repeated IDs. The returned slice is Go-owned.
 //
 //igraph:bind igraph_neighbors
 func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
@@ -294,7 +307,7 @@ func (g *Graph) Neighbors(vertex int, mode DirectionMode) ([]int, error) {
 }
 
 // IncidentEdges returns incident edge IDs in the requested direction. Loops
-// are included once with DirectionAll.
+// are included once with DirectionAll. The returned slice is Go-owned.
 //
 //igraph:bind igraph_incident
 func (g *Graph) IncidentEdges(vertex int, mode DirectionMode) ([]int, error) {
@@ -381,7 +394,7 @@ func (g *Graph) EdgeID(from, to int, directed bool) (edgeID int, found bool, err
 	return int(result), true, nil
 }
 
-// Edges returns all edges in edge ID order.
+// Edges returns all edges in edge ID order. The returned slice is Go-owned.
 //
 //igraph:bind igraph_get_edgelist
 func (g *Graph) Edges() ([]Edge, error) {
@@ -467,7 +480,8 @@ func (g *Graph) AddEdge(from, to int) error {
 
 // AddEdges appends a batch of edges atomically. Self-loops and parallel edges
 // are allowed, and an empty batch is a no-op. All endpoints are validated
-// before the graph is modified.
+// before the graph is modified. The edges input slice is borrowed and copied into
+// C-owned memory.
 //
 //igraph:bind igraph_add_edges
 func (g *Graph) AddEdges(edges []Edge) error {
