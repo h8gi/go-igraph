@@ -38,3 +38,18 @@ igraph_error_t go_igraph_simple_cycles(
         graph, vertices, edges, mode, min_cycle_length, max_cycle_length,
         max_results));
 }
+
+igraph_error_t go_igraph_fundamental_cycles(
+        const igraph_t *graph, igraph_vector_int_list_t *result,
+        igraph_int_t start_vertex, igraph_real_t bfs_cutoff) {
+    GO_IGRAPH_CALL(igraph_fundamental_cycles(
+        graph, NULL, result, start_vertex, bfs_cutoff));
+}
+
+igraph_error_t go_igraph_minimum_cycle_basis(
+        const igraph_t *graph, igraph_vector_int_list_t *result,
+        igraph_real_t bfs_cutoff, igraph_bool_t complete,
+        igraph_bool_t use_cycle_order) {
+    GO_IGRAPH_CALL(igraph_minimum_cycle_basis(
+        graph, NULL, result, bfs_cutoff, complete, use_cycle_order));
+}

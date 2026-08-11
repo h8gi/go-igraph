@@ -31,14 +31,6 @@
       "igraph_feedback_vertex_set": {
         "domain": "cycle-analysis",
         "rationale": "Planned for Milestone 12 feedback vertex-set work."
-      },
-      "igraph_fundamental_cycles": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for Milestone 12 cycle-basis work."
-      },
-      "igraph_minimum_cycle_basis": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for Milestone 12 cycle-basis work."
       }
     },
     "intentionally_unsupported": {
