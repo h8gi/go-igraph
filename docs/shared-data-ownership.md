@@ -34,6 +34,8 @@ C types, C-backed slices, or cleanup functions for internal values.
 | isomorphism decision result | Go-owned Boolean | none | both graph operands are borrowed only for the synchronous call; the result remains valid after either graph is closed |
 | `IsomorphismResult`, `SubgraphIsomorphismResult` | Go-owned mappings and Boolean | none | color inputs are borrowed and copied for the call; mapping slices are non-nil, explicitly directed, and remain valid after both graphs close |
 | `MappingEnumerationResult` | Go-owned nested mapping slices and Boolean | none | enumeration requires a positive bound; each mapping is independently copied and remains valid after both graphs close |
+| `CanonicalGraphResult` | independently owned `*Graph` plus a Go-owned permutation | close `Graph` | graph and source-to-canonical permutation survive source closure |
+| automorphism generators and group size | Go-owned nested slices or `*big.Int` | none | generators and exact size survive graph closure and retain no Bliss or C storage |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -105,6 +107,21 @@ stops after observing one result beyond `MaxMappings`, so `Truncated` has the
 same exact meaning as for bounded VF2 enumeration. Temporary domain vector
 lists own copied vectors and are destroyed after every solver call; returned
 mappings are non-nil independent Go slices.
+
+Canonical labeling and automorphism operations borrow optional vertex colors,
+length-check and copy them, and reject parallel edges before calling Bliss
+because upstream otherwise returns unreliable results. Loops remain supported.
+Canonical permutations are exposed as source-to-canonical mappings even though
+the permutation consumed by `igraph_permute_vertices` is canonical-to-source;
+the binding validates and inverts the upstream permutation explicitly. A
+canonical graph owns a separate `igraph_t`, is caller-closed, and survives its
+source graph.
+
+Automorphism generators are copied from the temporary vector list into non-nil
+Go slices. Each generator is a zero-based source-to-source permutation. Exact
+group size uses the internal Bliss default heuristic, parses the decimal
+result into a new `*big.Int`, and frees the Bliss-owned decimal string on every
+successful path. No Bliss options or info structures cross the public API.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;

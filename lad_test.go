@@ -123,6 +123,17 @@ func TestLADValidation(t *testing.T) {
 	if _, err := target.EnumerateSubgraphIsomorphismsLAD(pattern, LADEnumerationOptions{}); err == nil {
 		t.Fatal("MaxMappings zero error = nil")
 	}
+	if _, err := target.EnumerateSubgraphIsomorphismsLAD(pattern, LADEnumerationOptions{
+		LADOptions: LADOptions{Domains: [][]int{{0}}}, MaxMappings: 1,
+	}); err == nil {
+		t.Fatal("enumeration malformed domains error = nil")
+	}
+	impossible, err := target.EnumerateSubgraphIsomorphismsLAD(pattern, LADEnumerationOptions{
+		LADOptions: LADOptions{Domains: [][]int{{0}, {}}}, MaxMappings: 1,
+	})
+	if err != nil || impossible.Mappings == nil || len(impossible.Mappings) != 0 {
+		t.Fatalf("impossible enumeration = %+v, %v", impossible, err)
+	}
 	directed := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
 	if _, err := target.ContainsSubgraphIsomorphicToLAD(directed, LADOptions{}); err == nil {
 		t.Fatal("directedness mismatch error = nil")
@@ -137,6 +148,15 @@ func TestLADValidation(t *testing.T) {
 	}
 	if _, err := target.ContainsSubgraphIsomorphicToLAD(closed, LADOptions{}); !errors.Is(err, ErrClosed) {
 		t.Fatalf("closed pattern error = %v", err)
+	}
+}
+
+func TestSubgraphResultMappingValidation(t *testing.T) {
+	if _, err := subgraphResultFromPatternMapping([]int{2}, 2); err == nil {
+		t.Fatal("out-of-range mapping error = nil")
+	}
+	if _, err := subgraphResultFromPatternMapping([]int{0, 0}, 2); err == nil {
+		t.Fatal("duplicate mapping error = nil")
 	}
 }
 
