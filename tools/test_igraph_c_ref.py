@@ -36,6 +36,8 @@ class TestIgraphCRef(unittest.TestCase):
                 "// C.igraph_betweenness(nil) is documentation, not a call.\n"
                 "func Foo() {\n"
                 "    C.igraph_betweenness(nil)\n"
+                '    println("//"); C.igraph_betweenness(nil)\n'
+                "    println(`/*`); C.igraph_betweenness(nil)\n"
                 "}\n",
                 encoding="utf-8",
             )
@@ -52,13 +54,15 @@ class TestIgraphCRef(unittest.TestCase):
                 encoding="utf-8",
             )
             calls = find_cgo_call_locations(repo, "igraph_betweenness")
-            self.assertEqual(len(calls), 3)
+            self.assertEqual(len(calls), 5)
             self.assertEqual(calls[0][0], "betweenness.go")
             self.assertEqual(calls[0][1], 5)
             self.assertIn("C.igraph_betweenness(nil)", calls[0][2])
-            self.assertEqual(calls[1][0], "algorithm_cgo.c")
-            self.assertEqual(calls[1][1], 3)
-            self.assertEqual(calls[2][0], "igraph_error_cgo.h")
+            self.assertEqual(calls[1][1], 6)
+            self.assertEqual(calls[2][1], 7)
+            self.assertEqual(calls[3][0], "algorithm_cgo.c")
+            self.assertEqual(calls[3][1], 3)
+            self.assertEqual(calls[4][0], "igraph_error_cgo.h")
 
     def test_find_cgo_call_locations_in_embedded_preambles(self):
         with tempfile.TemporaryDirectory() as temp:
@@ -79,7 +83,8 @@ class TestIgraphCRef(unittest.TestCase):
                 "/*\n"
                 "#include <igraph.h>\n"
                 "static int wrapper(const igraph_vector_int_list_t *list) {\n"
-                "  return igraph_vector_int_list_size(list);\n"
+                "  return igraph_vector_int_list_size\n"
+                "      (list);\n"
                 "}\n"
                 "*/\n"
                 'import "C"\n',
@@ -99,7 +104,7 @@ class TestIgraphCRef(unittest.TestCase):
                     (
                         "block_preamble.go",
                         5,
-                        "return igraph_vector_int_list_size(list);",
+                        "return igraph_vector_int_list_size",
                     ),
                     (
                         "line_preamble.go",

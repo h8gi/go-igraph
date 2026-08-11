@@ -168,9 +168,42 @@ def strip_comments_preserving_lines(text: str) -> str:
     )
 
 
-def cgo_preamble_lines(text: str) -> list[tuple[int, str, str]]:
-    source_lines = text.splitlines()
-    results: list[tuple[int, str, str]] = []
+def strip_go_comments_preserving_lines(text: str) -> str:
+    result = list(text)
+    index = 0
+    quote = ""
+    while index < len(text):
+        char = text[index]
+        if quote:
+            if quote != "`" and char == "\\":
+                index += 2
+                continue
+            if char == quote:
+                quote = ""
+            index += 1
+            continue
+        if char in ('"', "'", "`"):
+            quote = char
+            index += 1
+            continue
+        if text.startswith("//", index):
+            end = text.find("\n", index)
+            end = len(text) if end < 0 else end
+            result[index:end] = " " * (end - index)
+            index = end
+            continue
+        if text.startswith("/*", index):
+            end = text.find("*/", index + 2)
+            end = len(text) if end < 0 else end + 2
+            result[index:end] = [char if char == "\n" else " " for char in text[index:end]]
+            index = end
+            continue
+        index += 1
+    return "".join(result)
+
+
+def cgo_preambles(text: str) -> list[tuple[int, str]]:
+    results: list[tuple[int, str]] = []
     for match in CGO_PREAMBLE_RE.finditer(text):
         comment = match.group("comment")
         gap = match.group("gap")
@@ -185,10 +218,7 @@ def cgo_preamble_lines(text: str) -> list[tuple[int, str, str]]:
         else:
             c_source = re.sub(r"^[ \t]*// ?", "", comment, flags=re.MULTILINE)
         c_source = strip_comments_preserving_lines(c_source)
-        for offset, line in enumerate(c_source.splitlines()):
-            if line.strip():
-                line_number = start_line + offset
-                results.append((line_number, line, source_lines[line_number - 1].strip()))
+        results.append((start_line, c_source))
     return results
 
 
@@ -358,16 +388,18 @@ def find_cgo_call_locations(repo: Path, symbol: str) -> list[tuple[str, int, str
         rel_path = path.relative_to(repo).as_posix()
         text = path.read_text(encoding="utf-8", errors="replace")
         original_lines = text.splitlines()
-        for idx, line in enumerate(strip_comments_preserving_lines(text).splitlines(), 1):
+        for idx, line in enumerate(strip_go_comments_preserving_lines(text).splitlines(), 1):
             if go_pattern.search(line):
                 results.append((rel_path, idx, original_lines[idx - 1].strip()))
     c_pattern = re.compile(rf"(?<![A-Za-z0-9_]){re.escape(symbol)}\s*\(")
     for path in production_go_files(repo):
         rel_path = path.relative_to(repo).as_posix()
         text = path.read_text(encoding="utf-8", errors="replace")
-        for idx, line, original_line in cgo_preamble_lines(text):
-            if c_pattern.search(line):
-                results.append((rel_path, idx, original_line))
+        original_lines = text.splitlines()
+        for start_line, c_source in cgo_preambles(text):
+            for match in c_pattern.finditer(c_source):
+                line_number = start_line + c_source.count("\n", 0, match.start())
+                results.append((rel_path, line_number, original_lines[line_number - 1].strip()))
     c_paths = sorted(path for suffix in ("*.c", "*.h") for path in repo.rglob(suffix))
     for path in c_paths:
         if ".git" in path.parts:
