@@ -6,7 +6,11 @@ package igraph
 // #include "clique_cgo.h"
 import "C"
 
-import "fmt"
+import (
+	"fmt"
+	"math"
+	"sort"
+)
 
 // VertexSetRange gives optional inclusive size bounds for clique-family
 // enumeration. Nil bounds mean unbounded. Non-nil bounds must be positive and
@@ -68,6 +72,17 @@ func (o VertexSetEnumerationOptions) validate() error {
 		return err
 	}
 	return o.Range.validate()
+}
+
+func (r VertexSetRange) cBounds() (C.igraph_int_t, C.igraph_int_t) {
+	var minimum, maximum C.igraph_int_t
+	if r.Minimum != nil {
+		minimum = C.igraph_int_t(*r.Minimum)
+	}
+	if r.Maximum != nil {
+		maximum = C.igraph_int_t(*r.Maximum)
+	}
+	return minimum, maximum
 }
 
 // IsComplete reports whether every pair of distinct vertices is adjacent. The
@@ -184,26 +199,206 @@ func (g *Graph) cliqueScalar(operation string, independent bool) (int, error) {
 	if g.closed {
 		return 0, ErrClosed
 	}
-	// Pinned igraph's independent-set implementation assumes a simple graph.
-	// Normalize a temporary copy so loops and parallel edges consistently have
-	// adjacency-only semantics across the clique family.
-	var simple C.igraph_t
-	if code := C.go_igraph_copy(&simple, &g.graph); code != C.IGRAPH_SUCCESS {
-		return 0, igraphError("copy graph for "+operation, int(code))
+	simple, err := newSimpleCliqueGraph(&g.graph, operation)
+	if err != nil {
+		return 0, err
 	}
-	defer C.igraph_destroy(&simple)
-	if code := C.go_igraph_simplify(&simple, booltoint(true), booltoint(true)); code != C.IGRAPH_SUCCESS {
-		return 0, igraphError("simplify graph for "+operation, int(code))
-	}
+	defer C.igraph_destroy(simple)
 	var result C.igraph_int_t
 	var code C.igraph_error_t
 	if independent {
-		code = C.go_igraph_independence_number(&simple, &result)
+		code = C.go_igraph_independence_number(simple, &result)
 	} else {
-		code = C.go_igraph_clique_number(&simple, &result)
+		code = C.go_igraph_clique_number(simple, &result)
 	}
 	if code != C.IGRAPH_SUCCESS {
 		return 0, igraphError(operation, int(code))
 	}
 	return igraphIntToInt(result, operation)
+}
+
+func newSimpleCliqueGraph(source *C.igraph_t, operation string) (*C.igraph_t, error) {
+	// Pinned igraph's independent-set implementation assumes a simple graph.
+	// Normalization also gives every clique-family API the same adjacency-only
+	// semantics for loops and parallel edges.
+	simple := &C.igraph_t{}
+	if code := C.go_igraph_copy(simple, source); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("copy graph for "+operation, int(code))
+	}
+	if code := C.go_igraph_simplify(simple, booltoint(true), booltoint(true)); code != C.IGRAPH_SUCCESS {
+		C.igraph_destroy(simple)
+		return nil, igraphError("simplify graph for "+operation, int(code))
+	}
+	return simple, nil
+}
+
+// Cliques returns at most MaxResults cliques whose sizes lie in the inclusive
+// optional range. Edge directions, loops, and parallel edges are ignored.
+// Vertex IDs within each clique are sorted; no outer result order is promised.
+// The result is entirely Go-owned and remains valid after graph closure.
+//
+//igraph:bind igraph_cliques
+func (g *Graph) Cliques(options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	return enumerateCliquesLocked(&g.graph, options)
+}
+
+// LargestCliques returns at most maxResults cliques of maximum cardinality.
+// It composes CliqueNumber with bounded clique enumeration and reports exact
+// truncation. maxResults must be positive.
+func (g *Graph) LargestCliques(maxResults int) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	options := VertexSetEnumerationOptions{MaxResults: maxResults}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate largest cliques")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	var number C.igraph_int_t
+	if code := C.go_igraph_clique_number(simple, &number); code != C.IGRAPH_SUCCESS {
+		return result, igraphError("calculate clique number", int(code))
+	}
+	size, err := igraphIntToInt(number, "clique number")
+	if err != nil {
+		return result, err
+	}
+	if size == 0 {
+		return result, nil
+	}
+	options.Range.Minimum = &size
+	options.Range.Maximum = &size
+	return enumerateCliquesOnSimpleGraph(simple, options)
+}
+
+func enumerateCliquesLocked(graph *C.igraph_t, options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	simple, err := newSimpleCliqueGraph(graph, "enumerate cliques")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	return enumerateCliquesOnSimpleGraph(simple, options)
+}
+
+func enumerateCliquesOnSimpleGraph(graph *C.igraph_t, options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	minimum, maximum := options.Range.cBounds()
+	request := C.igraph_int_t(options.MaxResults + 1)
+	return collectCliqueEnumeration(options, cliqueEnumerationOperations{
+		newList:   newIntVectorList,
+		closeList: (*intVectorList).close,
+		query: func(list *intVectorList) error {
+			if code := C.go_igraph_cliques(graph, &list.value, minimum, maximum, request); code != C.IGRAPH_SUCCESS {
+				return igraphError("enumerate cliques", int(code))
+			}
+			return nil
+		},
+		listSlices: func(list *intVectorList) ([][]int, error) { return list.slices() },
+	})
+}
+
+type cliqueEnumerationOperations struct {
+	newList    func() (*intVectorList, error)
+	closeList  func(*intVectorList)
+	query      func(*intVectorList) error
+	listSlices func(*intVectorList) ([][]int, error)
+}
+
+func collectCliqueEnumeration(options VertexSetEnumerationOptions, operations cliqueEnumerationOperations) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	list, err := operations.newList()
+	if err != nil {
+		return result, err
+	}
+	defer operations.closeList(list)
+	if err := operations.query(list); err != nil {
+		return result, err
+	}
+	sets, err := operations.listSlices(list)
+	if err != nil {
+		return result, err
+	}
+	for _, set := range sets {
+		sort.Ints(set)
+	}
+	if len(sets) > options.MaxResults {
+		sets = sets[:options.MaxResults]
+		result.Truncated = true
+	}
+	result.Sets = sets
+	return result, nil
+}
+
+// CliqueSizeHistogram returns counts indexed by clique size minus one. Counts
+// outside the inclusive optional range are zero. Edge directions, loops, and
+// parallel edges are ignored. The returned non-nil slice is Go-owned.
+//
+//igraph:bind igraph_clique_size_hist
+func (g *Graph) CliqueSizeHistogram(sizeRange VertexSetRange) ([]int, error) {
+	if err := sizeRange.validate(); err != nil {
+		return []int{}, err
+	}
+	if g == nil {
+		return []int{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return []int{}, ErrClosed
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "calculate clique size histogram")
+	if err != nil {
+		return []int{}, err
+	}
+	defer C.igraph_destroy(simple)
+	histogram, err := newRealVectorSize(0)
+	if err != nil {
+		return []int{}, err
+	}
+	defer histogram.close()
+	minimum, maximum := sizeRange.cBounds()
+	if code := C.go_igraph_clique_size_hist(simple, &histogram.value, minimum, maximum); code != C.IGRAPH_SUCCESS {
+		return []int{}, igraphError("calculate clique size histogram", int(code))
+	}
+	values, err := histogram.slice()
+	if err != nil {
+		return []int{}, err
+	}
+	return cliqueHistogramCounts(values)
+}
+
+func cliqueHistogramCounts(values []float64) ([]int, error) {
+	result := make([]int, len(values))
+	for index, value := range values {
+		if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || math.Trunc(value) != value {
+			return nil, fmt.Errorf("igraph: clique histogram count at index %d is not a non-negative integer: %g", index, value)
+		}
+		converted := int(value)
+		if converted < 0 || float64(converted) != value {
+			return nil, fmt.Errorf("igraph: clique histogram count at index %d is out of Go int range: %g", index, value)
+		}
+		result[index] = converted
+	}
+	return result, nil
 }

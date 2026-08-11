@@ -10,5 +10,9 @@ igraph_error_t go_igraph_is_independent_vertex_set(
     const igraph_t *, igraph_vs_t, igraph_bool_t *);
 igraph_error_t go_igraph_clique_number(const igraph_t *, igraph_int_t *);
 igraph_error_t go_igraph_independence_number(const igraph_t *, igraph_int_t *);
+igraph_error_t go_igraph_cliques(const igraph_t *, igraph_vector_int_list_t *,
+                                 igraph_int_t, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_clique_size_hist(const igraph_t *, igraph_vector_t *,
+                                          igraph_int_t, igraph_int_t);
 
 #endif

@@ -138,7 +138,12 @@ Clique-family enumeration uses inclusive optional size bounds and a required
 positive result limit. Bound pointers are read only while validating a call and
 are never retained. Enumeration implementations observe one additional match,
 so `Truncated` means another matching result actually existed. Returned outer
-and inner slices are Go-owned and non-nil.
+and inner slices are Go-owned and non-nil. `Cliques` requests exactly one result
+beyond the public limit, sorts vertex IDs within each set, and does not promise
+an outer enumeration order. `LargestCliques` composes the scalar clique number
+with the same bounded enumerator instead of collecting through the upstream
+unbounded largest-clique API. Histogram counts are checked for finiteness,
+integrality, non-negativity, and Go `int` range before being returned.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;

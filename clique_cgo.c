@@ -27,3 +27,20 @@ igraph_error_t go_igraph_independence_number(const igraph_t *graph,
                                              igraph_int_t *result) {
     GO_IGRAPH_CALL(igraph_independence_number(graph, result));
 }
+
+igraph_error_t go_igraph_cliques(const igraph_t *graph,
+                                 igraph_vector_int_list_t *result,
+                                 igraph_int_t min_size,
+                                 igraph_int_t max_size,
+                                 igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_cliques(
+        graph, result, min_size, max_size, max_results));
+}
+
+igraph_error_t go_igraph_clique_size_hist(const igraph_t *graph,
+                                          igraph_vector_t *result,
+                                          igraph_int_t min_size,
+                                          igraph_int_t max_size) {
+    GO_IGRAPH_CALL(igraph_clique_size_hist(
+        graph, result, min_size, max_size));
+}
