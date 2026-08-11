@@ -5,7 +5,7 @@
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **181 / 2015 (8.98%)**
 - Internal dependencies: **51**
-- Intentionally unsupported: **3**
+- Intentionally unsupported: **9**
 
 Coverage is based on explicit `//igraph:bind` annotations on exported Go declarations.
 
@@ -331,7 +331,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_clique_number` | `igraph_cliques.h` | User-facing | `CliqueNumber` |
 | `igraph_clique_size_hist` | `igraph_cliques.h` | User-facing | `CliqueSizeHistogram` |
 | `igraph_cliques` | `igraph_cliques.h` | User-facing | `Cliques` |
-| `igraph_cliques_callback` | `igraph_cliques.h` | Missing | — |
+| `igraph_cliques_callback` | `igraph_cliques.h` | Intentionally unsupported | — |
 | `igraph_closeness` | `igraph_centrality.h` | User-facing | `Closeness` |
 | `igraph_closeness_cutoff` | `igraph_centrality.h` | User-facing | `Closeness` |
 | `igraph_cmp_epsilon` | `igraph_nongraph.h` | Missing | — |
@@ -808,9 +808,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_lapack_dgetrs` | `igraph_lapack.h` | Missing | — |
 | `igraph_lapack_dsyevr` | `igraph_lapack.h` | Missing | — |
 | `igraph_laplacian_spectral_embedding` | `igraph_embedding.h` | User-facing | `LaplacianSpectralEmbedding` |
-| `igraph_largest_cliques` | `igraph_cliques.h` | Missing | — |
-| `igraph_largest_independent_vertex_sets` | `igraph_cliques.h` | Missing | — |
-| `igraph_largest_weighted_cliques` | `igraph_cliques.h` | Missing | — |
+| `igraph_largest_cliques` | `igraph_cliques.h` | Intentionally unsupported | — |
+| `igraph_largest_independent_vertex_sets` | `igraph_cliques.h` | Intentionally unsupported | — |
+| `igraph_largest_weighted_cliques` | `igraph_cliques.h` | Intentionally unsupported | — |
 | `igraph_lastcit_game` | `igraph_games.h` | Missing | — |
 | `igraph_layout_align` | `igraph_layout.h` | Missing | — |
 | `igraph_layout_bipartite` | `igraph_layout.h` | User-facing | `LayoutBipartite` |
@@ -1232,9 +1232,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_maxflow` | `igraph_flow.h` | User-facing | `MaxFlow` |
 | `igraph_maxflow_value` | `igraph_flow.h` | User-facing | `MaxFlowValue` |
 | `igraph_maximal_cliques` | `igraph_cliques.h` | User-facing | `MaximalCliques` |
-| `igraph_maximal_cliques_callback` | `igraph_cliques.h` | Missing | — |
+| `igraph_maximal_cliques_callback` | `igraph_cliques.h` | Intentionally unsupported | — |
 | `igraph_maximal_cliques_count` | `igraph_cliques.h` | User-facing | `MaximalCliqueCount` |
-| `igraph_maximal_cliques_file` | `igraph_cliques.h` | Missing | — |
+| `igraph_maximal_cliques_file` | `igraph_cliques.h` | Intentionally unsupported | — |
 | `igraph_maximal_cliques_hist` | `igraph_cliques.h` | User-facing | `MaximalCliqueSizeHistogram` |
 | `igraph_maximal_cliques_subset` | `igraph_cliques.h` | User-facing | `MaximalCliquesFromVertices` |
 | `igraph_maximal_independent_vertex_sets` | `igraph_cliques.h` | User-facing | `MaximalIndependentVertexSets` |
