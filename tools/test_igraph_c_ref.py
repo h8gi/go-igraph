@@ -33,8 +33,11 @@ class TestIgraphCRef(unittest.TestCase):
             (repo / "betweenness.go").write_text(
                 "package main\n"
                 "// C.igraph_betweenness_cutoff()\n"
+                "// C.igraph_betweenness(nil) is documentation, not a call.\n"
                 "func Foo() {\n"
                 "    C.igraph_betweenness(nil)\n"
+                '    println("//"); C.igraph_betweenness(nil)\n'
+                "    println(`/*`); C.igraph_betweenness(nil)\n"
                 "}\n",
                 encoding="utf-8",
             )
@@ -51,13 +54,65 @@ class TestIgraphCRef(unittest.TestCase):
                 encoding="utf-8",
             )
             calls = find_cgo_call_locations(repo, "igraph_betweenness")
-            self.assertEqual(len(calls), 3)
+            self.assertEqual(len(calls), 5)
             self.assertEqual(calls[0][0], "betweenness.go")
-            self.assertEqual(calls[0][1], 4)
+            self.assertEqual(calls[0][1], 5)
             self.assertIn("C.igraph_betweenness(nil)", calls[0][2])
-            self.assertEqual(calls[1][0], "algorithm_cgo.c")
-            self.assertEqual(calls[1][1], 3)
-            self.assertEqual(calls[2][0], "igraph_error_cgo.h")
+            self.assertEqual(calls[1][1], 6)
+            self.assertEqual(calls[2][1], 7)
+            self.assertEqual(calls[3][0], "algorithm_cgo.c")
+            self.assertEqual(calls[3][1], 3)
+            self.assertEqual(calls[4][0], "igraph_error_cgo.h")
+
+    def test_find_cgo_call_locations_in_embedded_preambles(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            (repo / "line_preamble.go").write_text(
+                "package main\n"
+                "// #include <igraph.h>\n"
+                "// // igraph_vector_int_list_size(list) is only a C comment.\n"
+                "// static int wrapper(const igraph_vector_int_list_t *list) {\n"
+                "//   igraph_vector_int_list_size_extra(list);\n"
+                "//   return igraph_vector_int_list_size(list);\n"
+                "// }\n"
+                'import "C"\n',
+                encoding="utf-8",
+            )
+            (repo / "block_preamble.go").write_text(
+                "package main\n"
+                "/*\n"
+                "#include <igraph.h>\n"
+                "static int wrapper(const igraph_vector_int_list_t *list) {\n"
+                "  return igraph_vector_int_list_size\n"
+                "      (list);\n"
+                "}\n"
+                "*/\n"
+                'import "C"\n',
+                encoding="utf-8",
+            )
+            (repo / "detached_comment.go").write_text(
+                "package main\n"
+                "// igraph_vector_int_list_size(list) is documentation.\n"
+                "\n"
+                'import "C"\n',
+                encoding="utf-8",
+            )
+            calls = find_cgo_call_locations(repo, "igraph_vector_int_list_size")
+            self.assertEqual(
+                calls,
+                [
+                    (
+                        "block_preamble.go",
+                        5,
+                        "return igraph_vector_int_list_size",
+                    ),
+                    (
+                        "line_preamble.go",
+                        6,
+                        "//   return igraph_vector_int_list_size(list);",
+                    ),
+                ],
+            )
 
     def test_preserves_complete_declarations_and_nested_parameters(self):
         with tempfile.TemporaryDirectory() as temp:
