@@ -114,29 +114,52 @@ func (g *Graph) Girth() (GirthResult, error) {
 	return g.girth(nil)
 }
 
-type cycleAnalysisStage uint8
+type cycleVectorInitializer func() (*intVector, error)
+type cycleVectorCloser func(*intVector)
+type cycleVectorConverter func(*intVector) ([]int, error)
 
-const (
-	cycleAnalysisAfterFirstVectorInit cycleAnalysisStage = iota
-	cycleAnalysisAfterSecondVectorInit
-	cycleAnalysisBeforeUpstream
-	cycleAnalysisBeforeFirstConversion
-	cycleAnalysisBeforeSecondConversion
-)
-
-type cycleAnalysisFailureHook func(cycleAnalysisStage) error
-
-func runCycleAnalysisHook(hook cycleAnalysisFailureHook, stage cycleAnalysisStage) error {
-	if hook == nil {
-		return nil
-	}
-	if err := hook(stage); err != nil {
-		return fmt.Errorf("igraph: injected cycle-analysis failure at stage %d: %w", stage, err)
-	}
-	return nil
+func defaultCycleVectorInitializer() (*intVector, error) { return newIntVector(nil) }
+func defaultCycleVectorCloser(vector *intVector)         { vector.close() }
+func defaultCycleVectorConverter(vector *intVector) ([]int, error) {
+	return vector.slice()
 }
 
-func (g *Graph) topologicalSort(mode DirectionMode, hook cycleAnalysisFailureHook) ([]int, error) {
+func newCycleVectorPair(
+	initialize cycleVectorInitializer,
+	closeVector cycleVectorCloser,
+) (*intVector, *intVector, error) {
+	vertices, err := initialize()
+	if err != nil {
+		return nil, nil, err
+	}
+	edges, err := initialize()
+	if err != nil {
+		closeVector(vertices)
+		return nil, nil, err
+	}
+	return vertices, edges, nil
+}
+
+type topologicalSortAdapters struct {
+	initialize cycleVectorInitializer
+	close      cycleVectorCloser
+	call       func(*Graph, *intVector, DirectionMode) int
+	convert    cycleVectorConverter
+}
+
+func defaultTopologicalSortAdapters() topologicalSortAdapters {
+	return topologicalSortAdapters{
+		initialize: defaultCycleVectorInitializer,
+		close:      defaultCycleVectorCloser,
+		call: func(g *Graph, result *intVector, mode DirectionMode) int {
+			cMode, _ := mode.cValue()
+			return int(C.go_igraph_topological_sorting(&g.graph, &result.value, cMode))
+		},
+		convert: defaultCycleVectorConverter,
+	}
+}
+
+func (g *Graph) topologicalSort(mode DirectionMode, adapters *topologicalSortAdapters) ([]int, error) {
 	if g == nil {
 		return nil, ErrClosed
 	}
@@ -145,31 +168,25 @@ func (g *Graph) topologicalSort(mode DirectionMode, hook cycleAnalysisFailureHoo
 	if g.closed {
 		return nil, ErrClosed
 	}
-	cMode, err := topologicalDirection(mode)
-	if err != nil {
+	if _, err := topologicalDirection(mode); err != nil {
 		return nil, err
 	}
 	if C.igraph_is_directed(&g.graph) == booltoint(false) {
 		return nil, errors.New("igraph: topological sorting requires a directed graph")
 	}
-	result, err := newIntVector(nil)
+	resolved := defaultTopologicalSortAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	result, err := resolved.initialize()
 	if err != nil {
 		return nil, err
 	}
-	defer result.close()
-	if err := runCycleAnalysisHook(hook, cycleAnalysisAfterFirstVectorInit); err != nil {
-		return nil, err
+	defer resolved.close(result)
+	if code := resolved.call(g, result, mode); code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("topologically sort graph", code)
 	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeUpstream); err != nil {
-		return nil, err
-	}
-	if code := C.go_igraph_topological_sorting(&g.graph, &result.value, cMode); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("topologically sort graph", int(code))
-	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeFirstConversion); err != nil {
-		return nil, err
-	}
-	return result.slice()
+	return resolved.convert(result)
 }
 
 func topologicalDirection(mode DirectionMode) (C.igraph_neimode_t, error) {
@@ -183,7 +200,26 @@ func topologicalDirection(mode DirectionMode) (C.igraph_neimode_t, error) {
 	return cMode, nil
 }
 
-func (g *Graph) findCycle(mode DirectionMode, hook cycleAnalysisFailureHook) (Cycle, error) {
+type findCycleAdapters struct {
+	initialize cycleVectorInitializer
+	close      cycleVectorCloser
+	call       func(*Graph, *intVector, *intVector, DirectionMode) int
+	convert    cycleVectorConverter
+}
+
+func defaultFindCycleAdapters() findCycleAdapters {
+	return findCycleAdapters{
+		initialize: defaultCycleVectorInitializer,
+		close:      defaultCycleVectorCloser,
+		call: func(g *Graph, vertices, edges *intVector, mode DirectionMode) int {
+			cMode, _ := mode.cValue()
+			return int(C.go_igraph_find_cycle(&g.graph, &vertices.value, &edges.value, cMode))
+		},
+		convert: defaultCycleVectorConverter,
+	}
+}
+
+func (g *Graph) findCycle(mode DirectionMode, adapters *findCycleAdapters) (Cycle, error) {
 	if g == nil {
 		return Cycle{}, ErrClosed
 	}
@@ -192,43 +228,27 @@ func (g *Graph) findCycle(mode DirectionMode, hook cycleAnalysisFailureHook) (Cy
 	if g.closed {
 		return Cycle{}, ErrClosed
 	}
-	cMode, err := mode.cValue()
+	if _, err := mode.cValue(); err != nil {
+		return Cycle{}, err
+	}
+	resolved := defaultFindCycleAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	vertices, edges, err := newCycleVectorPair(resolved.initialize, resolved.close)
 	if err != nil {
 		return Cycle{}, err
 	}
-	vertices, err := newIntVector(nil)
+	defer resolved.close(vertices)
+	defer resolved.close(edges)
+	if code := resolved.call(g, vertices, edges, mode); code != int(C.IGRAPH_SUCCESS) {
+		return Cycle{}, igraphError("find cycle", code)
+	}
+	vertexIDs, err := resolved.convert(vertices)
 	if err != nil {
 		return Cycle{}, err
 	}
-	defer vertices.close()
-	if err := runCycleAnalysisHook(hook, cycleAnalysisAfterFirstVectorInit); err != nil {
-		return Cycle{}, err
-	}
-	edges, err := newIntVector(nil)
-	if err != nil {
-		return Cycle{}, err
-	}
-	defer edges.close()
-	if err := runCycleAnalysisHook(hook, cycleAnalysisAfterSecondVectorInit); err != nil {
-		return Cycle{}, err
-	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeUpstream); err != nil {
-		return Cycle{}, err
-	}
-	if code := C.go_igraph_find_cycle(&g.graph, &vertices.value, &edges.value, cMode); code != C.IGRAPH_SUCCESS {
-		return Cycle{}, igraphError("find cycle", int(code))
-	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeFirstConversion); err != nil {
-		return Cycle{}, err
-	}
-	vertexIDs, err := vertices.slice()
-	if err != nil {
-		return Cycle{}, err
-	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeSecondConversion); err != nil {
-		return Cycle{}, err
-	}
-	edgeIDs, err := edges.slice()
+	edgeIDs, err := resolved.convert(edges)
 	if err != nil {
 		return Cycle{}, err
 	}
@@ -246,7 +266,27 @@ func (g *Graph) findCycle(mode DirectionMode, hook cycleAnalysisFailureHook) (Cy
 	return Cycle{Vertices: vertexIDs, Edges: edgeIDs}, nil
 }
 
-func (g *Graph) girth(hook cycleAnalysisFailureHook) (GirthResult, error) {
+type girthAdapters struct {
+	initialize cycleVectorInitializer
+	close      cycleVectorCloser
+	call       func(*Graph, *intVector) (float64, int)
+	convert    cycleVectorConverter
+}
+
+func defaultGirthAdapters() girthAdapters {
+	return girthAdapters{
+		initialize: defaultCycleVectorInitializer,
+		close:      defaultCycleVectorCloser,
+		call: func(g *Graph, vertices *intVector) (float64, int) {
+			var length C.igraph_real_t
+			code := C.go_igraph_girth(&g.graph, &length, &vertices.value)
+			return float64(length), int(code)
+		},
+		convert: defaultCycleVectorConverter,
+	}
+}
+
+func (g *Graph) girth(adapters *girthAdapters) (GirthResult, error) {
 	if g == nil {
 		return GirthResult{}, ErrClosed
 	}
@@ -255,27 +295,22 @@ func (g *Graph) girth(hook cycleAnalysisFailureHook) (GirthResult, error) {
 	if g.closed {
 		return GirthResult{}, ErrClosed
 	}
-	vertices, err := newIntVector(nil)
+	resolved := defaultGirthAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	vertices, err := resolved.initialize()
 	if err != nil {
 		return GirthResult{}, err
 	}
-	defer vertices.close()
-	if err := runCycleAnalysisHook(hook, cycleAnalysisAfterFirstVectorInit); err != nil {
-		return GirthResult{}, err
+	defer resolved.close(vertices)
+	length, code := resolved.call(g, vertices)
+	if code != int(C.IGRAPH_SUCCESS) {
+		return GirthResult{}, igraphError("calculate girth", code)
 	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeUpstream); err != nil {
-		return GirthResult{}, err
-	}
-	var length C.igraph_real_t
-	if code := C.go_igraph_girth(&g.graph, &length, &vertices.value); code != C.IGRAPH_SUCCESS {
-		return GirthResult{}, igraphError("calculate girth", int(code))
-	}
-	if err := runCycleAnalysisHook(hook, cycleAnalysisBeforeFirstConversion); err != nil {
-		return GirthResult{}, err
-	}
-	vertexIDs, err := vertices.slice()
+	vertexIDs, err := resolved.convert(vertices)
 	if err != nil {
 		return GirthResult{}, err
 	}
-	return GirthResult{Length: float64(length), Vertices: vertexIDs}, nil
+	return GirthResult{Length: length, Vertices: vertexIDs}, nil
 }

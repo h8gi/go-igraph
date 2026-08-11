@@ -209,6 +209,9 @@ func TestGirthPinnedSemantics(t *testing.T) {
 			if !math.IsInf(tc.length, 1) && len(result.Vertices) != int(tc.length) {
 				t.Errorf("Girth vertex length = %d, want %d", len(result.Vertices), int(tc.length))
 			}
+			if !math.IsInf(tc.length, 1) {
+				assertGirthWitness(t, g, result)
+			}
 		})
 	}
 }
@@ -312,6 +315,39 @@ func assertCycleWitness(t *testing.T, g *Graph, cycle Cycle, mode DirectionMode)
 		}
 		if !valid {
 			t.Errorf("edge %d (%d -> %d) does not join witness step %d -> %d in mode %v", edgeID, edgeFrom, edgeTo, from, to, mode)
+		}
+	}
+}
+
+func assertGirthWitness(t *testing.T, g *Graph, result GirthResult) {
+	t.Helper()
+	vertexCount, err := g.VertexCount()
+	if err != nil {
+		t.Fatal(err)
+	}
+	edges, err := g.Edges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	seen := make(map[int]struct{}, len(result.Vertices))
+	for i, from := range result.Vertices {
+		if from < 0 || from >= vertexCount {
+			t.Errorf("Girth vertex %d is out of range [0, %d)", from, vertexCount)
+		}
+		if _, duplicate := seen[from]; duplicate {
+			t.Errorf("Girth witness repeats vertex %d: %v", from, result.Vertices)
+		}
+		seen[from] = struct{}{}
+		to := result.Vertices[(i+1)%len(result.Vertices)]
+		adjacent := false
+		for _, edge := range edges {
+			if (edge.From == from && edge.To == to) || (edge.From == to && edge.To == from) {
+				adjacent = true
+				break
+			}
+		}
+		if !adjacent {
+			t.Errorf("Girth witness step %d -> %d has no edge: %v", from, to, result.Vertices)
 		}
 	}
 }
