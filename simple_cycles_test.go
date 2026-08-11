@@ -135,11 +135,27 @@ func TestSimpleCyclesUndirectedDisconnectedLoopsAndParallelEdges(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(result.Cycles) < 3 {
-		t.Fatalf("loop/parallel/disconnected enumeration returned only %d cycles", len(result.Cycles))
+	if result.Truncated || len(result.Cycles) != 5 {
+		t.Fatalf("loop/parallel/disconnected enumeration = %#v, want 5 cycles", result)
 	}
 	for _, cycle := range result.Cycles {
 		assertCycleWitness(t, g, cycle, DirectionAll)
+	}
+	want := []string{"0", "1,2", "1,3", "2,3", "4,5,6"}
+	if got := canonicalCycleEdgeSets(result.Cycles); !slices.Equal(got, want) {
+		t.Errorf("loop/parallel/disconnected edge sets = %v, want %v", got, want)
+	}
+}
+
+func TestSimpleCyclesEmptyGraph(t *testing.T) {
+	g := newCycleTestGraph(t, 0, nil, true)
+	defer g.Close()
+	result, err := g.SimpleCycles(SimpleCycleOptions{MaxResults: 1})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Cycles == nil || len(result.Cycles) != 0 || result.Truncated {
+		t.Errorf("empty graph result = %#v, want non-nil empty non-truncated result", result)
 	}
 }
 
