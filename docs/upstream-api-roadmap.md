@@ -737,6 +737,33 @@ deferred or accidentally missing. The experimental status of
 `igraph_minimum_cycle_basis` in pinned igraph 1.0.1 is visible on the relevant
 public methods and in this final audit.
 
+## Milestone 13: Motifs and graphlets
+
+Goal: Provide complete Go bindings for dyad census, triad census, triangle counting/listing, RANDESU motif counting/sampling, and graphlet decomposition/projection over `igraph_motifs.h` and `igraph_graphlets.h`.
+
+Status: in progress. Initial inventory dispositions and API contract plan are established in [#200](https://github.com/h8gi/go-igraph/issues/200).
+
+Implemented & Planned areas:
+
+- Dyad census (`DyadCensus`) returning Go struct `DyadCensusResult{Mutual, Asymmetric, Null int64}` ([#201](https://github.com/h8gi/go-igraph/issues/201));
+- Triad census (`TriadCensus`) returning a 16-element Go slice corresponding to Davis-Leinhardt 16 isomorphism classes ([#201](https://github.com/h8gi/go-igraph/issues/201));
+- Triangle counting (`TrianglesCount`, `AdjacentTrianglesCount`) and listing (`TrianglesList` returning `[][3]int`) accepting `VertexSelector` ([#201](https://github.com/h8gi/go-igraph/issues/201));
+- RANDESU motif counting (`MotifsRandesu`), stochastic estimation (`MotifsRandesuEstimate`), and total motif count (`MotifsRandesuNo`) for size 3 and 4 subgraphs with seed management under `withRNG` ([#202](https://github.com/h8gi/go-igraph/issues/202));
+- Graphlet decomposition (`Graphlets`), candidate basis (`GraphletsCandidateBasis`), and projection (`GraphletsProject`) returning Go-owned clique and weight slices, supporting initial `Mu` handling (`startMu`), and validating weight vector bounds ([#203](https://github.com/h8gi/go-igraph/issues/203));
+- Cross-feature integration testing, package and standalone examples, and final API audit ([#204](https://github.com/h8gi/go-igraph/issues/204)).
+
+Execution order: #200 establishes the disposition model and initial deferred motif/graphlet inventory. #201 implements dyad, triad, and triangle APIs. #202 adds RANDESU motif counting and sampling. #203 provides graphlet basis, decomposition, and projection. #204 performs final audit, integration pipeline tests, and standalone examples.
+
+Shared motif and graphlet contracts:
+- `DyadCensus` returns Go struct `DyadCensusResult` with Go-owned `int64` fields.
+- `TriadCensus` returns a Go-owned 16-element slice of `int64` representing Davis-Leinhardt classes.
+- `TrianglesList` returns Go-owned `[][3]int` matrix layout without exposing raw C vectors.
+- RANDESU motif counting validates subgraph sizes (3 or 4) and cut probability length matches size. Stochastic sampling options take optional `Seed *uint64` and execute safely within `withRNG`.
+- `igraph_motifs_randesu_callback` is marked as `intentionally_unsupported` to prevent unsafe C callbacks across the cgo boundary.
+- Graphlet APIs accept optional weights validated against `NumEdges()`, copy clique indices into Go-owned slices, and handle optional initial `Mu` vectors correctly (`startMu`).
+
+Final reviewed disposition: All 12 declarations across `igraph_motifs.h` and `igraph_graphlets.h` are accounted for (11 user-facing bindings and 1 intentionally unsupported callback).
+
 ### Later domain milestones
 
 Motifs and graphlets; bipartite and spatial analysis;
