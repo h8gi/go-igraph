@@ -32,25 +32,9 @@
         "domain": "cycle-analysis",
         "rationale": "Planned for Milestone 12 feedback vertex-set work."
       },
-      "igraph_find_cycle": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for the Milestone 12 cycle-witness foundation."
-      },
       "igraph_fundamental_cycles": {
         "domain": "cycle-analysis",
         "rationale": "Planned for Milestone 12 cycle-basis work."
-      },
-      "igraph_girth": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for the Milestone 12 cycle-witness foundation."
-      },
-      "igraph_is_acyclic": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for the Milestone 12 acyclicity foundation."
-      },
-      "igraph_is_dag": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for the Milestone 12 acyclicity foundation."
       },
       "igraph_minimum_cycle_basis": {
         "domain": "cycle-analysis",
@@ -63,10 +47,6 @@
       "igraph_simple_cycles_callback": {
         "domain": "cycle-analysis",
         "rationale": "Final internal or unsupported disposition will be decided with Milestone 12 bounded enumeration."
-      },
-      "igraph_topological_sorting": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for the Milestone 12 acyclicity foundation."
       }
     },
     "intentionally_unsupported": {
