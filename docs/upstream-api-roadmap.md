@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 10 are complete. Milestone 11 is planned and
+Status: Milestones 5 through 11 are complete. Milestone 12 is planned and
 tracked by focused GitHub issues. The later domain milestones below remain
 candidates. Later milestone numbers express dependency order, not a commitment
 to bind every function in the named upstream headers; each milestone must still
@@ -614,20 +614,137 @@ share the graph's existing lock and serialize safely with `Close`. Public APIs
 expose no C vectors, callback/function pointers, file handles, or upstream
 sentinel constants.
 
+### Milestone 12: Cycle analysis
+
+Goal: provide coherent acyclicity, cycle-witness, bounded simple-cycle,
+cycle-basis, and feedback-set APIs without exposing C callbacks, negative
+sentinels, unused parameters, or solver-specific enums.
+
+Status: planned as a dependency-ordered sequence of focused issues:
+
+- extend the generated inventory with composed and deferred domain dispositions
+  ([#186](https://github.com/h8gi/go-igraph/issues/186));
+- this roadmap, shared contract, upstream disposition, and issue-order plan
+  ([#187](https://github.com/h8gi/go-igraph/issues/187));
+- acyclicity predicates, topological ordering, one cycle witness, girth, and the
+  shared cycle result vocabulary
+  ([#188](https://github.com/h8gi/go-igraph/issues/188));
+- explicitly bounded simple-cycle enumeration with exact truncation
+  ([#189](https://github.com/h8gi/go-igraph/issues/189));
+- fundamental and minimum cycle bases with explicit completeness, cutoff, and
+  edge-ordering contracts
+  ([#190](https://github.com/h8gi/go-igraph/issues/190));
+- exact and approximate feedback edge sets plus exact feedback vertex sets
+  ([#191](https://github.com/h8gi/go-igraph/issues/191)); and
+- the final contract audit, integration pipeline, executable examples,
+  inventory review, and documentation update
+  ([#192](https://github.com/h8gi/go-igraph/issues/192)).
+
+Completion criteria:
+
+- `IsAcyclic` distinguishes the general directed/undirected predicate from
+  `IsDAG`, which reports false for undirected graphs, while `TopologicalSort`
+  accepts only incoming or outgoing orientation, rejects undirected graphs and
+  non-loop directed cycles, and explicitly preserves pinned igraph's unusual
+  behavior of ignoring self-loops even though the predicates report them as
+  cycles;
+- `FindCycle` and bounded simple-cycle enumeration return a shared `Cycle`
+  shape whose non-nil Go-owned vertex and edge slices have equal lengths and
+  matching traversal order, while acyclic/no-result cases use empty values
+  rather than C sentinels;
+- `Girth` documents that pinned igraph ignores direction, self-loops, and
+  parallel-edge 2-cycles, and represents acyclic infinity and its empty witness
+  without exposing C storage;
+- every exponential simple-cycle collection requires an explicit positive
+  result limit, checks `limit + 1` conversion, and reports exact truncation by
+  observing one additional matching cycle;
+- optional cycle-length and BFS cutoffs are Go-native values with inclusive or
+  depth semantics stated explicitly; negative upstream unlimited sentinels are
+  never public;
+- fundamental-basis roots are range-checked, complete bases cover all weak
+  components by default, cutoff-limited incomplete bases require an affirmative
+  opt-in, and minimum-basis edge ordering is promised only when natural cycle
+  order is explicitly requested;
+- cycle-basis APIs omit the upstream `weights` parameters because pinned
+  igraph 1.0.1 documents and implements them as unused, rather than creating a
+  misleading public contract;
+- feedback edge/vertex weights are borrowed and copied for the synchronous
+  call, length-checked, and restricted to finite non-negative values; zero is
+  valid, while negatives are rejected before entering C because pinned
+  undirected feedback-arc behavior does not provide a coherent signed minimum
+  objective; exact versus approximate feedback behavior is explicit;
+- upstream implementation-specific IP enum values remain private, approximate
+  feedback results are never described as minimum, and feedback-set validity
+  is verified by deleting returned IDs from a copy and checking acyclicity;
+- direction, self-loop, parallel-edge, empty, disconnected, experimental API,
+  output-order, and use-after-`Close` behaviors are documented and tested against
+  pinned igraph 1.0.1;
+- initialization failures, upstream errors, early returns, checked integer
+  conversions, partial paired/nested-list construction, and all cleanup paths
+  have focused coverage; and
+- integration and race tests, package and standalone examples, final domain
+  dispositions, ownership documentation, generated inventory checks, and
+  `make verify` pass while statement coverage remains at or above 90.0%.
+
+Execution order: #186 establishes the disposition model and initial deferred
+cycle inventory. #187 records this plan. #188 defines the shared public
+vocabulary and non-enumerating foundation. #189 builds bounded paired-list
+enumeration on that vocabulary. #190 may proceed after #187 while reusing the
+nested edge-list conventions from #188/#189 where practical. #191 depends on
+#188 so its output can be validated through the shared acyclicity contract.
+#192 follows #189, #190, and #191 as the final cross-feature audit.
+
+Shared cycle contract: `Cycle` contains corresponding `Vertices` and `Edges`
+slices in traversal order; both slices and every nested collection are non-nil
+and Go-owned. A bounded simple-cycle result contains `Cycles` plus `Truncated`.
+Cycle start, orientation, and outer enumeration order are not compatibility
+promises unless pinned igraph documents them. Methods use the existing
+`DirectionMode`; undirected graphs ignore direction only where upstream does,
+and modes that are meaningless for a specific operation return Go errors.
+
+Simple-cycle length ranges use optional positive inclusive bounds. Enumeration
+requires a positive maximum result count and internally requests one additional
+cycle, never exposing `IGRAPH_UNLIMITED` or a callback. Graph/options inputs are
+borrowed only until the synchronous call returns. Returned orders, witnesses,
+cycles, bases, and feedback IDs remain valid after graph closure.
+
+Cycle-basis results are nested edge-ID slices. Nil root/cutoff options request
+all weak components and full computation. A cutoff cannot silently weaken the
+zero-value contract: incomplete output must be explicitly allowed. Minimum
+bases can request natural edge order around each cycle at its documented
+performance cost; otherwise an element is an edge set, not an ordered path.
+
+Feedback arc APIs expose Go-native automatic-exact and Eades-approximate
+strategies, not the current IP backend constants. Feedback vertex sets expose
+the sole exact operation without a meaningless strategy selector. Nil weights
+mean unit weights; non-nil values must match the edge or vertex count and be
+finite and non-negative. Zero weights are accepted, but negatives are rejected
+before entering C: although pinned igraph accepts finite negatives, its
+undirected maximum-spanning-forest-complement implementation does not define a
+consistent global signed minimum. Values are copied into temporary C storage
+and no C solver object or result storage escapes.
+
+Initial reviewed disposition: all nine `igraph_cycles.h` declarations plus
+`igraph_is_acyclic` and `igraph_girth` are deferred at the start of this
+milestone. The target is ten user-facing bindings. The callback-only
+`igraph_simple_cycles_callback` is expected to become intentionally unsupported
+because the bounded collector already provides early result limiting without a
+public callback; #189 and #192 must record the final rationale. The experimental
+status of `igraph_simple_cycles`, its callback, `igraph_fundamental_cycles`, and
+`igraph_minimum_cycle_basis` in pinned igraph 1.0.1 must remain visible in the
+public API documentation and final audit.
+
 ### Later domain milestones
 
-Cycles, motifs, and graphlets; bipartite and spatial analysis;
+Motifs and graphlets; bipartite and spatial analysis;
 attributes and richer import/export; and other specialized upstream domains
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
 merely to increase the inventory percentage.
 
-Before choosing the next domain milestone, improve the coverage model so it
-can distinguish composed APIs and deferred domains from truly unreviewed
-declarations. Select the next domain by user value, shared-infrastructure
-readiness, and the ability to define a complete Go ownership and concurrency
-contract. The architecture decision recommends cycle analysis as the first
-candidate, followed separately by motifs and graphlets after their sampling,
+Select the next domain by user value, shared-infrastructure readiness, and the
+ability to define a complete Go ownership and concurrency contract. Motifs and
+graphlets should follow cycle analysis separately, after their sampling,
 callback, weighted, and RNG contracts are designed.
 
 Across all future milestones, interruption and progress callbacks should stay
