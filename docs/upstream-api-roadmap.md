@@ -464,6 +464,24 @@ then reuses its colors and mapping types. #154 can proceed after #151 while
 reusing the finalized mapping convention. #155 can proceed after #151 and the
 shared nested-list ownership helpers are stable. #156 is the final audit.
 
+Shared contract: methods name equal-size operands as `source` and `target`, and
+subgraph operations name the smaller query graph `pattern` and the containing
+graph `target`. A mapping name always states its direction; for example,
+`PatternToTarget[i]` is the target vertex matched to pattern vertex `i`.
+Non-matches return non-nil empty mapping slices. Reverse subgraph mappings are
+indexed by target vertex and use `RemovedID` for unmatched target vertices.
+Optional color inputs are accepted only when both corresponding operands
+provide them, are borrowed and copied for the synchronous call, and are
+validated against vertex or edge counts before entering C.
+
+All multi-graph operations use `withLockedGraphs`: repeated graph pointers are
+locked once, distinct graphs are locked in stable address order, and C graph
+pointers are borrowed only until the callback returns. Scalar decisions and
+all mapping, permutation, generator, and nested mapping results are Go-owned.
+Enumeration APIs require an explicit positive bound and report whether further
+matches existed. Public APIs do not expose algorithm-specific options, C
+callbacks, function pointers, or C-owned storage.
+
 ### Later domain milestones
 
 Cliques, cycles, motifs, and graphlets; bipartite and spatial analysis;

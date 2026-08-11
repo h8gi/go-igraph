@@ -31,6 +31,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `VertexMappedGraphResult` (`InducedSubgraphResult`, `EdgeSubgraphResult`) | independently owned `*Graph` plus Go-owned vertex mapping | close `Graph` | the aliases share one ownership shape; operation docs define exact mapping provenance |
 | decomposition result | non-nil slice of independently owned `*Graph` values | close every graph | source and sibling closure do not invalidate any returned component |
 | `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
+| isomorphism decision result | Go-owned Boolean | none | both graph operands are borrowed only for the synchronous call; the result remains valid after either graph is closed |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -55,6 +56,16 @@ deduplicate repeated graph pointers, acquire all distinct locks in stable
 address order, verify closure only after all locks are held, and unlock in
 reverse order. Supplying the same graph more than once therefore cannot
 self-deadlock, while a nil or closed input returns `ErrClosed`.
+
+Graph-isomorphism decisions follow the same multi-graph borrowing and locking
+contract. `Isomorphic` treats receiver and argument symmetrically.
+`ContainsSubgraphIsomorphicTo` names the receiver as the target and the
+argument as the pattern, matching the package-level `PatternToTarget` mapping
+direction used by specialized matchers. General isomorphism accepts the graph
+shapes supported by igraph's dispatcher, including multigraphs; general
+subgraph isomorphism is restricted upstream to simple graphs. Directedness
+mismatches and unsupported shapes are returned as errors rather than retained
+as package state.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
