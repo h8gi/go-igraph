@@ -36,6 +36,9 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `MappingEnumerationResult` | Go-owned nested mapping slices and Boolean | none | enumeration requires a positive bound; each mapping is independently copied and remains valid after both graphs close |
 | `CanonicalGraphResult` | independently owned `*Graph` plus a Go-owned permutation | close `Graph` | graph and source-to-canonical permutation survive source closure |
 | automorphism generators and group size | Go-owned nested slices or `*big.Int` | none | generators and exact size survive graph closure and retain no Bliss or C storage |
+| clique-family decisions and scalar extrema | Go-owned Boolean or `int` | none | selectors are borrowed for the synchronous call; results retain no graph or C storage |
+| `VertexSetRange`, `VertexSetEnumerationOptions` | Go-owned option values | none | optional bound pointers are read only during the synchronous call; no pointer is retained |
+| `VertexSetEnumeration` | Go-owned nested slices and Boolean | none | bounded results and every nested vertex set are non-nil independent copies that survive graph closure |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -122,6 +125,20 @@ Go slices. Each generator is a zero-based source-to-source permutation. Exact
 group size uses the internal Bliss default heuristic, parses the decimal
 result into a new `*big.Int`, and frees the Bliss-owned decimal string on every
 successful path. No Bliss options or info structures cross the public API.
+
+Clique membership borrows a `VertexSelector`, validates it against the current
+graph, rejects duplicate explicit IDs, and copies explicit IDs into temporary
+C-owned selector storage. Scalar clique and independence numbers normalize a
+temporary graph copy before querying so loops and parallel edges consistently
+have adjacency-only semantics; the source graph is never mutated. Direction is
+ignored by scalar extrema and independent-set membership. `IsClique` exposes
+the upstream directed choice explicitly.
+
+Clique-family enumeration uses inclusive optional size bounds and a required
+positive result limit. Bound pointers are read only while validating a call and
+are never retained. Enumeration implementations observe one additional match,
+so `Truncated` means another matching result actually existed. Returned outer
+and inner slices are Go-owned and non-nil.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;

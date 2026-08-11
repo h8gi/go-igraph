@@ -512,7 +512,8 @@ Goal: provide coherent scalar, histogram, and explicitly bounded enumeration
 APIs for cliques and independent vertex sets without exposing C callbacks, file
 handles, sentinel bounds, or unbounded exponential result collection.
 
-Status: planned as a dependency-ordered sequence of focused issues:
+Status: in progress as a dependency-ordered sequence of focused issues. The
+shared contracts and scalar operations from #167 are implemented:
 
 - this roadmap, shared contract, and issue-order plan
   ([#166](https://github.com/h8gi/go-igraph/issues/166));
