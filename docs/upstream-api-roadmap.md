@@ -225,10 +225,9 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 11 are complete. Milestone 12 is planned and
-tracked by focused GitHub issues. The later domain milestones below remain
-candidates. Later milestone numbers express dependency order, not a commitment
-to bind every function in the named upstream headers; each milestone must still
+Status: Milestones 5 through 12 are complete. The later domain milestones
+below remain candidates. Later milestone numbers express dependency order, not
+a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
 
 The next stage should deepen the general-purpose graph API before expanding
@@ -620,7 +619,7 @@ Goal: provide coherent acyclicity, cycle-witness, bounded simple-cycle,
 cycle-basis, and feedback-set APIs without exposing C callbacks, negative
 sentinels, unused parameters, or solver-specific enums.
 
-Status: planned as a dependency-ordered sequence of focused issues:
+Status: complete through a dependency-ordered sequence of focused issues:
 
 - extend the generated inventory with composed and deferred domain dispositions
   ([#186](https://github.com/h8gi/go-igraph/issues/186));
@@ -724,15 +723,19 @@ undirected maximum-spanning-forest-complement implementation does not define a
 consistent global signed minimum. Values are copied into temporary C storage
 and no C solver object or result storage escapes.
 
-Initial reviewed disposition: all nine `igraph_cycles.h` declarations plus
-`igraph_is_acyclic` and `igraph_girth` are deferred at the start of this
-milestone. The target is ten user-facing bindings. The callback-only
-`igraph_simple_cycles_callback` is expected to become intentionally unsupported
-because the bounded collector already provides early result limiting without a
-public callback; #189 and #192 must record the final rationale. The experimental
-status of `igraph_simple_cycles`, its callback, `igraph_fundamental_cycles`, and
-`igraph_minimum_cycle_basis` in pinned igraph 1.0.1 must remain visible in the
-public API documentation and final audit.
+Final reviewed disposition: ten declarations are user-facing:
+`igraph_is_acyclic`, `igraph_is_dag`, `igraph_topological_sorting`,
+`igraph_find_cycle`, `igraph_girth`, `igraph_simple_cycles`,
+`igraph_fundamental_cycles`, `igraph_minimum_cycle_basis`,
+`igraph_feedback_arc_set`, and `igraph_feedback_vertex_set`.
+`igraph_simple_cycles_callback`, the remaining ninth declaration from
+`igraph_cycles.h`, is intentionally unsupported because the bounded Go-owned
+collector provides early result limiting and exact truncation without exposing
+or retaining a C callback. No declaration in the audited domain remains
+deferred or accidentally missing. The experimental status of
+`igraph_simple_cycles`, its callback, `igraph_fundamental_cycles`, and
+`igraph_minimum_cycle_basis` in pinned igraph 1.0.1 is visible on the relevant
+public methods and in this final audit.
 
 ### Later domain milestones
 

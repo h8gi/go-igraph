@@ -203,19 +203,17 @@ The next architecture work should be limited to focused follow-up issues:
 2. select each next domain milestone using user value and the availability of a
    coherent Go ownership contract, not the largest raw declaration gap.
 
-With those definitions in place, the recommended next feature domain is cycle
-analysis. The pinned `igraph_cycles.h` surface is small and cohesive, and its
-scalar, basis, ordering, and explicitly bounded enumeration operations can
-reuse the graph, direction, nested-result, and bounded-enumeration contracts
-already established by earlier milestones. The experimental status of
-`igraph_simple_cycles` and the disposition of its callback variant must be
-explicit in that milestone plan.
+Milestone 12 applied those definitions to cycle analysis. Its scalar, basis,
+ordering, explicitly bounded enumeration, and feedback-set operations reuse
+the graph, direction, nested-result, and bounded-enumeration contracts from
+earlier milestones. The experimental status of the pinned simple-cycle and
+cycle-basis declarations is public, and the callback variant has an explicit
+unsupported disposition rather than remaining accidentally missing.
 
-Motifs and graphlets are a reasonable second candidate, but should follow
-cycle analysis rather than be grouped into the same milestone. Their sampling,
+Motifs and graphlets are a reasonable next candidate, but require a focused
+planning issue before implementation. Their sampling,
 cut-probability, callback, weighted, and RNG semantics require a separate
-contract review. This ordering is a design recommendation, not authorization
-to create the milestones before their focused planning issues are accepted.
+contract review.
 
 Reconsider a larger restructure only with measurements that identify a
 specific compilation, navigation, duplication, or safety problem and a

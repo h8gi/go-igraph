@@ -39,6 +39,9 @@ C types, C-backed slices, or cleanup functions for internal values.
 | clique-family decisions and scalar extrema | Go-owned Boolean or `int` | none | selectors are borrowed for the synchronous call; results retain no graph or C storage |
 | `VertexSetRange`, `VertexSetEnumerationOptions` | Go-owned option values | none | optional bound pointers are read only during the synchronous call; no pointer is retained |
 | `VertexSetEnumeration` | Go-owned nested slices and Boolean | none | bounded results and every nested vertex set are non-nil independent copies that survive graph closure |
+| cycle predicates, topological order, `Cycle`, and `GirthResult` | Go-owned scalars or slices | none | witnesses and orders are non-nil copies that remain valid and mutable after graph closure |
+| `SimpleCyclesResult` and cycle-basis results | Go-owned nested slices and Boolean | none | bounded paired cycles and every basis element are non-nil independent copies that survive graph closure |
+| feedback edge/vertex sets | Go-owned slices | none | weight inputs are borrowed and copied for the synchronous call; result IDs survive graph closure |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -170,6 +173,22 @@ loops, and parallel edges through temporary graph normalization. Empty graphs
 return a non-nil empty result, including where pinned igraph would otherwise
 represent the empty set as one maximal result. No outer result order is
 promised.
+
+Cycle-analysis methods borrow the graph and option values only for the
+synchronous call. `Cycle` keeps vertex and edge IDs aligned in traversal order;
+bounded enumeration additionally keeps every paired cycle independently owned.
+Topological orders, girth witnesses, cycle bases, and feedback sets are copied
+before temporary C vectors or vector lists are destroyed. All collection-valued
+results are non-nil, including acyclic, empty, and no-result cases.
+
+`SimpleCycles`, `FundamentalCycleBasis`, and `MinimumCycleBasis` bind APIs marked
+experimental in pinned igraph 1.0.1, which is stated on their public methods.
+The callback-only simple-cycle declaration remains intentionally unsupported:
+the bounded collector observes one additional result to provide exact
+truncation without retaining a C callback. Cycle-basis options omit the pinned
+unused weight parameters. Feedback weight slices are length-checked, restricted
+to finite non-negative values, and copied into temporary C vectors; no solver
+or upstream result storage escapes the call.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
