@@ -1,6 +1,12 @@
 #ifndef GO_IGRAPH_ERROR_CGO_H
 #define GO_IGRAPH_ERROR_CGO_H
 
+#include <igraph_version.h>
+
+#if IGRAPH_VERSION_MAJOR < 1
+#error "github.com/h8gi/go-igraph requires C-igraph version 1.0.0 or later."
+#endif
+
 #include <igraph.h>
 
 /*

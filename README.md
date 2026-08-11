@@ -2,6 +2,12 @@
 
 Go bindings for [igraph](https://igraph.org/).
 
+## Prerequisites
+
+`go-igraph` requires C-igraph version 1.0.0 or later.
+
+Install C-igraph using package managers (e.g., `brew install igraph` on macOS) or by building it from source.
+
 ## Ownership and shared data
 
 Public APIs use Go values and never require callers to handle C types. `Graph`
