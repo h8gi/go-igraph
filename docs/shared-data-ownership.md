@@ -145,6 +145,14 @@ with the same bounded enumerator instead of collecting through the upstream
 unbounded largest-clique API. Histogram counts are checked for finiteness,
 integrality, non-negativity, and Go `int` range before being returned.
 
+Maximal-clique enumeration shares the same bounded result and temporary graph
+normalization. `MaximalCliquesFromVertices` copies its explicit vertex input;
+the input partitions upstream's internal initial search roots. It is neither an
+induced-subgraph filter nor a requirement that returned cliques contain one of
+the supplied IDs. Empty input returns an empty non-nil result, while duplicates
+and invalid IDs are rejected before entering C. Count and histogram results are
+checked before conversion to Go `int` values.
+
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
 closing it repeatedly or in any order relative to sibling results is safe.

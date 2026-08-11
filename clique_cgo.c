@@ -44,3 +44,35 @@ igraph_error_t go_igraph_clique_size_hist(const igraph_t *graph,
     GO_IGRAPH_CALL(igraph_clique_size_hist(
         graph, result, min_size, max_size));
 }
+
+igraph_error_t go_igraph_maximal_cliques(
+    const igraph_t *graph, igraph_vector_int_list_t *result,
+    igraph_int_t min_size, igraph_int_t max_size,
+    igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_maximal_cliques(
+        graph, result, min_size, max_size, max_results));
+}
+
+igraph_error_t go_igraph_maximal_cliques_count(
+    const igraph_t *graph, igraph_int_t *result,
+    igraph_int_t min_size, igraph_int_t max_size) {
+    GO_IGRAPH_CALL(igraph_maximal_cliques_count(
+        graph, result, min_size, max_size));
+}
+
+igraph_error_t go_igraph_maximal_cliques_hist(
+    const igraph_t *graph, igraph_vector_t *result,
+    igraph_int_t min_size, igraph_int_t max_size) {
+    GO_IGRAPH_CALL(igraph_maximal_cliques_hist(
+        graph, result, min_size, max_size));
+}
+
+igraph_error_t go_igraph_maximal_cliques_subset(
+    const igraph_t *graph, const igraph_vector_int_t *initial_vertices,
+    igraph_vector_int_list_t *result, igraph_int_t min_size,
+    igraph_int_t max_size, igraph_int_t max_results) {
+    igraph_int_t ignored_count;
+    GO_IGRAPH_CALL(igraph_maximal_cliques_subset(
+        graph, initial_vertices, result, &ignored_count, NULL,
+        min_size, max_size, max_results));
+}
