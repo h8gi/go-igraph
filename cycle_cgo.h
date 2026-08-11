@@ -16,5 +16,10 @@ igraph_error_t go_igraph_find_cycle(
 igraph_error_t go_igraph_girth(
     const igraph_t *graph, igraph_real_t *girth,
     igraph_vector_int_t *vertices);
+igraph_error_t go_igraph_simple_cycles(
+    const igraph_t *graph, igraph_vector_int_list_t *vertices,
+    igraph_vector_int_list_t *edges, igraph_neimode_t mode,
+    igraph_int_t min_cycle_length, igraph_int_t max_cycle_length,
+    igraph_int_t max_results);
 
 #endif

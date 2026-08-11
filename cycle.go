@@ -252,6 +252,10 @@ func (g *Graph) findCycle(mode DirectionMode, adapters *findCycleAdapters) (Cycl
 	if err != nil {
 		return Cycle{}, err
 	}
+	return newPredecessorAlignedCycle(vertexIDs, edgeIDs)
+}
+
+func newPredecessorAlignedCycle(vertexIDs, edgeIDs []int) (Cycle, error) {
 	if len(vertexIDs) != len(edgeIDs) {
 		return Cycle{}, fmt.Errorf("igraph: cycle vertex length %d does not match edge length %d", len(vertexIDs), len(edgeIDs))
 	}
@@ -262,6 +266,13 @@ func (g *Graph) findCycle(mode DirectionMode, adapters *findCycleAdapters) (Cycl
 		first := edgeIDs[0]
 		copy(edgeIDs, edgeIDs[1:])
 		edgeIDs[len(edgeIDs)-1] = first
+	}
+	return newCycle(vertexIDs, edgeIDs)
+}
+
+func newCycle(vertexIDs, edgeIDs []int) (Cycle, error) {
+	if len(vertexIDs) != len(edgeIDs) {
+		return Cycle{}, fmt.Errorf("igraph: cycle vertex length %d does not match edge length %d", len(vertexIDs), len(edgeIDs))
 	}
 	return Cycle{Vertices: vertexIDs, Edges: edgeIDs}, nil
 }

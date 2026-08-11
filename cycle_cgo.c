@@ -28,3 +28,13 @@ igraph_error_t go_igraph_girth(
         igraph_vector_int_t *vertices) {
     GO_IGRAPH_CALL(igraph_girth(graph, girth, vertices));
 }
+
+igraph_error_t go_igraph_simple_cycles(
+        const igraph_t *graph, igraph_vector_int_list_t *vertices,
+        igraph_vector_int_list_t *edges, igraph_neimode_t mode,
+        igraph_int_t min_cycle_length, igraph_int_t max_cycle_length,
+        igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_simple_cycles(
+        graph, vertices, edges, mode, min_cycle_length, max_cycle_length,
+        max_results));
+}
