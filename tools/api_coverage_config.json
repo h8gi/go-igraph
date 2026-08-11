@@ -39,17 +39,13 @@
       "igraph_minimum_cycle_basis": {
         "domain": "cycle-analysis",
         "rationale": "Planned for Milestone 12 cycle-basis work."
-      },
-      "igraph_simple_cycles": {
-        "domain": "cycle-analysis",
-        "rationale": "Planned for Milestone 12 bounded simple-cycle enumeration."
-      },
-      "igraph_simple_cycles_callback": {
-        "domain": "cycle-analysis",
-        "rationale": "Final internal or unsupported disposition will be decided with Milestone 12 bounded enumeration."
       }
     },
     "intentionally_unsupported": {
+      "igraph_simple_cycles_callback": {
+        "domain": "cycle-analysis",
+        "rationale": "The bounded Go-owned collector provides exact truncation without exposing a C callback across the language boundary."
+      },
       "igraph_cliques_callback": {
         "domain": "cliques",
         "rationale": "A public C callback would violate the bounded Go-owned result contract."
