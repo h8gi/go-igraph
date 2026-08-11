@@ -1,16 +1,19 @@
+#!/usr/bin/env python3
 import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
 
 from api_coverage import (
+    render,
+    validate_inventory,
+)
+from upstream_api import (
     Annotation,
     discover_annotations,
     discover_go_calls,
     discover_upstream_api,
     production_go_files,
-    render,
-    validate_inventory,
 )
 
 
@@ -32,7 +35,7 @@ class ApiCoverageTest(unittest.TestCase):
                 },
             )
 
-    @patch("api_coverage.subprocess.run")
+    @patch("upstream_api.subprocess.run")
     def test_discovers_generated_api_when_another_header_cannot_be_preprocessed(self, run):
         with tempfile.TemporaryDirectory() as temp:
             include = Path(temp)

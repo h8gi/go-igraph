@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
-"""Unit tests for tools/igraph_c_ref.py."""
+"""Unit tests for tools/upstream_api.py and tools/igraph_c_ref.py."""
 
+import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
 
-from tools.igraph_c_ref import (
+from upstream_api import (
     build_doc_url,
-    generate_audit_tips,
-    HEADER_TO_DOC_MODULE,
     DOCS_BASE_URL,
+    find_cgo_call_locations,
 )
 
 
@@ -24,42 +23,22 @@ class TestIgraphCRef(unittest.TestCase):
         expected = f"{DOCS_BASE_URL}/cigraph-index.html#igraph_unknown_fn"
         self.assertEqual(url, expected)
 
-    def test_generate_audit_tips(self):
-        tips = generate_audit_tips(
-            "igraph_test",
-            "const igraph_t *graph, igraph_matrix_t *res, igraph_vector_t *weights",
-        )
-        tips_text = " ".join(tips)
-        self.assertIn("igraph_vector_t", tips_text)
-        self.assertIn("igraph_matrix_t", tips_text)
-        self.assertIn("igraph_t", tips_text)
-        self.assertIn("igraph_error_t", tips_text)
-
-    @patch("tools.igraph_c_ref.tarfile.open")
-    @patch("tools.igraph_c_ref.urllib.request.urlretrieve")
-    def test_ensure_c_igraph_source_extracts_tar(self, mock_urlretrieve, mock_taropen):
-        from tools.igraph_c_ref import ensure_c_igraph_source
-        import tempfile
-        import shutil
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            tmp_path = Path(tmpdir)
-            with patch("tools.igraph_c_ref.get_cache_dir", return_value=tmp_path):
-                # Setup mock tar context manager
-                mock_tar = mock_taropen.return_value.__enter__.return_value
-                (tmp_path / "igraph-1.0.1.tar.gz").touch()
-
-                # Create fake extracted directory structure that mock extractall would create
-                def fake_extractall(path, **kwargs):
-                    extract_dir = Path(path) / "igraph-1.0.1"
-                    extract_dir.mkdir(parents=True, exist_ok=True)
-                    (extract_dir / "include").mkdir(exist_ok=True)
-
-                mock_tar.extractall.side_effect = fake_extractall
-
-                res = ensure_c_igraph_source("1.0.1")
-                self.assertTrue((res / "include").exists())
-                self.assertTrue(mock_tar.extractall.called)
+    def test_find_cgo_call_locations_exact_matching(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp)
+            (repo / "betweenness.go").write_text(
+                "package main\n"
+                "// C.igraph_betweenness_cutoff()\n"
+                "func Foo() {\n"
+                "    C.igraph_betweenness(nil)\n"
+                "}\n",
+                encoding="utf-8",
+            )
+            calls = find_cgo_call_locations(repo, "igraph_betweenness")
+            self.assertEqual(len(calls), 1)
+            self.assertEqual(calls[0][0], "betweenness.go")
+            self.assertEqual(calls[0][1], 4)
+            self.assertIn("C.igraph_betweenness(nil)", calls[0][2])
 
 
 if __name__ == "__main__":
