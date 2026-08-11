@@ -14,5 +14,15 @@ igraph_error_t go_igraph_cliques(const igraph_t *, igraph_vector_int_list_t *,
                                  igraph_int_t, igraph_int_t, igraph_int_t);
 igraph_error_t go_igraph_clique_size_hist(const igraph_t *, igraph_vector_t *,
                                           igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_maximal_cliques(
+    const igraph_t *, igraph_vector_int_list_t *, igraph_int_t, igraph_int_t,
+    igraph_int_t);
+igraph_error_t go_igraph_maximal_cliques_count(
+    const igraph_t *, igraph_int_t *, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_maximal_cliques_hist(
+    const igraph_t *, igraph_vector_t *, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_maximal_cliques_subset(
+    const igraph_t *, const igraph_vector_int_t *, igraph_vector_int_list_t *,
+    igraph_int_t, igraph_int_t, igraph_int_t);
 
 #endif

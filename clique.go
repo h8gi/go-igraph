@@ -402,3 +402,162 @@ func cliqueHistogramCounts(values []float64) ([]int, error) {
 	}
 	return result, nil
 }
+
+// MaximalCliques returns bounded cliques that cannot be extended by another
+// vertex. Maximal does not mean maximum cardinality. The shared inclusive range,
+// exact truncation, canonicalization, graph-shape, ordering, and ownership
+// contracts are the same as for Cliques.
+//
+//igraph:bind igraph_maximal_cliques
+func (g *Graph) MaximalCliques(options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	return g.maximalCliques(nil, options)
+}
+
+// MaximalCliquesFromVertices enumerates maximal cliques from the specified
+// initial/search vertices. initialVertices is not an induced-subgraph filter:
+// a returned clique need not contain an initial vertex and may contain any
+// graph vertex. The input partitions internal search roots, is borrowed and
+// copied for the synchronous call. Empty input returns an empty result;
+// duplicate and out-of-range IDs are rejected.
+//
+//igraph:bind igraph_maximal_cliques_subset
+func (g *Graph) MaximalCliquesFromVertices(initialVertices []int, options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	return g.maximalCliques(initialVertices, options)
+}
+
+func (g *Graph) maximalCliques(initialVertices []int, options VertexSetEnumerationOptions) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	if initialVertices != nil {
+		if err := validateInitialCliqueVertices(initialVertices, int(C.igraph_vcount(&g.graph))); err != nil {
+			return result, err
+		}
+		if len(initialVertices) == 0 {
+			return result, nil
+		}
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate maximal cliques")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	minimum, maximum := options.Range.cBounds()
+	request := C.igraph_int_t(options.MaxResults + 1)
+	if initialVertices == nil {
+		return collectCliqueEnumeration(options, cliqueEnumerationOperations{
+			newList: newIntVectorList, closeList: (*intVectorList).close,
+			query: func(list *intVectorList) error {
+				if code := C.go_igraph_maximal_cliques(simple, &list.value, minimum, maximum, request); code != C.IGRAPH_SUCCESS {
+					return igraphError("enumerate maximal cliques", int(code))
+				}
+				return nil
+			},
+			listSlices: func(list *intVectorList) ([][]int, error) { return list.slices() },
+		})
+	}
+	vertices, err := newIntVector(initialVertices)
+	if err != nil {
+		return result, err
+	}
+	defer vertices.close()
+	return collectCliqueEnumeration(options, cliqueEnumerationOperations{
+		newList: newIntVectorList, closeList: (*intVectorList).close,
+		query: func(list *intVectorList) error {
+			if code := C.go_igraph_maximal_cliques_subset(simple, &vertices.value, &list.value, minimum, maximum, request); code != C.IGRAPH_SUCCESS {
+				return igraphError("enumerate maximal cliques from initial vertices", int(code))
+			}
+			return nil
+		},
+		listSlices: func(list *intVectorList) ([][]int, error) { return list.slices() },
+	})
+}
+
+func validateInitialCliqueVertices(vertices []int, vertexCount int) error {
+	seen := make(map[int]struct{}, len(vertices))
+	for index, vertex := range vertices {
+		if vertex < 0 || vertex >= vertexCount {
+			return fmt.Errorf("igraph: initial clique vertex at index %d is %d, outside [0, %d)", index, vertex, vertexCount)
+		}
+		if _, exists := seen[vertex]; exists {
+			return fmt.Errorf("igraph: duplicate initial clique vertex %d at index %d", vertex, index)
+		}
+		seen[vertex] = struct{}{}
+	}
+	return nil
+}
+
+// MaximalCliqueCount returns the number of maximal cliques in the inclusive
+// optional size range using checked C-to-Go integer conversion.
+//
+//igraph:bind igraph_maximal_cliques_count
+func (g *Graph) MaximalCliqueCount(sizeRange VertexSetRange) (int, error) {
+	if err := sizeRange.validate(); err != nil {
+		return 0, err
+	}
+	if g == nil {
+		return 0, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, ErrClosed
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "count maximal cliques")
+	if err != nil {
+		return 0, err
+	}
+	defer C.igraph_destroy(simple)
+	minimum, maximum := sizeRange.cBounds()
+	var count C.igraph_int_t
+	if code := C.go_igraph_maximal_cliques_count(simple, &count, minimum, maximum); code != C.IGRAPH_SUCCESS {
+		return 0, igraphError("count maximal cliques", int(code))
+	}
+	return igraphIntToInt(count, "maximal clique count")
+}
+
+// MaximalCliqueSizeHistogram returns maximal-clique counts indexed by clique
+// size minus one. The non-nil result is Go-owned and uses checked counts.
+//
+//igraph:bind igraph_maximal_cliques_hist
+func (g *Graph) MaximalCliqueSizeHistogram(sizeRange VertexSetRange) ([]int, error) {
+	if err := sizeRange.validate(); err != nil {
+		return []int{}, err
+	}
+	if g == nil {
+		return []int{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return []int{}, ErrClosed
+	}
+	simple, err := newSimpleCliqueGraph(&g.graph, "calculate maximal clique size histogram")
+	if err != nil {
+		return []int{}, err
+	}
+	defer C.igraph_destroy(simple)
+	histogram, err := newRealVectorSize(0)
+	if err != nil {
+		return []int{}, err
+	}
+	defer histogram.close()
+	minimum, maximum := sizeRange.cBounds()
+	if code := C.go_igraph_maximal_cliques_hist(simple, &histogram.value, minimum, maximum); code != C.IGRAPH_SUCCESS {
+		return []int{}, igraphError("calculate maximal clique size histogram", int(code))
+	}
+	values, err := histogram.slice()
+	if err != nil {
+		return []int{}, err
+	}
+	return cliqueHistogramCounts(values)
+}

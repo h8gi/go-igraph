@@ -131,6 +131,17 @@ func TestCliqueSizeHistogram(t *testing.T) {
 }
 
 func TestCliqueEnumerationValidationAndClosure(t *testing.T) {
+	var nilGraph *Graph
+	if _, err := nilGraph.Cliques(VertexSetEnumerationOptions{MaxResults: 1}); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil Cliques error = %v", err)
+	}
+	if _, err := nilGraph.LargestCliques(1); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil LargestCliques error = %v", err)
+	}
+	if _, err := nilGraph.CliqueSizeHistogram(VertexSetRange{}); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil CliqueSizeHistogram error = %v", err)
+	}
+
 	graph := testCliqueGraph(t)
 	if _, err := graph.Cliques(VertexSetEnumerationOptions{}); err == nil {
 		t.Error("expected invalid result limit")
