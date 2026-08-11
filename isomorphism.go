@@ -29,6 +29,28 @@ type VF2SubgraphOptions struct {
 	PatternEdgeColors   []int
 }
 
+// VF2IsomorphismEnumerationOptions configures bounded equal-size mapping
+// enumeration. MaxMappings must be positive.
+type VF2IsomorphismEnumerationOptions struct {
+	Colors      VF2IsomorphismOptions
+	MaxMappings int
+}
+
+// VF2SubgraphEnumerationOptions configures bounded pattern mapping
+// enumeration. MaxMappings must be positive.
+type VF2SubgraphEnumerationOptions struct {
+	Colors      VF2SubgraphOptions
+	MaxMappings int
+}
+
+// MappingEnumerationResult contains a bounded set of mappings. Mappings is
+// always non-nil. Truncated reports that at least one additional mapping was
+// found after the limit was reached.
+type MappingEnumerationResult struct {
+	Mappings  [][]int
+	Truncated bool
+}
+
 // IsomorphismResult contains the first equal-size VF2 match. SourceToTarget is
 // indexed by source vertex and TargetToSource is indexed by target vertex.
 // Both mappings are non-nil and empty when Found is false.
@@ -142,6 +164,105 @@ func (g *Graph) ContainsSubgraphIsomorphicToVF2(pattern *Graph, options VF2Subgr
 		return nil
 	})
 	return public, err
+}
+
+// CountIsomorphismsVF2 counts color-compatible mappings from g (source) to
+// target. Color inputs are borrowed and copied for the synchronous call.
+//
+//igraph:bind igraph_count_isomorphisms_vf2
+func (g *Graph) CountIsomorphismsVF2(target *Graph, options VF2IsomorphismOptions) (int, error) {
+	return countVF2(g, target, options.SourceVertexColors, options.TargetVertexColors, options.SourceEdgeColors, options.TargetEdgeColors, false)
+}
+
+// CountSubgraphIsomorphismsVF2 counts color-compatible mappings of pattern
+// into g (the target). Color inputs are borrowed and copied for the
+// synchronous call.
+//
+//igraph:bind igraph_count_subisomorphisms_vf2
+func (g *Graph) CountSubgraphIsomorphismsVF2(pattern *Graph, options VF2SubgraphOptions) (int, error) {
+	return countVF2(g, pattern, options.TargetVertexColors, options.PatternVertexColors, options.TargetEdgeColors, options.PatternEdgeColors, true)
+}
+
+// EnumerateIsomorphismsVF2 returns at most MaxMappings source-to-target
+// mappings. Enumeration stops internally after discovering one additional
+// mapping, which sets Truncated. Returned slices are independently Go-owned.
+func (g *Graph) EnumerateIsomorphismsVF2(target *Graph, options VF2IsomorphismEnumerationOptions) (MappingEnumerationResult, error) {
+	return enumerateVF2(g, target, options.Colors.SourceVertexColors, options.Colors.TargetVertexColors, options.Colors.SourceEdgeColors, options.Colors.TargetEdgeColors, options.MaxMappings, false)
+}
+
+// EnumerateSubgraphIsomorphismsVF2 returns at most MaxMappings
+// pattern-to-target mappings. Enumeration stops internally after discovering
+// one additional mapping, which sets Truncated. Returned slices are
+// independently Go-owned.
+func (g *Graph) EnumerateSubgraphIsomorphismsVF2(pattern *Graph, options VF2SubgraphEnumerationOptions) (MappingEnumerationResult, error) {
+	return enumerateVF2(g, pattern, options.Colors.TargetVertexColors, options.Colors.PatternVertexColors, options.Colors.TargetEdgeColors, options.Colors.PatternEdgeColors, options.MaxMappings, true)
+}
+
+func countVF2(first, second *Graph, firstVertices, secondVertices, firstEdges, secondEdges []int, subgraph bool) (int, error) {
+	var count C.igraph_int_t
+	err := withLockedGraphs([]*Graph{first, second}, func(graphs []*C.igraph_t) error {
+		colors, err := prepareVF2Colors(graphs[0], graphs[1], firstVertices, secondVertices, firstEdges, secondEdges)
+		if err != nil {
+			return err
+		}
+		defer colors.close()
+		firstVertex, secondVertex, firstEdge, secondEdge := colors.pointers()
+		var code C.igraph_error_t
+		if subgraph {
+			code = C.go_igraph_count_subisomorphisms_vf2(graphs[0], graphs[1], firstVertex, secondVertex, firstEdge, secondEdge, &count)
+		} else {
+			code = C.go_igraph_count_isomorphisms_vf2(graphs[0], graphs[1], firstVertex, secondVertex, firstEdge, secondEdge, &count)
+		}
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("count VF2 isomorphisms", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return 0, err
+	}
+	return igraphIntToInt(count, "VF2 isomorphism count")
+}
+
+//igraph:internal igraph_get_isomorphisms_vf2_callback
+//igraph:internal igraph_get_subisomorphisms_vf2_callback
+func enumerateVF2(first, second *Graph, firstVertices, secondVertices, firstEdges, secondEdges []int, maxMappings int, subgraph bool) (MappingEnumerationResult, error) {
+	result := MappingEnumerationResult{Mappings: make([][]int, 0)}
+	if maxMappings <= 0 {
+		return result, fmt.Errorf("igraph: MaxMappings must be positive: %d", maxMappings)
+	}
+	cMax, err := intToIgraphInt(maxMappings, "MaxMappings")
+	if err != nil {
+		return result, err
+	}
+	err = withLockedGraphs([]*Graph{first, second}, func(graphs []*C.igraph_t) error {
+		colors, err := prepareVF2Colors(graphs[0], graphs[1], firstVertices, secondVertices, firstEdges, secondEdges)
+		if err != nil {
+			return err
+		}
+		defer colors.close()
+		mappings, err := newIntVectorList()
+		if err != nil {
+			return err
+		}
+		defer mappings.close()
+		firstVertex, secondVertex, firstEdge, secondEdge := colors.pointers()
+		var truncated C.igraph_bool_t
+		code := C.go_igraph_enumerate_isomorphisms_vf2(
+			graphs[0], graphs[1], firstVertex, secondVertex, firstEdge, secondEdge,
+			cMax, booltoint(subgraph), &mappings.value, &truncated,
+		)
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("enumerate VF2 isomorphisms", int(code))
+		}
+		result.Mappings, err = mappings.slices()
+		if err != nil {
+			return err
+		}
+		result.Truncated = truncated != booltoint(false)
+		return nil
+	})
+	return result, err
 }
 
 type vf2Colors struct {

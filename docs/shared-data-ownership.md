@@ -33,6 +33,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `BinaryGraphOperatorResult` | independently owned `*Graph` plus two Go-owned `GraphIDMapping` values | close `Graph` | operand-to-result mappings and graph survive closure of either operand |
 | isomorphism decision result | Go-owned Boolean | none | both graph operands are borrowed only for the synchronous call; the result remains valid after either graph is closed |
 | `IsomorphismResult`, `SubgraphIsomorphismResult` | Go-owned mappings and Boolean | none | color inputs are borrowed and copied for the call; mapping slices are non-nil, explicitly directed, and remain valid after both graphs close |
+| `MappingEnumerationResult` | Go-owned nested mapping slices and Boolean | none | enumeration requires a positive bound; each mapping is independently copied and remains valid after both graphs close |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -77,6 +78,17 @@ that validation itself. Equal-size mappings use `SourceToTarget` and
 `TargetToSource`. Subgraph mappings use `PatternToTarget`; the reverse
 `TargetToPattern` mapping contains `RemovedID` for target vertices not used by
 the match. A non-match returns non-nil empty slices in every direction.
+
+VF2 count operations return a checked Go `int`; conversion rejects values that
+cannot be represented. Mapping enumeration never uses the upstream unbounded
+collection functions. A C-only callback copies at most `MaxMappings` mappings
+into an owned temporary vector list and requests normal early termination only
+after observing one additional match. `Truncated` therefore means that more
+mappings actually exist, including when the bound is reached exactly without
+another match. Equal-size enumeration returns source-to-target mappings;
+subgraph enumeration returns pattern-to-target mappings. The outer slice and
+every nested slice are non-nil Go-owned values and share no C or Go backing
+storage with sibling mappings.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
