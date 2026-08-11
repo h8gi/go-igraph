@@ -37,7 +37,16 @@ type intVector struct {
 
 //igraph:internal igraph_vector_int_init
 func newIntVector(values []int) (*intVector, error) {
-	size, err := intToIgraphInt(len(values), "integer vector length")
+	return newIntVectorWithInitializer(values, func(vector *intVector, size int) int {
+		return int(C.go_igraph_vector_int_init(&vector.value, C.igraph_int_t(size)))
+	})
+}
+
+func newIntVectorWithInitializer(
+	values []int,
+	initialize func(*intVector, int) int,
+) (*intVector, error) {
+	_, err := intToIgraphInt(len(values), "integer vector length")
 	if err != nil {
 		return nil, err
 	}
@@ -50,7 +59,7 @@ func newIntVector(values []int) (*intVector, error) {
 	}
 
 	vector := &intVector{}
-	if code := C.go_igraph_vector_int_init(&vector.value, size); code != C.IGRAPH_SUCCESS {
+	if code := initialize(vector, len(values)); code != int(C.IGRAPH_SUCCESS) {
 		return nil, igraphError("initialize integer vector", int(code))
 	}
 	for i, value := range converted {
