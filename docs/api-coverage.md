@@ -1347,12 +1347,12 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_running_mean` | `igraph_nongraph.h` | Missing | — |
 | `igraph_sbm_game` | `igraph_games.h` | User-facing | `SBMGame` |
 | `igraph_set_attribute_table` | `igraph_attributes.h` | Missing | — |
-| `igraph_set_error_handler` | `igraph_error.h` | Internal | `edgeWeightPointer` |
+| `igraph_set_error_handler` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_set_fatal_handler` | `igraph_error.h` | Missing | — |
 | `igraph_set_interruption_handler` | `igraph_interrupt.h` | Missing | — |
 | `igraph_set_progress_handler` | `igraph_progress.h` | Missing | — |
 | `igraph_set_status_handler` | `igraph_statusbar.h` | Missing | — |
-| `igraph_set_warning_handler` | `igraph_error.h` | Internal | `edgeWeightPointer` |
+| `igraph_set_warning_handler` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_setup` | `igraph_setup.h` | Missing | — |
 | `igraph_similarity_dice` | `igraph_cocitation.h` | Missing | — |
 | `igraph_similarity_dice_es` | `igraph_cocitation.h` | Missing | — |

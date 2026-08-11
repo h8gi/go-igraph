@@ -242,8 +242,6 @@ func newOptionalEdgeWeights(values []float64, edgeCount int) (*realVector, error
 	return newRealVector(values)
 }
 
-//igraph:internal igraph_set_error_handler
-//igraph:internal igraph_set_warning_handler
 func edgeWeightPointer(weights *realVector) *C.igraph_vector_t {
 	if weights == nil {
 		return nil
