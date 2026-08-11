@@ -24,8 +24,56 @@
       }
     },
     "deferred": {
+      "igraph_count_adjacent_triangles": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
+      },
+      "igraph_count_triangles": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
+      },
+      "igraph_dyad_census": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
+      },
+      "igraph_graphlets": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 graphlets work."
+      },
+      "igraph_graphlets_candidate_basis": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 graphlets work."
+      },
+      "igraph_graphlets_project": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 graphlets work."
+      },
+      "igraph_list_triangles": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
+      },
+      "igraph_motifs_randesu": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 RANDESU motifs work."
+      },
+      "igraph_motifs_randesu_estimate": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 RANDESU motifs work."
+      },
+      "igraph_motifs_randesu_no": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 RANDESU motifs work."
+      },
+      "igraph_triad_census": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
+      }
     },
     "intentionally_unsupported": {
+      "igraph_motifs_randesu_callback": {
+        "domain": "motifs_and_graphlets",
+        "rationale": "A public C callback would violate the bounded Go-owned result contract and cross-boundary concurrency model."
+      },
       "igraph_simple_cycles_callback": {
         "domain": "cycle-analysis",
         "rationale": "The bounded Go-owned collector provides exact truncation without exposing a C callback across the language boundary."
