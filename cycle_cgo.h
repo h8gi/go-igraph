@@ -21,5 +21,12 @@ igraph_error_t go_igraph_simple_cycles(
     igraph_vector_int_list_t *edges, igraph_neimode_t mode,
     igraph_int_t min_cycle_length, igraph_int_t max_cycle_length,
     igraph_int_t max_results);
+igraph_error_t go_igraph_fundamental_cycles(
+    const igraph_t *graph, igraph_vector_int_list_t *result,
+    igraph_int_t start_vertex, igraph_real_t bfs_cutoff);
+igraph_error_t go_igraph_minimum_cycle_basis(
+    const igraph_t *graph, igraph_vector_int_list_t *result,
+    igraph_real_t bfs_cutoff, igraph_bool_t complete,
+    igraph_bool_t use_cycle_order);
 
 #endif
