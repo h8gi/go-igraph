@@ -23,6 +23,11 @@ EXPORT_RE = re.compile(
 CALL_RE = re.compile(r"\bC\.(igraph_[A-Za-z0-9_]+)\b")
 ANNOTATION_RE = re.compile(r"^\s*//igraph:(bind|internal)\s+(igraph_[A-Za-z0-9_]+)\s*$")
 DECL_RE = re.compile(r"^\s*(?:func|type|var|const)\s+(?:\([^)]*\)\s*)?([A-Za-z_][A-Za-z0-9_]*)")
+CGO_PREAMBLE_RE = re.compile(
+    r"(?P<comment>/\*.*?\*/|(?:^[ \t]*//[^\n]*(?:\n|$))+)(?P<gap>[ \t\r\n]*)"
+    r'import[ \t]+"C"',
+    re.MULTILINE | re.DOTALL,
+)
 
 HEADER_TO_DOC_MODULE: dict[str, str] = {
     "igraph_layout.h": "igraph-Layout.html",
@@ -161,6 +166,30 @@ def strip_comments_preserving_lines(text: str) -> str:
         text,
         flags=re.DOTALL,
     )
+
+
+def cgo_preamble_lines(text: str) -> list[tuple[int, str, str]]:
+    source_lines = text.splitlines()
+    results: list[tuple[int, str, str]] = []
+    for match in CGO_PREAMBLE_RE.finditer(text):
+        comment = match.group("comment")
+        gap = match.group("gap")
+        if comment.lstrip().startswith("/*"):
+            if gap.count("\n") > 1:
+                continue
+        elif "\n" in gap:
+            continue
+        start_line = text.count("\n", 0, match.start("comment")) + 1
+        if comment.lstrip().startswith("/*"):
+            c_source = re.sub(r"/\*|\*/", "  ", comment)
+        else:
+            c_source = re.sub(r"^[ \t]*// ?", "", comment, flags=re.MULTILINE)
+        c_source = strip_comments_preserving_lines(c_source)
+        for offset, line in enumerate(c_source.splitlines()):
+            if line.strip():
+                line_number = start_line + offset
+                results.append((line_number, line, source_lines[line_number - 1].strip()))
+    return results
 
 
 def _complete_declaration(text: str, match: re.Match[str]) -> tuple[str, str] | None:
@@ -327,10 +356,18 @@ def find_cgo_call_locations(repo: Path, symbol: str) -> list[tuple[str, int, str
     go_pattern = re.compile(rf"\bC\.{re.escape(symbol)}\b")
     for path in production_go_files(repo):
         rel_path = path.relative_to(repo).as_posix()
-        for idx, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
+        text = path.read_text(encoding="utf-8", errors="replace")
+        original_lines = text.splitlines()
+        for idx, line in enumerate(strip_comments_preserving_lines(text).splitlines(), 1):
             if go_pattern.search(line):
-                results.append((rel_path, idx, line.strip()))
+                results.append((rel_path, idx, original_lines[idx - 1].strip()))
     c_pattern = re.compile(rf"(?<![A-Za-z0-9_]){re.escape(symbol)}\s*\(")
+    for path in production_go_files(repo):
+        rel_path = path.relative_to(repo).as_posix()
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for idx, line, original_line in cgo_preamble_lines(text):
+            if c_pattern.search(line):
+                results.append((rel_path, idx, original_line))
     c_paths = sorted(path for suffix in ("*.c", "*.h") for path in repo.rglob(suffix))
     for path in c_paths:
         if ".git" in path.parts:

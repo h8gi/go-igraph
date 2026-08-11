@@ -32,6 +32,6 @@ make c-ref SYMBOL=igraph_betweenness
 ## Shared Upstream Tools Architecture
 
 - `tools/api_coverage_config.json`: The single source of truth for upstream repository, version, and source archive URLs.
-- `tools/upstream_api.py`: Shared library that parses and caches C declarations, header mappings, Go annotations (`//igraph:bind`), direct Go cgo calls, and calls from C shim files.
+- `tools/upstream_api.py`: Shared library that parses and caches C declarations, header mappings, Go annotations (`//igraph:bind`), direct Go cgo calls, embedded cgo preambles, and calls from standalone C shim files.
 - `tools/api_coverage.py`: Validates complete upstream coverage and generates `docs/api-coverage.md`.
 - `tools/igraph_c_ref.py`: Fast interactive CLI for developers and AI agents.
