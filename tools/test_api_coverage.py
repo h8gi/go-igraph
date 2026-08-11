@@ -79,6 +79,12 @@ class ApiCoverageTest(unittest.TestCase):
                 "func (g *Graph) close() {}\n",
                 encoding="utf-8",
             )
+            examples = repo / "examples" / "other"
+            examples.mkdir(parents=True)
+            (examples / "main.go").write_text(
+                "package main\nfunc ExampleOnly() {}\nfunc NewGraph() {}\n",
+                encoding="utf-8",
+            )
             self.assertEqual(
                 discover_annotations(repo),
                 [

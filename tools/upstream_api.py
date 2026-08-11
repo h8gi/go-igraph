@@ -383,7 +383,9 @@ def discover_go_calls(repo: Path) -> set[str]:
 
 def discover_exported_go_declarations(repo: Path) -> set[str]:
     declarations: set[str] = set()
-    for path in production_go_files(repo):
+    for path in sorted(repo.glob("*.go")):
+        if path.name.endswith("_test.go"):
+            continue
         for line in path.read_text(encoding="utf-8").splitlines():
             declaration = DECL_RE.match(line)
             if declaration:
