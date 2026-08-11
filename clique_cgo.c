@@ -76,3 +76,18 @@ igraph_error_t go_igraph_maximal_cliques_subset(
         graph, initial_vertices, result, &ignored_count, NULL,
         min_size, max_size, max_results));
 }
+
+igraph_error_t go_igraph_weighted_cliques(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_int_list_t *result, igraph_bool_t maximal,
+    igraph_real_t min_weight, igraph_real_t max_weight,
+    igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_weighted_cliques(
+        graph, weights, result, maximal, min_weight, max_weight, max_results));
+}
+
+igraph_error_t go_igraph_weighted_clique_number(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_real_t *result) {
+    GO_IGRAPH_CALL(igraph_weighted_clique_number(graph, weights, result));
+}

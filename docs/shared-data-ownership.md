@@ -153,6 +153,15 @@ the supplied IDs. Empty input returns an empty non-nil result, while duplicates
 and invalid IDs are rejected before entering C. Count and histogram results are
 checked before conversion to Go `int` values.
 
+Weighted-clique inputs contain exactly one positive Go integer per vertex. The
+slice is borrowed, validated for length and exact C `double` representation,
+and copied into a temporary real vector. The positive total is also bounded to
+the exact integer range of C `double`, preventing silent truncation by pinned
+igraph. Optional weight bounds are positive inclusive Go integers and never
+expose upstream zero/negative sentinel conventions. `MaximumWeightCliques`
+computes the scalar optimum and bounded ties under one graph lock and one
+normalized temporary graph, while all returned sets remain Go-owned.
+
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
 closing it repeatedly or in any order relative to sibling results is safe.

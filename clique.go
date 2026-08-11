@@ -561,3 +561,221 @@ func (g *Graph) MaximalCliqueSizeHistogram(sizeRange VertexSetRange) ([]int, err
 	}
 	return cliqueHistogramCounts(values)
 }
+
+// WeightRange gives optional inclusive positive-integer bounds for weighted
+// clique enumeration. Nil bounds mean unbounded. Pointers are borrowed only
+// while validating and executing a synchronous call.
+type WeightRange struct {
+	Minimum *int
+	Maximum *int
+}
+
+func (r WeightRange) validate() error {
+	if r.Minimum != nil {
+		if err := validateCliqueWeight(*r.Minimum, "minimum clique weight"); err != nil {
+			return err
+		}
+	}
+	if r.Maximum != nil {
+		if err := validateCliqueWeight(*r.Maximum, "maximum clique weight"); err != nil {
+			return err
+		}
+	}
+	if r.Minimum != nil && r.Maximum != nil && *r.Minimum > *r.Maximum {
+		return fmt.Errorf("igraph: minimum clique weight %d exceeds maximum %d", *r.Minimum, *r.Maximum)
+	}
+	return nil
+}
+
+func (r WeightRange) cBounds() (C.igraph_real_t, C.igraph_real_t) {
+	var minimum, maximum C.igraph_real_t
+	if r.Minimum != nil {
+		minimum = C.igraph_real_t(*r.Minimum)
+	}
+	if r.Maximum != nil {
+		maximum = C.igraph_real_t(*r.Maximum)
+	}
+	return minimum, maximum
+}
+
+// WeightedCliqueOptions controls bounded weighted-clique enumeration.
+// MaxResults must be positive. MaximalOnly returns only cliques that cannot be
+// extended, independently of their total weight.
+type WeightedCliqueOptions struct {
+	Range       WeightRange
+	MaxResults  int
+	MaximalOnly bool
+}
+
+func (o WeightedCliqueOptions) validate() error {
+	if err := (VertexSetEnumerationOptions{MaxResults: o.MaxResults}).validate(); err != nil {
+		return err
+	}
+	return o.Range.validate()
+}
+
+// WeightedCliques returns bounded cliques whose positive integer vertex-weight
+// sums lie in the inclusive optional range. weights must contain exactly one
+// value per vertex. The input is borrowed and copied into temporary C storage.
+// Edge direction, loops, and parallel edges are ignored. Result ownership,
+// canonicalization, ordering, and exact truncation match Cliques.
+//
+//igraph:bind igraph_weighted_cliques
+func (g *Graph) WeightedCliques(weights []int, options WeightedCliqueOptions) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	if err := options.validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	weightVector, err := newCliqueWeights(weights, int(C.igraph_vcount(&g.graph)))
+	if err != nil {
+		return result, err
+	}
+	defer weightVector.close()
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate weighted cliques")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	return enumerateWeightedCliquesOnSimple(simple, weightVector, options)
+}
+
+func enumerateWeightedCliquesOnSimple(simple *C.igraph_t, weightVector *realVector, options WeightedCliqueOptions) (VertexSetEnumeration, error) {
+	minimum, maximum := options.Range.cBounds()
+	request := C.igraph_int_t(options.MaxResults + 1)
+	return collectCliqueEnumeration(
+		VertexSetEnumerationOptions{MaxResults: options.MaxResults},
+		cliqueEnumerationOperations{
+			newList: newIntVectorList, closeList: (*intVectorList).close,
+			query: func(list *intVectorList) error {
+				if code := C.go_igraph_weighted_cliques(
+					simple, &weightVector.value, &list.value, booltoint(options.MaximalOnly),
+					minimum, maximum, request,
+				); code != C.IGRAPH_SUCCESS {
+					return igraphError("enumerate weighted cliques", int(code))
+				}
+				return nil
+			},
+			listSlices: func(list *intVectorList) ([][]int, error) { return list.slices() },
+		},
+	)
+}
+
+// WeightedCliqueNumber returns the maximum total positive integer vertex
+// weight among all cliques. weights is borrowed and copied for the call.
+//
+//igraph:bind igraph_weighted_clique_number
+func (g *Graph) WeightedCliqueNumber(weights []int) (int, error) {
+	if g == nil {
+		return 0, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return 0, ErrClosed
+	}
+	weightVector, err := newCliqueWeights(weights, int(C.igraph_vcount(&g.graph)))
+	if err != nil {
+		return 0, err
+	}
+	defer weightVector.close()
+	simple, err := newSimpleCliqueGraph(&g.graph, "calculate weighted clique number")
+	if err != nil {
+		return 0, err
+	}
+	defer C.igraph_destroy(simple)
+	return weightedCliqueNumberOnSimple(simple, weightVector)
+}
+
+// MaximumWeightCliques returns bounded cliques attaining WeightedCliqueNumber.
+// It composes the scalar query with WeightedCliques and never exposes the
+// upstream unbounded largest-weighted-clique collector.
+func (g *Graph) MaximumWeightCliques(weights []int, maxResults int) (VertexSetEnumeration, error) {
+	result := VertexSetEnumeration{Sets: make([][]int, 0)}
+	if err := (VertexSetEnumerationOptions{MaxResults: maxResults}).validate(); err != nil {
+		return result, err
+	}
+	if g == nil {
+		return result, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return result, ErrClosed
+	}
+	weightVector, err := newCliqueWeights(weights, int(C.igraph_vcount(&g.graph)))
+	if err != nil {
+		return result, err
+	}
+	defer weightVector.close()
+	simple, err := newSimpleCliqueGraph(&g.graph, "enumerate maximum-weight cliques")
+	if err != nil {
+		return result, err
+	}
+	defer C.igraph_destroy(simple)
+	maximum, err := weightedCliqueNumberOnSimple(simple, weightVector)
+	if err != nil {
+		return result, err
+	}
+	if maximum == 0 {
+		return result, nil
+	}
+	return enumerateWeightedCliquesOnSimple(simple, weightVector, WeightedCliqueOptions{
+		Range: WeightRange{Minimum: &maximum, Maximum: &maximum}, MaxResults: maxResults,
+	})
+}
+
+func weightedCliqueNumberOnSimple(simple *C.igraph_t, weights *realVector) (int, error) {
+	var value C.igraph_real_t
+	if code := C.go_igraph_weighted_clique_number(simple, &weights.value, &value); code != C.IGRAPH_SUCCESS {
+		return 0, igraphError("calculate weighted clique number", int(code))
+	}
+	return checkedCliqueWeight(float64(value), "weighted clique number")
+}
+
+func newCliqueWeights(weights []int, vertexCount int) (*realVector, error) {
+	if len(weights) != vertexCount {
+		return nil, fmt.Errorf("igraph: vertex weights length is %d; want %d", len(weights), vertexCount)
+	}
+	values := make([]float64, len(weights))
+	var total uint64
+	for index, weight := range weights {
+		if err := validateCliqueWeight(weight, fmt.Sprintf("vertex weight at index %d", index)); err != nil {
+			return nil, err
+		}
+		if uint64(weight) > (uint64(1)<<53)-total {
+			return nil, fmt.Errorf("igraph: sum of vertex weights exceeds the exact C-igraph integer range")
+		}
+		total += uint64(weight)
+		values[index] = float64(weight)
+	}
+	return newRealVector(values)
+}
+
+func validateCliqueWeight(weight int, description string) error {
+	if weight <= 0 {
+		return fmt.Errorf("igraph: %s must be positive: %d", description, weight)
+	}
+	if int(float64(weight)) != weight {
+		return fmt.Errorf("igraph: %s cannot be represented exactly by C-igraph: %d", description, weight)
+	}
+	return nil
+}
+
+func checkedCliqueWeight(value float64, description string) (int, error) {
+	if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 || math.Trunc(value) != value {
+		return 0, fmt.Errorf("igraph: %s is not a non-negative integer: %g", description, value)
+	}
+	converted := int(value)
+	if converted < 0 || float64(converted) != value {
+		return 0, fmt.Errorf("igraph: %s is out of Go int range: %g", description, value)
+	}
+	return converted, nil
+}
