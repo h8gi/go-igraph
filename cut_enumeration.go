@@ -16,6 +16,8 @@ type STCut struct {
 }
 
 // AllSTCuts finds all source-target cuts between a source and a target vertex.
+// Source and target vertex IDs are validated.
+// The returned slice of STCut structs is Go-owned and remains valid after the graph is closed.
 //
 //igraph:bind igraph_all_st_cuts
 func (g *Graph) AllSTCuts(source, target int) ([]STCut, error) {
@@ -75,6 +77,9 @@ func (g *Graph) AllSTCuts(source, target int) ([]STCut, error) {
 }
 
 // AllSTMincuts finds all minimum source-target cuts between a source and a target vertex.
+// Source and target vertex IDs are validated.
+// The capacities slice is borrowed only for the call and copied into C storage.
+// The returned mincut value and slice of STCut structs are Go-owned and remain valid after graph closure.
 //
 //igraph:bind igraph_all_st_mincuts
 func (g *Graph) AllSTMincuts(source, target int, capacities []float64) (float64, []STCut, error) {

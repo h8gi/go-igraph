@@ -32,6 +32,8 @@ func (mode VertexConnectivityNeighbors) cValue() (C.igraph_vconn_nei_t, error) {
 }
 
 // EdgeConnectivity calculates the global edge connectivity of the graph.
+// The checks parameter controls whether structural checks are performed by C igraph.
+// Returns a Go-owned integer count.
 //
 //igraph:bind igraph_edge_connectivity
 func (g *Graph) EdgeConnectivity(checks bool) (int, error) {
@@ -53,6 +55,7 @@ func (g *Graph) EdgeConnectivity(checks bool) (int, error) {
 }
 
 // STEdgeConnectivity calculates the edge connectivity between a source and a target vertex.
+// Source and target vertex IDs are validated. Returns a Go-owned integer count.
 //
 //igraph:bind igraph_st_edge_connectivity
 func (g *Graph) STEdgeConnectivity(source, target int) (int, error) {
@@ -79,6 +82,8 @@ func (g *Graph) STEdgeConnectivity(source, target int) (int, error) {
 }
 
 // VertexConnectivity calculates the global vertex connectivity of the graph.
+// The checks parameter controls whether structural checks are performed by C igraph.
+// Returns a Go-owned integer count.
 //
 //igraph:bind igraph_vertex_connectivity
 func (g *Graph) VertexConnectivity(checks bool) (int, error) {
@@ -100,6 +105,7 @@ func (g *Graph) VertexConnectivity(checks bool) (int, error) {
 }
 
 // STVertexConnectivity calculates the vertex connectivity between a source and a target vertex.
+// Source and target vertex IDs are validated. Returns a Go-owned integer count.
 //
 //igraph:bind igraph_st_vertex_connectivity
 func (g *Graph) STVertexConnectivity(source, target int, neighbors VertexConnectivityNeighbors) (int, error) {
@@ -131,6 +137,7 @@ func (g *Graph) STVertexConnectivity(source, target int, neighbors VertexConnect
 }
 
 // EdgeDisjointPaths calculates the maximum number of edge-disjoint paths between source and target.
+// Source and target vertex IDs are validated. Returns a Go-owned integer count.
 //
 //igraph:bind igraph_edge_disjoint_paths
 func (g *Graph) EdgeDisjointPaths(source, target int) (int, error) {
@@ -157,6 +164,7 @@ func (g *Graph) EdgeDisjointPaths(source, target int) (int, error) {
 }
 
 // VertexDisjointPaths calculates the maximum number of vertex-disjoint paths between source and target.
+// Source and target vertex IDs are validated. Returns a Go-owned integer count.
 //
 //igraph:bind igraph_vertex_disjoint_paths
 func (g *Graph) VertexDisjointPaths(source, target int) (int, error) {
@@ -183,6 +191,8 @@ func (g *Graph) VertexDisjointPaths(source, target int) (int, error) {
 }
 
 // Adhesion calculates the edge connectivity (adhesion) of a graph.
+// The checks parameter controls whether structural checks are performed by C igraph.
+// Returns a Go-owned integer count.
 //
 //igraph:bind igraph_adhesion
 func (g *Graph) Adhesion(checks bool) (int, error) {
@@ -204,6 +214,8 @@ func (g *Graph) Adhesion(checks bool) (int, error) {
 }
 
 // Cohesion calculates the vertex connectivity (cohesion) of a graph.
+// The checks parameter controls whether structural checks are performed by C igraph.
+// Returns a Go-owned integer count.
 //
 //igraph:bind igraph_cohesion
 func (g *Graph) Cohesion(checks bool) (int, error) {
