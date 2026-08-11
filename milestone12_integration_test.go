@@ -152,12 +152,34 @@ func TestMilestone12UndirectedCycleAnalysisPipeline(t *testing.T) {
 }
 
 func TestMilestone12ConcurrentReadsAndClose(t *testing.T) {
-	graph := newMilestone12Graph(t, 5, []igraph.Edge{
+	edges := []igraph.Edge{
 		{From: 0, To: 1}, {From: 1, To: 2}, {From: 2, To: 3}, {From: 3, To: 4},
-	}, true)
-	start := make(chan struct{})
-	errorsByCall := make(chan error, 10)
-	calls := []func() error{
+	}
+	liveGraph := newMilestone12Graph(t, 5, edges, true)
+	for err := range runMilestone12Calls(milestone12ReadCalls(liveGraph), nil) {
+		if err != nil {
+			t.Errorf("live concurrent cycle-analysis call error = %v", err)
+		}
+	}
+
+	closingGraph := newMilestone12Graph(t, 5, edges, true)
+	errorsByCall := runMilestone12Calls(milestone12ReadCalls(closingGraph), func() {
+		if err := closingGraph.Close(); err != nil {
+			t.Error(err)
+		}
+	})
+	for err := range errorsByCall {
+		if err != nil && !errors.Is(err, igraph.ErrClosed) {
+			t.Errorf("Close-race cycle-analysis call error = %v", err)
+		}
+	}
+	if _, err := closingGraph.FindCycle(igraph.DirectionOut); !errors.Is(err, igraph.ErrClosed) {
+		t.Errorf("post-close FindCycle error = %v", err)
+	}
+}
+
+func milestone12ReadCalls(graph *igraph.Graph) []func() error {
+	return []func() error{
 		func() error { _, err := graph.IsAcyclic(); return err },
 		func() error { _, err := graph.IsDAG(); return err },
 		func() error { _, err := graph.TopologicalSort(igraph.DirectionOut); return err },
@@ -172,6 +194,11 @@ func TestMilestone12ConcurrentReadsAndClose(t *testing.T) {
 		func() error { _, err := graph.FeedbackEdgeSet(igraph.FeedbackEdgeOptions{}); return err },
 		func() error { _, err := graph.FeedbackVertexSet(nil); return err },
 	}
+}
+
+func runMilestone12Calls(calls []func() error, afterStart func()) <-chan error {
+	start := make(chan struct{})
+	errorsByCall := make(chan error, len(calls))
 	var wait sync.WaitGroup
 	for _, call := range calls {
 		wait.Add(1)
@@ -182,19 +209,12 @@ func TestMilestone12ConcurrentReadsAndClose(t *testing.T) {
 		}(call)
 	}
 	close(start)
-	if err := graph.Close(); err != nil {
-		t.Fatal(err)
+	if afterStart != nil {
+		afterStart()
 	}
 	wait.Wait()
 	close(errorsByCall)
-	for err := range errorsByCall {
-		if err != nil && !errors.Is(err, igraph.ErrClosed) {
-			t.Errorf("concurrent cycle-analysis call error = %v", err)
-		}
-	}
-	if _, err := graph.FindCycle(igraph.DirectionOut); !errors.Is(err, igraph.ErrClosed) {
-		t.Errorf("post-close FindCycle error = %v", err)
-	}
+	return errorsByCall
 }
 
 func newMilestone12Graph(t *testing.T, vertices int, edges []igraph.Edge, directed bool) *igraph.Graph {
