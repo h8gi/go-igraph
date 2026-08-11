@@ -440,6 +440,18 @@ func assertTransformationClosed(t *testing.T, graph *Graph) {
 	}
 }
 
+func TestTransformationInvalidModes(t *testing.T) {
+	graph := transformationGraph(t, 2, []Edge{{0, 1}}, false)
+	if _, err := graph.ConvertToDirectedInPlace(DirectedConversionMode(99)); err == nil {
+		t.Errorf("ConvertToDirectedInPlace(invalid) error = nil")
+	}
+
+	directed := transformationGraph(t, 2, []Edge{{0, 1}}, true)
+	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
+		t.Errorf("ConvertToUndirectedInPlace(invalid) error = nil")
+	}
+}
+
 func assertTransformationGraph(t *testing.T, graph *Graph, vertexCount int, directed bool, want []Edge) {
 	t.Helper()
 	gotVertexCount, err := graph.VertexCount()

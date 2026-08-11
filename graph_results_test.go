@@ -29,6 +29,12 @@ func TestResidualGraphAndReverseResidualGraph(t *testing.T) {
 		t.Fatalf("expected non-nil residual graph")
 	}
 
+	resResultNil, err := g.ResidualGraph(nil, nil)
+	if err != nil {
+		t.Fatalf("ResidualGraph with nil options failed: %v", err)
+	}
+	_ = resResultNil.Graph.Close()
+
 	revResGraph, err := g.ReverseResidualGraph(capacities, flows)
 	if err != nil {
 		t.Fatalf("ReverseResidualGraph failed: %v", err)
@@ -36,6 +42,12 @@ func TestResidualGraphAndReverseResidualGraph(t *testing.T) {
 	if revResGraph == nil {
 		t.Fatalf("expected non-nil reverse residual graph")
 	}
+
+	revResNil, err := g.ReverseResidualGraph(nil, nil)
+	if err != nil {
+		t.Fatalf("ReverseResidualGraph with nil options failed: %v", err)
+	}
+	_ = revResNil.Close()
 
 	// Close parent graph; derived graphs must survive and be independently closeable
 	g.Close()
@@ -83,6 +95,17 @@ func TestGomoryHuTree(t *testing.T) {
 		t.Fatalf("expected non-nil GomoryHu tree")
 	}
 
+	// Test GomoryHuTree with non-nil capacities
+	capacities := []float64{1.0, 2.0, 1.0, 3.0, 1.0, 2.0, 1.0}
+	ghtResult2, err := g.GomoryHuTree(capacities)
+	if err != nil {
+		t.Fatalf("GomoryHuTree with capacities failed: %v", err)
+	}
+	if ghtResult2.Tree == nil {
+		t.Fatalf("expected non-nil GomoryHu tree with capacities")
+	}
+	_ = ghtResult2.Tree.Close()
+
 	// Parent graph close
 	g.Close()
 
@@ -117,6 +140,12 @@ func TestDominatorTree(t *testing.T) {
 	if domResult.Tree == nil || domResult.Dominators == nil {
 		t.Fatalf("expected non-nil Tree and Dominators in DominatorTreeResult")
 	}
+
+	domIn, err := g.DominatorTree(2, igraph.DirectionIn)
+	if err != nil {
+		t.Fatalf("DominatorTree DirectionIn failed: %v", err)
+	}
+	_ = domIn.Tree.Close()
 
 	g.Close()
 

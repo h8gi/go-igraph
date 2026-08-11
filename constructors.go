@@ -57,7 +57,8 @@ func (mode TreeMode) cValue() (C.igraph_tree_mode_t, error) {
 }
 
 // NewFull constructs a complete graph. When loops is true, every vertex also
-// has a self-loop.
+// has a self-loop. The returned Graph is Go-owned and must be closed when no
+// longer needed.
 //
 //igraph:bind igraph_full
 func NewFull(vertexCount int, directed, loops bool) (*Graph, error) {
@@ -70,7 +71,8 @@ func NewFull(vertexCount int, directed, loops bool) (*Graph, error) {
 }
 
 // NewRing constructs a circular graph. Mutual adds reverse edges to a directed
-// ring and has no effect on an undirected ring.
+// ring and has no effect on an undirected ring. The returned Graph is Go-owned
+// and must be closed when no longer needed.
 //
 //igraph:bind igraph_ring
 func NewRing(vertexCount int, directed, mutual bool) (*Graph, error) {
@@ -83,7 +85,8 @@ func NewRing(vertexCount int, directed, mutual bool) (*Graph, error) {
 }
 
 // NewPath constructs a path graph. Mutual adds reverse edges to a directed
-// path and has no effect on an undirected path.
+// path and has no effect on an undirected path. The returned Graph is Go-owned
+// and must be closed when no longer needed.
 //
 //igraph:bind igraph_path_graph
 func NewPath(vertexCount int, directed, mutual bool) (*Graph, error) {
@@ -96,7 +99,8 @@ func NewPath(vertexCount int, directed, mutual bool) (*Graph, error) {
 }
 
 // NewStar constructs a star graph around center. A star must contain at least
-// one vertex, and center must identify one of its vertices.
+// one vertex, and center must identify one of its vertices. The returned Graph
+// is Go-owned and must be closed when no longer needed.
 //
 //igraph:bind igraph_star
 func NewStar(vertexCount, center int, mode StarMode) (*Graph, error) {
@@ -116,7 +120,8 @@ func NewStar(vertexCount, center int, mode StarMode) (*Graph, error) {
 }
 
 // NewKaryTree constructs a breadth-first k-ary tree. Children must be
-// positive. The graph may contain zero vertices.
+// positive. The graph may contain zero vertices. The returned Graph is Go-owned
+// and must be closed when no longer needed.
 //
 //igraph:bind igraph_kary_tree
 func NewKaryTree(vertexCount, children int, mode TreeMode) (*Graph, error) {
@@ -135,7 +140,8 @@ func NewKaryTree(vertexCount, children int, mode TreeMode) (*Graph, error) {
 	return finishGraphConstruction(g, "initialize k-ary tree", int(code))
 }
 
-// NewHypercube constructs an n-dimensional hypercube.
+// NewHypercube constructs an n-dimensional hypercube. The returned Graph is
+// Go-owned and must be closed when no longer needed.
 //
 //igraph:bind igraph_hypercube
 func NewHypercube(dimension int, directed bool) (*Graph, error) {

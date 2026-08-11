@@ -60,9 +60,33 @@ func validateFlows(g *Graph, flows []float64) (*realVector, error) {
 	return newRealVector(flows)
 }
 
+func validateCapacitiesOrUnit(g *Graph, capacities []float64) (*realVector, error) {
+	if capacities == nil {
+		numEdges := int(C.igraph_ecount(&g.graph))
+		units := make([]float64, numEdges)
+		for i := range units {
+			units[i] = 1.0
+		}
+		return newRealVector(units)
+	}
+	return validateCapacities(g, capacities)
+}
+
+func validateFlowsOrZero(g *Graph, flows []float64) (*realVector, error) {
+	if flows == nil {
+		numEdges := int(C.igraph_ecount(&g.graph))
+		zeros := make([]float64, numEdges)
+		return newRealVector(zeros)
+	}
+	return validateFlows(g, flows)
+}
+
 // ResidualGraph computes the residual graph and residual capacities for a network.
+// Capacities and flows slices are borrowed and copied into C-owned memory.
 // If capacities is nil, unit capacities (1.0) are assumed.
 // If flows is nil, zero flows (0.0) are assumed.
+// The returned ResidualGraphResult contains an independently Go-owned Graph that
+// must be closed by the caller, and a Go-owned ResidualCapacities slice.
 //
 //igraph:bind igraph_residual_graph
 func (g *Graph) ResidualGraph(capacities []float64, flows []float64) (*ResidualGraphResult, error) {
@@ -75,39 +99,29 @@ func (g *Graph) ResidualGraph(capacities []float64, flows []float64) (*ResidualG
 		return nil, ErrClosed
 	}
 
-	capVec, err := validateCapacities(g, capacities)
+	capVec, err := validateCapacitiesOrUnit(g, capacities)
 	if err != nil {
 		return nil, err
 	}
-	if capVec != nil {
-		defer capVec.close()
-	}
+	defer capVec.close()
 
-	flowVec, err := validateFlows(g, flows)
+	flowVec, err := validateFlowsOrZero(g, flows)
 	if err != nil {
 		return nil, err
 	}
-	if flowVec != nil {
-		defer flowVec.close()
-	}
+	defer flowVec.close()
 
-	resCapVec, _ := newRealVectorSize(0)
+	resCapVec, err := newRealVectorSize(0)
+	if err != nil {
+		return nil, err
+	}
 	defer resCapVec.close()
 
-	var capPtr, flowPtr *C.igraph_vector_t
-	if capVec != nil {
-		capPtr = &capVec.value
-	}
-	if flowVec != nil {
-		flowPtr = &flowVec.value
-	}
-
 	var residual C.igraph_t
-	code := C.go_igraph_residual_graph(&g.graph, capPtr, &residual, &resCapVec.value, flowPtr)
+	code := C.go_igraph_residual_graph(&g.graph, &capVec.value, &residual, &resCapVec.value, &flowVec.value)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("igraph_residual_graph", int(code))
 	}
-
 	resCaps, _ := resCapVec.slice()
 	return &ResidualGraphResult{
 		Graph:              adoptInitializedGraph(&residual),
@@ -116,6 +130,10 @@ func (g *Graph) ResidualGraph(capacities []float64, flows []float64) (*ResidualG
 }
 
 // ReverseResidualGraph computes the reverse residual graph for a network.
+// Capacities and flows slices are borrowed and copied into C-owned memory.
+// If capacities is nil, unit capacities (1.0) are assumed.
+// If flows is nil, zero flows (0.0) are assumed.
+// The returned Graph is Go-owned and must be closed when no longer needed.
 //
 //igraph:bind igraph_reverse_residual_graph
 func (g *Graph) ReverseResidualGraph(capacities []float64, flows []float64) (*Graph, error) {
@@ -128,32 +146,20 @@ func (g *Graph) ReverseResidualGraph(capacities []float64, flows []float64) (*Gr
 		return nil, ErrClosed
 	}
 
-	capVec, err := validateCapacities(g, capacities)
+	capVec, err := validateCapacitiesOrUnit(g, capacities)
 	if err != nil {
 		return nil, err
 	}
-	if capVec != nil {
-		defer capVec.close()
-	}
+	defer capVec.close()
 
-	flowVec, err := validateFlows(g, flows)
+	flowVec, err := validateFlowsOrZero(g, flows)
 	if err != nil {
 		return nil, err
 	}
-	if flowVec != nil {
-		defer flowVec.close()
-	}
-
-	var capPtr, flowPtr *C.igraph_vector_t
-	if capVec != nil {
-		capPtr = &capVec.value
-	}
-	if flowVec != nil {
-		flowPtr = &flowVec.value
-	}
+	defer flowVec.close()
 
 	var residual C.igraph_t
-	code := C.go_igraph_reverse_residual_graph(&g.graph, capPtr, &residual, flowPtr)
+	code := C.go_igraph_reverse_residual_graph(&g.graph, &capVec.value, &residual, &flowVec.value)
 	if code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("igraph_reverse_residual_graph", int(code))
 	}
@@ -162,6 +168,9 @@ func (g *Graph) ReverseResidualGraph(capacities []float64, flows []float64) (*Gr
 }
 
 // GomoryHuTree computes the Gomory-Hu tree graph and edge flows for an undirected graph.
+// The capacities slice is borrowed and copied into C-owned memory.
+// The returned GomoryHuTreeResult contains a Go-owned Tree graph and a Go-owned
+// Flows slice.
 //
 //igraph:bind igraph_gomory_hu_tree
 func (g *Graph) GomoryHuTree(capacities []float64) (*GomoryHuTreeResult, error) {
@@ -182,7 +191,10 @@ func (g *Graph) GomoryHuTree(capacities []float64) (*GomoryHuTreeResult, error) 
 		defer capVec.close()
 	}
 
-	flowVec, _ := newRealVectorSize(0)
+	flowVec, err := newRealVectorSize(0)
+	if err != nil {
+		return nil, err
+	}
 	defer flowVec.close()
 
 	var capPtr *C.igraph_vector_t
@@ -204,6 +216,8 @@ func (g *Graph) GomoryHuTree(capacities []float64) (*GomoryHuTreeResult, error) 
 }
 
 // DominatorTree computes the dominator tree of a directed graph from root vertex.
+// The returned DominatorTreeResult contains a Go-owned Tree graph and Go-owned
+// Dominators and LeftOut slices.
 //
 //igraph:bind igraph_dominator_tree
 func (g *Graph) DominatorTree(root int, mode DirectionMode) (*DominatorTreeResult, error) {
@@ -226,10 +240,16 @@ func (g *Graph) DominatorTree(root int, mode DirectionMode) (*DominatorTreeResul
 		return nil, err
 	}
 
-	domVec, _ := newIntVector(nil)
+	domVec, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
+	}
 	defer domVec.close()
 
-	leftoutVec, _ := newIntVector(nil)
+	leftoutVec, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
+	}
 	defer leftoutVec.close()
 
 	var domtree C.igraph_t
@@ -249,6 +269,8 @@ func (g *Graph) DominatorTree(root int, mode DirectionMode) (*DominatorTreeResul
 }
 
 // EvenTarjanReduction computes the Even-Tarjan reduction of a graph.
+// The returned TarjanReductionResult contains a Go-owned Graph and a Go-owned
+// Capacities slice.
 //
 //igraph:bind igraph_even_tarjan_reduction
 func (g *Graph) EvenTarjanReduction() (*TarjanReductionResult, error) {
@@ -261,7 +283,10 @@ func (g *Graph) EvenTarjanReduction() (*TarjanReductionResult, error) {
 		return nil, ErrClosed
 	}
 
-	capVec, _ := newRealVectorSize(0)
+	capVec, err := newRealVectorSize(0)
+	if err != nil {
+		return nil, err
+	}
 	defer capVec.close()
 
 	var graphbar C.igraph_t
