@@ -128,3 +128,17 @@ igraph_error_t go_igraph_enumerate_isomorphisms_vf2(
     *truncated = collector.truncated;
     return code;
 }
+
+igraph_error_t go_igraph_vector_int_list_push_back_copy(
+    igraph_vector_int_list_t *list, const igraph_vector_int_t *vector) {
+    GO_IGRAPH_CALL(igraph_vector_int_list_push_back_copy(list, vector));
+}
+
+igraph_error_t go_igraph_subisomorphic_lad(
+    const igraph_t *pattern, const igraph_t *target,
+    const igraph_vector_int_list_t *domains,
+    igraph_bool_t *result, igraph_vector_int_t *mapping,
+    igraph_bool_t induced) {
+    GO_IGRAPH_CALL(igraph_subisomorphic_lad(
+        pattern, target, domains, result, mapping, NULL, induced));
+}

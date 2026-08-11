@@ -55,4 +55,13 @@ igraph_error_t go_igraph_enumerate_isomorphisms_vf2(
     igraph_int_t max_mappings, igraph_bool_t subgraph,
     igraph_vector_int_list_t *mappings, igraph_bool_t *truncated);
 
+igraph_error_t go_igraph_vector_int_list_push_back_copy(
+    igraph_vector_int_list_t *list, const igraph_vector_int_t *vector);
+
+igraph_error_t go_igraph_subisomorphic_lad(
+    const igraph_t *pattern, const igraph_t *target,
+    const igraph_vector_int_list_t *domains,
+    igraph_bool_t *result, igraph_vector_int_t *mapping,
+    igraph_bool_t induced);
+
 #endif
