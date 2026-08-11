@@ -9,7 +9,7 @@ When working on `go-igraph`, developers and agents need quick, accurate access t
 
 ## Upstream Sources & Configuration
 
-- **Official C igraph HTML Documentation**: `https://igraph.org/c/html/latest/`
+- **Official C igraph HTML Documentation**: `https://igraph.org/c/html/latest/` (moving `latest`; the CLI labels it separately from the pinned source version)
 - **Upstream C igraph Version**: Defined in `tools/api_coverage_config.json` (currently `1.0.1`).
 
 ---

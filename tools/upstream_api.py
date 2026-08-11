@@ -17,7 +17,7 @@ from pathlib import Path
 
 EXPORT_RE = re.compile(
     r"^\s*(?:(?:IGRAPH_EXPERIMENTAL|IGRAPH_DEPRECATED)\s+)?IGRAPH_EXPORT"
-    r"(?:(?!;).)*?\b(igraph_[A-Za-z0-9_]+)\s*\(([^)]*)\)",
+    r"(?:(?!;).)*?\b(igraph_[A-Za-z0-9_]+)\s*\(",
     re.MULTILINE | re.DOTALL,
 )
 CALL_RE = re.compile(r"\bC\.(igraph_[A-Za-z0-9_]+)\b")
@@ -70,6 +70,7 @@ class CDeclaration:
     name: str
     header: str
     params: str
+    declaration: str
     doc_url: str
 
 
@@ -103,9 +104,16 @@ def download_or_get_source(config: dict) -> Path:
     temp_extract.mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(archive, "r:gz") as bundle:
+        root = temp_extract.resolve()
+        for member in bundle.getmembers():
+            target = (temp_extract / member.name).resolve()
+            if root not in target.parents and target != root:
+                raise ValueError("unsafe path in upstream archive")
         if hasattr(tarfile, "data_filter"):
             bundle.extractall(temp_extract, filter="data")
         else:
+            if any(member.issym() or member.islnk() for member in bundle.getmembers()):
+                raise ValueError("unsafe link in upstream archive")
             bundle.extractall(temp_extract)
 
     children = list(temp_extract.iterdir())
@@ -130,19 +138,49 @@ def locate_include(source: Path) -> Path:
     raise ValueError(f"could not locate a unique include directory below {source}")
 
 
-def build_doc_url(header_name: str, function_name: str) -> str:
+def build_doc_url(
+    header_name: str,
+    function_name: str,
+    docs_base_url: str = DOCS_BASE_URL,
+) -> str:
     header_basename = Path(header_name).name.replace(" (generated)", "")
     doc_page = HEADER_TO_DOC_MODULE.get(header_basename)
     if doc_page:
-        return f"{DOCS_BASE_URL}/{doc_page}#{function_name}"
-    return f"{DOCS_BASE_URL}/cigraph-index.html#{function_name}"
+        return f"{docs_base_url}/{doc_page}#{function_name}"
+    return f"{docs_base_url}/cigraph-index.html#{function_name}"
 
 
 def strip_comments(text: str) -> str:
     return re.sub(r"/\*.*?\*/|//[^\n]*", "", text, flags=re.DOTALL)
 
 
-def discover_upstream_declarations(include_dir: Path) -> dict[str, CDeclaration]:
+def strip_comments_preserving_lines(text: str) -> str:
+    return re.sub(
+        r"/\*.*?\*/|//[^\n]*",
+        lambda match: re.sub(r"[^\n]", " ", match.group(0)),
+        text,
+        flags=re.DOTALL,
+    )
+
+
+def _complete_declaration(text: str, match: re.Match[str]) -> tuple[str, str] | None:
+    open_paren = match.end() - 1
+    depth = 0
+    for index in range(open_paren, len(text)):
+        if text[index] == "(":
+            depth += 1
+        elif text[index] == ")":
+            depth -= 1
+            if depth == 0:
+                declaration = text[match.start():index + 1].strip() + ";"
+                return text[open_paren + 1:index].strip(), declaration
+    return None
+
+
+def discover_upstream_declarations(
+    include_dir: Path,
+    docs_base_url: str = DOCS_BASE_URL,
+) -> dict[str, CDeclaration]:
     declarations: dict[str, CDeclaration] = {}
     headers = sorted(include_dir.rglob("*.h"))
     for header in headers:
@@ -150,13 +188,17 @@ def discover_upstream_declarations(include_dir: Path) -> dict[str, CDeclaration]
         text = strip_comments(header.read_text(encoding="utf-8", errors="replace"))
         for match in EXPORT_RE.finditer(text):
             symbol = match.group(1)
-            params = match.group(2).strip()
+            complete = _complete_declaration(text, match)
+            if complete is None:
+                continue
+            params, declaration = complete
             if symbol not in declarations:
                 declarations[symbol] = CDeclaration(
                     name=symbol,
                     header=header_rel,
                     params=params,
-                    doc_url=build_doc_url(header_rel, symbol),
+                    declaration=declaration,
+                    doc_url=build_doc_url(header_rel, symbol, docs_base_url),
                 )
 
     with tempfile.TemporaryDirectory(prefix="go-igraph-headers-") as temp:
@@ -195,15 +237,69 @@ def discover_upstream_declarations(include_dir: Path) -> dict[str, CDeclaration]
                 continue
             for match in EXPORT_RE.finditer(expanded):
                 symbol = match.group(1)
-                params = match.group(2).strip()
+                complete = _complete_declaration(expanded, match)
+                if complete is None:
+                    continue
+                params, declaration = complete
                 if symbol not in declarations:
                     header_str = f"{relative.as_posix()} (generated)"
                     declarations[symbol] = CDeclaration(
                         name=symbol,
                         header=header_str,
                         params=params,
-                        doc_url=build_doc_url(relative.as_posix(), symbol),
+                        declaration=declaration,
+                        doc_url=build_doc_url(relative.as_posix(), symbol, docs_base_url),
                     )
+    return declarations
+
+
+def load_or_build_declaration_index(config: dict, include_dir: Path) -> dict[str, CDeclaration]:
+    docs_base_url = config.get("documentation_base_url", DOCS_BASE_URL)
+    cache_key = {
+        "version": config["version"],
+        "source_archive_url": config["source_archive_url"],
+        "documentation_base_url": docs_base_url,
+    }
+    index_path = get_cache_dir() / f"igraph-{config['version']}-api-index.json"
+    if index_path.exists():
+        try:
+            payload = json.loads(index_path.read_text(encoding="utf-8"))
+            if payload.get("cache_key") == cache_key:
+                return {
+                    name: CDeclaration(**declaration)
+                    for name, declaration in payload["declarations"].items()
+                }
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError):
+            pass
+
+    declarations = discover_upstream_declarations(include_dir, docs_base_url)
+    payload = {
+        "cache_key": cache_key,
+        "declarations": {
+            name: {
+                "name": declaration.name,
+                "header": declaration.header,
+                "params": declaration.params,
+                "declaration": declaration.declaration,
+                "doc_url": declaration.doc_url,
+            }
+            for name, declaration in declarations.items()
+        },
+    }
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w",
+            encoding="utf-8",
+            dir=index_path.parent,
+            prefix=f".{index_path.name}.",
+            delete=False,
+        ) as temp_file:
+            json.dump(payload, temp_file, sort_keys=True)
+            temp_path = Path(temp_file.name)
+        temp_path.replace(index_path)
+    except OSError:
+        if "temp_path" in locals():
+            temp_path.unlink(missing_ok=True)
     return declarations
 
 
@@ -228,12 +324,24 @@ def discover_go_calls(repo: Path) -> set[str]:
 
 def find_cgo_call_locations(repo: Path, symbol: str) -> list[tuple[str, int, str]]:
     results: list[tuple[str, int, str]] = []
-    symbol_pattern = re.compile(rf"\bC\.{re.escape(symbol)}\b")
+    go_pattern = re.compile(rf"\bC\.{re.escape(symbol)}\b")
     for path in production_go_files(repo):
         rel_path = path.relative_to(repo).as_posix()
         for idx, line in enumerate(path.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-            if symbol_pattern.search(line):
+            if go_pattern.search(line):
                 results.append((rel_path, idx, line.strip()))
+    c_pattern = re.compile(rf"(?<![A-Za-z0-9_]){re.escape(symbol)}\s*\(")
+    c_paths = sorted(path for suffix in ("*.c", "*.h") for path in repo.rglob(suffix))
+    for path in c_paths:
+        if ".git" in path.parts:
+            continue
+        rel_path = path.relative_to(repo).as_posix()
+        text = path.read_text(encoding="utf-8", errors="replace")
+        original_lines = text.splitlines()
+        for idx, line in enumerate(strip_comments_preserving_lines(text).splitlines(), 1):
+            if c_pattern.search(line):
+                original_line = original_lines[idx - 1].strip()
+                results.append((rel_path, idx, original_line))
     return results
 
 

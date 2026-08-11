@@ -9,9 +9,9 @@ from pathlib import Path
 
 from upstream_api import (
     discover_annotations,
-    discover_upstream_declarations,
     download_or_get_source,
     find_cgo_call_locations,
+    load_or_build_declaration_index,
     load_config,
     locate_include,
 )
@@ -26,18 +26,20 @@ def command_lookup(symbol: str, config_path: Path) -> int:
     config = load_config(config_path)
     source_dir = download_or_get_source(config)
     include_dir = locate_include(source_dir)
-    declarations = discover_upstream_declarations(include_dir)
+    declarations = load_or_build_declaration_index(config, include_dir)
     annotations = discover_annotations(repo)
 
     decl = declarations.get(symbol)
     print(f"=== Upstream C igraph {config['version']} Symbol: {symbol} ===")
     if decl:
         print(f"Header:           include/{decl.header}")
-        print(f"Official Doc URL: {decl.doc_url}")
-        print(f"C Declaration:    IGRAPH_EXPORT igraph_error_t {decl.name}({decl.params});")
+        docs_version = config.get("documentation_version", "latest")
+        print(f"Official Doc URL ({docs_version}): {decl.doc_url}")
+        print(f"C Declaration:    {decl.declaration}")
     else:
         print(f"Symbol '{symbol}' not found in upstream C igraph {config['version']} declarations.")
-        print(f"Default Doc Index: https://igraph.org/c/html/latest/cigraph-index.html#{symbol}")
+        docs_base_url = config["documentation_base_url"]
+        print(f"Default Doc Index: {docs_base_url}/cigraph-index.html#{symbol}")
 
     print("\n=== Go Project Bindings & References ===")
     matching_annos = [a for a in annotations if a.upstream == symbol]
@@ -65,13 +67,13 @@ def command_url(symbol: str, config_path: Path) -> int:
     config = load_config(config_path)
     source_dir = download_or_get_source(config)
     include_dir = locate_include(source_dir)
-    declarations = discover_upstream_declarations(include_dir)
+    declarations = load_or_build_declaration_index(config, include_dir)
 
     decl = declarations.get(symbol)
     if decl:
         print(decl.doc_url)
     else:
-        print(f"https://igraph.org/c/html/latest/cigraph-index.html#{symbol}")
+        print(f"{config['documentation_base_url']}/cigraph-index.html#{symbol}")
     return 0 if decl else 1
 
 
