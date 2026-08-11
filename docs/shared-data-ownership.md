@@ -90,6 +90,22 @@ subgraph enumeration returns pattern-to-target mappings. The outer slice and
 every nested slice are non-nil Go-owned values and share no C or Go backing
 storage with sibling mappings.
 
+LAD domain input is a borrowed outer slice indexed by pattern vertex. Each
+inner slice is copied and must contain unique, in-range target vertex IDs; an
+empty inner domain is an immediate, successful non-match without entering the
+solver. Nil domains permit every target vertex. LAD rejects directedness
+mismatches and parallel edges before the upstream call, while loops remain
+supported. First-match results use the shared `PatternToTarget` and
+`TargetToPattern` directions.
+
+Bounded LAD enumeration does not request upstream's unbounded `maps` output.
+It repeatedly requests one mapping and partitions the remaining domain space
+into disjoint prefix constraints that exclude the returned mapping. The search
+stops after observing one result beyond `MaxMappings`, so `Truncated` has the
+same exact meaning as for bounded VF2 enumeration. Temporary domain vector
+lists own copied vectors and are destroyed after every solver call; returned
+mappings are non-nil independent Go slices.
+
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;
 closing it repeatedly or in any order relative to sibling results is safe.
