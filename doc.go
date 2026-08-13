@@ -3,7 +3,8 @@
 // Graph and Vector values own C resources and should be closed when they are
 // no longer needed. Close is idempotent, and methods on a closed resource
 // return ErrClosed. Selectors, Matrix, Path, Cycle, GirthResult,
-// SimpleCyclesResult, cycle-basis, feedback-set, census, and triangle collections,
+// SimpleCyclesResult, cycle-basis, feedback-set, census, triangle, motif, and
+// graphlet collections,
 // ConnectedComponents, articulation-point and bridge slices,
 // BiconnectedComponents, IDMapping, GraphIDMapping, subgraph and graph-operator
 // result provenance, traversal
@@ -23,6 +24,9 @@
 // contain one finite value per edge and may have stricter method-specific sign
 // constraints. Distance-based and betweenness centralities require positive
 // weights; spectral and ranking centralities require non-negative weights.
+// Graphlet methods treat nil weights as unit weights and otherwise require
+// finite non-negative values on graphs that are simple when directions are
+// ignored.
 // Duplicate explicit selectors preserve caller order in returned results.
 // Destructive deletion APIs materialize selectors before mutation and use a
 // temporary graph so validation, initialization, upstream, and conversion
@@ -51,6 +55,9 @@
 // (CompareCommunities, SplitJoinDistance) evaluate partition distance (VI, Split-Join)
 // and similarity (NMI, Rand, Adjusted Rand). Stochastic algorithms accept an optional
 // Seed parameter for reproducible random execution protected by a global package RNG lock.
+// RANDESU motif sampling follows the same RNG contract. Its histogram keeps
+// upstream NaN markers for impossible isomorphism classes; every finite count
+// and all graphlet clique, threshold, and coefficient slices are Go-owned.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined

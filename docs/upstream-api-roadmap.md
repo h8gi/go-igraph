@@ -741,9 +741,9 @@ public methods and in this final audit.
 
 Goal: Provide complete Go bindings for dyad census, triad census, triangle counting/listing, RANDESU motif counting/sampling, and graphlet decomposition/projection over `igraph_motifs.h` and `igraph_graphlets.h`.
 
-Status: in progress. All planned motif and graphlet bindings are implemented through [#203](https://github.com/h8gi/go-igraph/issues/203); final integration, examples, and audit work remain.
+Status: complete. All planned bindings are implemented, and integration, examples, ownership/race coverage, documentation, and inventory audits were completed in [#204](https://github.com/h8gi/go-igraph/issues/204).
 
-Implemented & Planned areas:
+Implemented areas:
 
 - Dyad census (`DyadCensus`) returning Go struct `DyadCensusResult{Mutual, Asymmetric, Null int64}` ([#201](https://github.com/h8gi/go-igraph/issues/201));
 - Triad census (`TriadCensus`) returning a 16-element Go slice corresponding to Davis-Leinhardt 16 isomorphism classes ([#201](https://github.com/h8gi/go-igraph/issues/201));
@@ -762,20 +762,17 @@ Shared motif and graphlet contracts:
 - `igraph_motifs_randesu_callback` is marked as `intentionally_unsupported` to prevent unsafe C callbacks across the cgo boundary.
 - Graphlet APIs treat nil weights as unit weights and otherwise require one finite non-negative value per edge. Candidate bases, thresholds, and projected coefficients are copied into aligned Go-owned slices. Projection validates and copies complete, unique clique inputs and sets `startMu` only for a non-empty, length-matched initial coefficient vector.
 
-Final reviewed disposition: All 12 declarations across `igraph_motifs.h` and `igraph_graphlets.h` are accounted for (11 user-facing bindings and 1 intentionally unsupported callback).
+Final reviewed disposition: All 12 declarations across `igraph_motifs.h` and `igraph_graphlets.h` are accounted for (11 user-facing bindings and 1 intentionally unsupported callback), with no deferred declarations. Package and standalone examples exercise both motif and graphlet workflows, and the integration pipeline verifies aligned Go-owned results through graph closure.
 
 ### Later domain milestones
 
-Motifs and graphlets; bipartite and spatial analysis;
-attributes and richer import/export; and other specialized upstream domains
+Bipartite and spatial analysis; attributes and richer import/export; and other specialized upstream domains
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
 merely to increase the inventory percentage.
 
 Select the next domain by user value, shared-infrastructure readiness, and the
-ability to define a complete Go ownership and concurrency contract. Motifs and
-graphlets should follow cycle analysis separately, after their sampling,
-callback, weighted, and RNG contracts are designed.
+ability to define a complete Go ownership and concurrency contract.
 
 Across all future milestones, interruption and progress callbacks should stay
 internal until they can cross the Go/C boundary without weakening concurrency,
