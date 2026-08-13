@@ -43,6 +43,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `SimpleCyclesResult` and cycle-basis results | Go-owned nested slices and Boolean | none | bounded paired cycles and every basis element are non-nil independent copies that survive graph closure |
 | feedback edge/vertex sets | Go-owned slices | none | weight inputs are borrowed and copied for the synchronous call; result IDs survive graph closure |
 | dyad/triad census and triangle results | Go-owned structs, slices, or nested fixed arrays | none | selectors are borrowed and materialized for the synchronous call; exact counts and triangle IDs survive graph closure |
+| RANDESU motif results | Go-owned slices or scalars | none | cut probabilities, seeds, and sample selectors are borrowed synchronously; histograms retain upstream NaN class markers and survive graph closure |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -190,6 +191,16 @@ truncation without retaining a C callback. Cycle-basis options omit the pinned
 unused weight parameters. Feedback weight slices are length-checked, restricted
 to finite non-negative values, and copied into temporary C vectors; no solver
 or upstream result storage escapes the call.
+
+RANDESU motif methods borrow cut-probability slices and copy them into
+temporary C vectors. Histogram results are copied into non-nil Go slices;
+finite entries are checked exact non-negative counts, while NaN preserves
+upstream markers for impossible isomorphism classes. Explicit sample selectors
+are materialized and copied, reject duplicates, and are mutually exclusive
+with random sample sizes. Random sampling and stochastic cutting execute under
+the package RNG lock; a non-nil seed is applied only within that serialized
+call. Estimates are finite non-negative real values and may be fractional;
+total motif counts are checked exact Go-owned integers.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;

@@ -177,3 +177,131 @@ func TestAdjacentTriangleSelectorOrder(t *testing.T) {
 		t.Fatalf("AdjacentTrianglesCount = %v, %v", got, err)
 	}
 }
+
+func TestRandesuInitializationCallConversionAndMalformedFailures(t *testing.T) {
+	graph, err := NewGraphFromEdges(4, []Edge{{0, 1}, {1, 2}, {2, 0}}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer graph.Close()
+	failure := errors.New("injected RANDESU failure")
+	options := MotifsRandesuOptions{Size: 3, CutProb: []float64{0, 0, 0}}
+
+	cutInitialization := defaultMotifAdapters()
+	cutInitialization.createReal = func([]float64) (*realVector, error) { return nil, failure }
+	if _, err := graph.motifsRandesu(options, &cutInitialization); !errors.Is(err, failure) {
+		t.Errorf("cut initialization error = %v", err)
+	}
+	resultInitialization := defaultMotifAdapters()
+	resultInitialization.initializeReal = func() (*realVector, error) { return nil, failure }
+	if _, err := graph.motifsRandesu(MotifsRandesuOptions{Size: 3}, &resultInitialization); !errors.Is(err, failure) {
+		t.Errorf("result initialization error = %v", err)
+	}
+	sampleInitialization := defaultMotifAdapters()
+	sampleInitialization.createInt = func([]int) (*intVector, error) { return nil, failure }
+	vertices, _ := VertexIDs(0, 1)
+	if _, err := graph.motifsRandesuEstimate(MotifsRandesuEstimateOptions{
+		Size: 3, SampleVertices: vertices,
+	}, &sampleInitialization); !errors.Is(err, failure) {
+		t.Errorf("sample initialization error = %v", err)
+	}
+
+	callFailures := []func(*motifAdapters) error{
+		func(adapters *motifAdapters) error {
+			_, err := graph.motifsRandesu(MotifsRandesuOptions{Size: 3}, adapters)
+			return err
+		},
+		func(adapters *motifAdapters) error {
+			_, err := graph.motifsRandesuEstimate(MotifsRandesuEstimateOptions{Size: 3, SampleSize: 2}, adapters)
+			return err
+		},
+		func(adapters *motifAdapters) error {
+			_, err := graph.motifsRandesuNo(MotifsRandesuOptions{Size: 3}, adapters)
+			return err
+		},
+	}
+	for operation, call := range callFailures {
+		adapters := defaultMotifAdapters()
+		switch operation {
+		case 0:
+			adapters.randesuCall = func(*Graph, *realVector, int, *realVector) int { return 1 }
+		case 1:
+			adapters.estimateCall = func(*Graph, int, *realVector, int, *intVector) (float64, int) { return 0, 1 }
+		case 2:
+			adapters.randesuNoCall = func(*Graph, int, *realVector) (float64, int) { return 0, 1 }
+		}
+		if err := call(&adapters); err == nil {
+			t.Errorf("RANDESU operation %d returned nil upstream error", operation)
+		}
+	}
+
+	conversion := defaultMotifAdapters()
+	conversion.convertReal = func(*realVector) ([]float64, error) { return nil, failure }
+	if _, err := graph.motifsRandesu(MotifsRandesuOptions{Size: 3}, &conversion); !errors.Is(err, failure) {
+		t.Errorf("histogram conversion error = %v", err)
+	}
+	malformedHistogram := defaultMotifAdapters()
+	malformedHistogram.convertReal = func(*realVector) ([]float64, error) {
+		values := make([]float64, 16)
+		values[3] = math.Inf(1)
+		return values, nil
+	}
+	if _, err := graph.motifsRandesu(MotifsRandesuOptions{Size: 3}, &malformedHistogram); err == nil {
+		t.Error("MotifsRandesu accepted malformed histogram")
+	}
+	wrongLength := defaultMotifAdapters()
+	wrongLength.convertReal = func(*realVector) ([]float64, error) { return make([]float64, 15), nil }
+	if _, err := graph.motifsRandesu(MotifsRandesuOptions{Size: 3}, &wrongLength); err == nil {
+		t.Error("MotifsRandesu accepted wrong histogram length")
+	}
+	malformedEstimate := defaultMotifAdapters()
+	malformedEstimate.estimateCall = func(*Graph, int, *realVector, int, *intVector) (float64, int) {
+		return math.NaN(), 0
+	}
+	if _, err := graph.motifsRandesuEstimate(MotifsRandesuEstimateOptions{Size: 3, SampleSize: 2}, &malformedEstimate); err == nil {
+		t.Error("MotifsRandesuEstimate accepted malformed estimate")
+	}
+	malformedCount := defaultMotifAdapters()
+	malformedCount.randesuNoCall = func(*Graph, int, *realVector) (float64, int) { return 0.5, 0 }
+	if _, err := graph.motifsRandesuNo(MotifsRandesuOptions{Size: 3}, &malformedCount); err == nil {
+		t.Error("MotifsRandesuNo accepted malformed count")
+	}
+}
+
+func TestRandesuTemporaryVectorsCloseAfterCalls(t *testing.T) {
+	graph, err := NewGraphFromEdges(4, []Edge{{0, 1}, {1, 2}, {2, 0}}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer graph.Close()
+	vertices, _ := VertexIDs(0, 1)
+
+	for operation := 0; operation < 3; operation++ {
+		realClosed, intClosed := 0, 0
+		adapters := defaultMotifAdapters()
+		adapters.closeReal = func(vector *realVector) { realClosed++; vector.close() }
+		adapters.closeInt = func(vector *intVector) { intClosed++; vector.close() }
+		switch operation {
+		case 0:
+			adapters.randesuCall = func(*Graph, *realVector, int, *realVector) int { return 1 }
+			_, _ = graph.motifsRandesu(MotifsRandesuOptions{Size: 3, CutProb: []float64{0, 0, 0}}, &adapters)
+			if realClosed != 2 || intClosed != 0 {
+				t.Errorf("histogram closes = real %d, int %d", realClosed, intClosed)
+			}
+		case 1:
+			adapters.estimateCall = func(*Graph, int, *realVector, int, *intVector) (float64, int) { return 0, 1 }
+			_, _ = graph.motifsRandesuEstimate(MotifsRandesuEstimateOptions{
+				Size: 3, CutProb: []float64{0, 0, 0}, SampleVertices: vertices,
+			}, &adapters)
+			if realClosed != 1 || intClosed != 1 {
+				t.Errorf("estimate closes = real %d, int %d", realClosed, intClosed)
+			}
+		case 2:
+			adapters.randesuNoCall = func(*Graph, int, *realVector) (float64, int) { return 0, 1 }
+			_, _ = graph.motifsRandesuNo(MotifsRandesuOptions{Size: 3, CutProb: []float64{0, 0, 0}}, &adapters)
+			if realClosed != 1 || intClosed != 0 {
+				t.Errorf("count closes = real %d, int %d", realClosed, intClosed)
+			}
+		}
+	}
+}
