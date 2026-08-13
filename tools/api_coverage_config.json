@@ -24,10 +24,6 @@
       }
     },
     "deferred": {
-      "igraph_biadjacency": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 biadjacency conversion work."
-      },
       "igraph_bipartite_game_gnm": {
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 reproducible random bipartite graph generation."
@@ -48,10 +44,6 @@
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 projection work; the final audit will decide whether this size helper is public, composed, or internal."
       },
-      "igraph_get_biadjacency": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 graph-to-biadjacency conversion with explicit row and column provenance."
-      },
       "igraph_is_matching": {
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 matching validation."
@@ -63,10 +55,6 @@
       "igraph_maximum_bipartite_matching": {
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 maximum cardinality and weighted matching."
-      },
-      "igraph_weighted_biadjacency": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 weighted biadjacency construction with aligned Go-owned weights."
       }
     },
     "intentionally_unsupported": {
