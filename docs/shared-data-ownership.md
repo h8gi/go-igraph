@@ -44,6 +44,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | feedback edge/vertex sets | Go-owned slices | none | weight inputs are borrowed and copied for the synchronous call; result IDs survive graph closure |
 | dyad/triad census and triangle results | Go-owned structs, slices, or nested fixed arrays | none | selectors are borrowed and materialized for the synchronous call; exact counts and triangle IDs survive graph closure |
 | RANDESU motif results | Go-owned slices or scalars | none | cut probabilities, seeds, and sample selectors are borrowed synchronously; histograms retain upstream NaN class markers and survive graph closure |
+| graphlet basis and projection results | Go-owned nested clique slices and aligned real vectors | none | weights, clique bases, and initial coefficients are borrowed and copied synchronously; all returned storage survives graph closure |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
@@ -201,6 +202,16 @@ with random sample sizes. Random sampling and stochastic cutting execute under
 the package RNG lock; a non-nil seed is applied only within that serialized
 call. Estimates are finite non-negative real values and may be fractional;
 total motif counts are checked exact Go-owned integers.
+
+Graphlet methods borrow optional edge weights; nil means unit weights, while a
+non-nil slice is length-checked, restricted to finite non-negative values, and
+copied into a temporary C vector. Candidate and complete decomposition results
+copy every clique and aligned threshold or coefficient into Go-owned storage.
+Projection additionally copies and canonicalizes caller-supplied cliques,
+rejects invalid IDs, repeated vertices, incomplete or duplicate cliques, and
+uses a non-empty initial coefficient slice as the iterative starting point.
+All temporary vector lists own their nested C vectors and are destroyed on
+success, conversion failure, and upstream error paths.
 
 Every successfully returned derived `Graph` owns exactly one independently
 initialized `igraph_t`. It remains usable after all source graphs are closed;

@@ -23,20 +23,7 @@
         "rationale": "The public API composes weighted clique-number lookup with explicitly bounded weighted enumeration."
       }
     },
-    "deferred": {
-      "igraph_graphlets": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 graphlets work."
-      },
-      "igraph_graphlets_candidate_basis": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 graphlets work."
-      },
-      "igraph_graphlets_project": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 graphlets work."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",
