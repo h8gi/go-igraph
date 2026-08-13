@@ -79,10 +79,6 @@
       }
     },
     "deferred": {
-      "igraph_count_reachable": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 Go-owned reachability counts."
-      },
       "igraph_eulerian_cycle": {
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 Go-owned Eulerian cycle results."
@@ -103,21 +99,9 @@
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 Eulerian existence queries."
       },
-      "igraph_neighborhood_graphs": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 independently owned neighborhood graphs with source provenance."
-      },
-      "igraph_reachability": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 Go-owned reachable sets without exposing C bitsets."
-      },
       "igraph_spanner": {
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 spanners with explicit source-edge provenance."
-      },
-      "igraph_transitive_closure": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 independently owned transitive-closure graphs."
       },
       "igraph_voronoi": {
         "domain": "paths_and_reachability",
