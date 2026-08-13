@@ -41,6 +41,7 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/isomorphism/main.go`
 - `examples/cliques/main.go`
 - `examples/cycles/main.go`
+- `examples/bipartite/main.go`
 
 ### Usage & Verification
 Users can run any standalone example using:

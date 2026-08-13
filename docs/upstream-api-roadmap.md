@@ -770,9 +770,10 @@ Goal: construct, validate, convert, project, generate, and match bipartite
 networks through one explicit partition contract, with source provenance and
 Go-owned graph and value results.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#211](https://github.com/h8gi/go-igraph/issues/211).
+Status: complete. The reference workflows, shared contracts, and
+dependency-ordered issue plan established in
+[#211](https://github.com/h8gi/go-igraph/issues/211) are implemented and
+audited through [#217](https://github.com/h8gi/go-igraph/issues/217).
 
 Reference workflows:
 
@@ -782,7 +783,7 @@ Reference workflows:
 - assignment networks validate a supplied partition and compute unweighted or
   weighted maximum matchings without exposing upstream unmatched sentinels.
 
-Planned areas:
+Delivered areas:
 
 - explicit partition discovery, validation, and deterministic construction
   ([#212](https://github.com/h8gi/go-igraph/issues/212));
@@ -849,6 +850,13 @@ Completion criteria:
 - every declaration in `igraph_bipartite.h` and `igraph_matching.h` has a final
   reviewed disposition, examples cover both workflows, and `make verify`
   passes while preserving the statement coverage floor.
+
+Final reviewed disposition: all 14 declarations across `igraph_bipartite.h`
+and `igraph_matching.h` are user-facing bindings, with no deferred or
+unsupported declarations. Package examples and `examples/bipartite/` cover
+affiliation projection and assignment matching, while the integration pipeline
+also exercises matrix round trips, weighted and unweighted matching, seeded
+generation, bipartite layout, ownership across closure, and race-safe access.
 
 ### Later domain milestones
 
