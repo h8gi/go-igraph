@@ -489,6 +489,14 @@ into Go-owned values. Partial initialization or conversion destroys every
 temporary matrix and vector and, after successful graph initialization, either
 adopts that graph exactly once or destroys it before returning an error.
 
+Bipartite projection borrows the source graph and explicit partition while
+holding the graph read lock. Each requested projection is initialized into a
+separate `igraph_t`, adopted into an independently owned public `Graph`, and
+paired with Go-owned source vertex IDs and edge-ID-aligned multiplicities.
+Two-mode projection cleans both initialized graphs if either multiplicity
+conversion fails. Closing the source or either sibling does not affect the
+other graph or any returned slice.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:

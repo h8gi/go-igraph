@@ -36,14 +36,6 @@
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 reproducible random bipartite graph generation."
       },
-      "igraph_bipartite_projection": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 projection and provenance work."
-      },
-      "igraph_bipartite_projection_size": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 projection work; the final audit will decide whether this size helper is public, composed, or internal."
-      },
       "igraph_is_matching": {
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 matching validation."
