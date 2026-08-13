@@ -24,18 +24,6 @@
       }
     },
     "deferred": {
-      "igraph_count_adjacent_triangles": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
-      },
-      "igraph_count_triangles": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
-      },
-      "igraph_dyad_census": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
-      },
       "igraph_graphlets": {
         "domain": "motifs_and_graphlets",
         "rationale": "Planned for Milestone 13 graphlets work."
@@ -48,10 +36,6 @@
         "domain": "motifs_and_graphlets",
         "rationale": "Planned for Milestone 13 graphlets work."
       },
-      "igraph_list_triangles": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
-      },
       "igraph_motifs_randesu": {
         "domain": "motifs_and_graphlets",
         "rationale": "Planned for Milestone 13 RANDESU motifs work."
@@ -63,10 +47,6 @@
       "igraph_motifs_randesu_no": {
         "domain": "motifs_and_graphlets",
         "rationale": "Planned for Milestone 13 RANDESU motifs work."
-      },
-      "igraph_triad_census": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 dyad/triad/triangle census work."
       }
     },
     "intentionally_unsupported": {
