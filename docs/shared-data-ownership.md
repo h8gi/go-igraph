@@ -480,6 +480,15 @@ owned graphs that the caller closes plus non-nil partition copies that remain
 valid after graph closure. Failed construction adopts no graph, and temporary
 partition and edge vectors are destroyed on every return path.
 
+Biadjacency construction borrows immutable `Matrix` values and copies them into
+temporary C matrices. Weighted construction copies its output weights into a
+Go-owned slice aligned with returned graph edge IDs. Graph-to-matrix conversion
+borrows the explicit partition and optional edge weights while holding the
+graph read lock, then eagerly copies the matrix and row/column source vertex IDs
+into Go-owned values. Partial initialization or conversion destroys every
+temporary matrix and vector and, after successful graph initialization, either
+adopts that graph exactly once or destroys it before returning an error.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:
