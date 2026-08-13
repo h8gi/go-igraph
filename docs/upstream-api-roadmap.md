@@ -864,8 +864,8 @@ Goal: deepen the general-purpose graph API with finite and explicitly bounded
 route analysis, distance-derived metrics, reachability and derived graphs,
 widest/Voronoi/spanner workflows, and Eulerian traversals.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
+Status: complete. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan were established in
 [#225](https://github.com/h8gi/go-igraph/issues/225).
 
 Reference workflows:
@@ -975,6 +975,15 @@ status may be composed or internal, A* whose callback boundary requires a
 safety decision, and unbounded all-shortest-path declarations whose allocation
 contract requires explicit review. The final audit must resolve every deferred
 entry.
+
+Final reviewed disposition: every declaration in `igraph_paths.h`,
+`igraph_reachability.h`, `igraph_neighborhood.h`, and `igraph_eulerian.h` has a
+non-deferred disposition. The bounded Go APIs cover the two reference
+workflows; algorithm variants and low-level conversions are composed, while
+unbounded all-shortest-path materialization and the A* callback boundary are
+intentionally unsupported. Package and standalone examples cover routing and
+reachability, and the integration pipeline verifies ownership, race safety,
+the generated inventory, and the statement coverage floor.
 
 Completion criteria:
 

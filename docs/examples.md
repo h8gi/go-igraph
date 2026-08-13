@@ -11,10 +11,12 @@ Documentation examples are placed in test files located in the root repository d
 ### File Naming Convention
 Examples are grouped by functional domain:
 - `example_basic_test.go`: Basic graph creation, deletion, decomposition, and general graph operations.
-- `example_paths_test.go`: Shortest paths, distance matrices, BFS/DFS traversals.
+- `example_paths_test.go`: Shortest/widest paths, distance matrices,
+  reachability, derived graphs, and Eulerian traversals.
 - `example_centrality_test.go`: Centrality metrics (closeness, betweenness, PageRank).
 - `example_community_test.go`: Community detection algorithms (multilevel, walktrap, etc.).
 - `example_flow_test.go`: Network flows, cuts, and connectivity.
+
 - `example_isomorphism_test.go`: Isomorphism decisions, explicit mappings, bounded enumeration, canonical graphs, and automorphisms.
 - `example_clique_test.go`: Clique extrema, bounded maximum-weight results, and independent sets.
 - `example_cycle_test.go`: Bounded cycle enumeration, cycle bases, feedback sets, and topological verification.
@@ -30,6 +32,8 @@ Examples are grouped by functional domain:
 ## 2. Standalone Runnable Demos (`examples/` directory)
 
 For end-to-end tutorial scripts or realistic CLI demos, `go-igraph` maintains standalone `package main` applications in `examples/`.
+The `examples/paths/` program demonstrates bounded route alternatives and
+directed reachability without exposing C types.
 
 ### Directory Structure
 Each example is placed in its own subdirectory under `examples/`:

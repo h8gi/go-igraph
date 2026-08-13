@@ -55,6 +55,49 @@ func ExampleGraph_ShortestPath() {
 	// Edges: [3 2]
 }
 
+func ExampleGraph_Reachability() {
+	graph, err := igraph.NewGraphFromEdges(4, []igraph.Edge{
+		{From: 0, To: 1}, {From: 1, To: 2}, {From: 3, To: 2},
+	}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Close()
+
+	result, err := graph.Reachability(igraph.DirectionOut)
+	if err != nil {
+		log.Fatal(err)
+	}
+	counts, err := graph.ReachableCounts(igraph.DirectionOut)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println(result.Reachable)
+	fmt.Println(counts)
+	// Output:
+	// [[0 1 2] [1 2] [2] [2 3]]
+	// [3 2 1 2]
+}
+
+func ExampleGraph_WidestPath() {
+	graph, err := igraph.NewGraphFromEdges(4, []igraph.Edge{
+		{From: 0, To: 1}, {From: 1, To: 3},
+		{From: 0, To: 2}, {From: 2, To: 3},
+	}, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Close()
+
+	path, err := graph.WidestPath(0, 3, []float64{5, 4, 3, 3}, igraph.DirectionOut)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(path.Vertices, path.Edges)
+	// Output: [0 1 3] [0 1]
+}
+
 func ExampleGraph_BreadthFirstSearch() {
 	graph, err := igraph.NewGraphFromEdges(5, []igraph.Edge{
 		{From: 0, To: 1}, {From: 0, To: 2},

@@ -3,7 +3,8 @@
 // Graph and Vector values own C resources and should be closed when they are
 // no longer needed. Close is idempotent, and methods on a closed resource
 // return ErrClosed. Selectors, Matrix, Path, Cycle, GirthResult,
-// SimpleCyclesResult, PathsResult, path collections, cycle-basis, feedback-set,
+// SimpleCyclesResult, PathsResult, path collections, reachability, Voronoi,
+// path histograms, Eulerian traversals, cycle-basis, feedback-set,
 // census, triangle, motif, and
 // graphlet collections,
 // ConnectedComponents, articulation-point and bridge slices,
@@ -12,7 +13,8 @@
 // results, structural results, centrality results, centralization results,
 // CommunityPartition, HierarchicalCommunity, and SpinglassSingleResult are
 // Go-owned and never require Close. Graphs returned by subgraph,
-// decomposition, and graph-operator APIs are independently owned and must each
+// decomposition, graph-operator, neighborhood, transitive-closure, and spanner
+// APIs are independently owned and must each
 // be closed.
 // Every returned slice, nested slice, matrix, path, community partition, and
 // hierarchical community dendrogram remains valid after the source graph or
