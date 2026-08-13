@@ -336,6 +336,14 @@ follow the materialized source and target selector order, including duplicates,
 and represent unreachable pairs as positive infinity. Path slices and matrices
 remain valid after their source graph is closed.
 
+Cutoff-distance matrices, eccentricity and local-efficiency slices, graph
+centers, pseudo-diameter endpoint records, and path-length histograms follow
+the same synchronous borrowing rule and are returned as Go-owned values.
+Distance-derived weighted operations require finite non-negative edge lengths.
+Pseudo-diameter's optional start and seed values are borrowed only for the
+call; a nil start delegates the starting-vertex choice to the package-locked
+C/igraph RNG.
+
 A non-nil empty weight slice therefore represents a weighted call only for a
 graph with no edges; it is not interchangeable with `nil` on a graph that has
 edges. Path algorithms support finite negative weights and report reachable

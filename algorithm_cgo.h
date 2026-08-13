@@ -73,6 +73,29 @@ igraph_error_t go_igraph_get_k_shortest_paths(
 igraph_error_t go_igraph_get_all_simple_paths(
     const igraph_t *, igraph_vector_int_list_t *, igraph_int_t, igraph_vs_t,
     igraph_neimode_t, igraph_int_t, igraph_int_t, igraph_int_t);
+igraph_error_t go_igraph_distances_cutoff(
+    const igraph_t *, const igraph_vector_t *, igraph_matrix_t *, igraph_vs_t,
+    igraph_vs_t, igraph_neimode_t, igraph_real_t);
+igraph_error_t go_igraph_eccentricity(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_t *, igraph_vs_t,
+    igraph_neimode_t);
+igraph_error_t go_igraph_radius(
+    const igraph_t *, const igraph_vector_t *, igraph_real_t *, igraph_neimode_t);
+igraph_error_t go_igraph_graph_center(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_int_t *, igraph_neimode_t);
+igraph_error_t go_igraph_pseudo_diameter(
+    const igraph_t *, const igraph_vector_t *, igraph_real_t *, igraph_int_t,
+    igraph_int_t *, igraph_int_t *, igraph_bool_t, igraph_bool_t);
+igraph_error_t go_igraph_global_efficiency(
+    const igraph_t *, const igraph_vector_t *, igraph_real_t *, igraph_bool_t);
+igraph_error_t go_igraph_local_efficiency(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_t *, igraph_vs_t,
+    igraph_bool_t, igraph_neimode_t);
+igraph_error_t go_igraph_average_local_efficiency(
+    const igraph_t *, const igraph_vector_t *, igraph_real_t *, igraph_bool_t,
+    igraph_neimode_t);
+igraph_error_t go_igraph_path_length_hist(
+    const igraph_t *, igraph_vector_t *, igraph_real_t *, igraph_bool_t);
 igraph_error_t go_igraph_density(const igraph_t *, const igraph_vector_t *,
                                  igraph_real_t *, igraph_bool_t);
 igraph_error_t go_igraph_diameter(
