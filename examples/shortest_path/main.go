@@ -51,4 +51,16 @@ func main() {
 	for i, row := range distMat.Rows() {
 		fmt.Printf(" Source %d: %v\n", sourceIDs[i], row)
 	}
+
+	reachable, err := g.ReachableCounts(igraph.DirectionOut)
+	if err != nil {
+		log.Fatalf("failed to compute reachable vertex counts: %v", err)
+	}
+	fmt.Printf("Reachable vertices per source (including the source): %v\n", reachable)
+
+	widest, err := g.WidestPath(0, 4, []float64{6, 3, 5, 4, 2, 7}, igraph.DirectionOut)
+	if err != nil {
+		log.Fatalf("failed to compute widest path: %v", err)
+	}
+	fmt.Printf("Widest path vertices from 0 to 4: %v\n", widest.Vertices)
 }
