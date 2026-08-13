@@ -881,7 +881,8 @@ Reference workflows:
 Planned areas:
 
 - finite batch shortest paths and explicitly bounded k-shortest and simple-path
-  enumeration ([#226](https://github.com/h8gi/go-igraph/issues/226));
+  enumeration with aligned Go-owned vertex and edge sequences
+  ([#226](https://github.com/h8gi/go-igraph/issues/226));
 - cutoff distances, algorithm selection, eccentricity, radius, center,
   pseudo-diameter, efficiency, and path-length histograms
   ([#227](https://github.com/h8gi/go-igraph/issues/227));
@@ -921,6 +922,17 @@ final audit records them as intentionally unsupported. Algorithm-specific
 shortest-path, distance, and widest-path declarations should normally be
 composed behind automatic Go selection rather than exposed as parallel public
 methods.
+
+The #226 path-enumeration slice resolves that allocation review:
+`ShortestPaths` preserves finite target selector order and duplicates,
+`KShortestPaths` requires an explicit positive count, and `SimplePaths`
+requires an explicit positive result limit and probes one additional result to
+report truncation. The two unbounded all-shortest-path declarations are
+intentionally unsupported, A* is intentionally unsupported because its
+heuristic callback would cross the cgo boundary, algorithm-specific
+shortest-path variants are composed behind `ShortestPath` or `ShortestPaths`,
+and low-level path conversion helpers are composed by the aligned Go-owned
+`Path` result.
 
 Reachability results do not expose C bitsets. Derived graph results include
 source vertex or edge provenance wherever IDs can change and such provenance

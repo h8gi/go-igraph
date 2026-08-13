@@ -21,6 +21,36 @@
         "go_api": "MaximumWeightCliques",
         "domain": "cliques",
         "rationale": "The public API composes weighted clique-number lookup with explicitly bounded weighted enumeration."
+      },
+      "igraph_expand_path_to_pairs": {
+        "go_api": "Path",
+        "domain": "paths_and_reachability",
+        "rationale": "Public path APIs return aligned Go-owned vertex and edge sequences directly instead of mutating a low-level integer vector."
+      },
+      "igraph_get_shortest_path_bellman_ford": {
+        "go_api": "ShortestPath",
+        "domain": "paths_and_reachability",
+        "rationale": "ShortestPath selects the appropriate weighted algorithm without exposing an implementation-specific method."
+      },
+      "igraph_get_shortest_path_dijkstra": {
+        "go_api": "ShortestPath",
+        "domain": "paths_and_reachability",
+        "rationale": "ShortestPath selects the appropriate weighted algorithm without exposing an implementation-specific method."
+      },
+      "igraph_get_shortest_paths_bellman_ford": {
+        "go_api": "ShortestPaths",
+        "domain": "paths_and_reachability",
+        "rationale": "ShortestPaths selects the appropriate weighted algorithm without exposing an implementation-specific method."
+      },
+      "igraph_get_shortest_paths_dijkstra": {
+        "go_api": "ShortestPaths",
+        "domain": "paths_and_reachability",
+        "rationale": "ShortestPaths selects the appropriate weighted algorithm without exposing an implementation-specific method."
+      },
+      "igraph_vertex_path_from_edge_path": {
+        "go_api": "Path",
+        "domain": "paths_and_reachability",
+        "rationale": "Public path APIs return aligned Go-owned vertex and edge sequences and do not require caller-side path conversion."
       }
     },
     "deferred": {
@@ -67,50 +97,6 @@
       "igraph_eulerian_path": {
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 Go-owned Eulerian path results."
-      },
-      "igraph_expand_path_to_pairs": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide whether this low-level path conversion helper is composed or internal."
-      },
-      "igraph_get_all_shortest_paths": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will audit whether all-shortest-path materialization can satisfy the bounded allocation contract."
-      },
-      "igraph_get_all_shortest_paths_dijkstra": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will audit bounded allocation and its composed role behind weighted path enumeration."
-      },
-      "igraph_get_all_simple_paths": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 explicitly bounded simple-path enumeration."
-      },
-      "igraph_get_k_shortest_paths": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 bounded alternative-route enumeration."
-      },
-      "igraph_get_shortest_path_astar": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide whether the heuristic callback contract can remain internal or must be unsupported."
-      },
-      "igraph_get_shortest_path_bellman_ford": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind ShortestPath algorithm selection."
-      },
-      "igraph_get_shortest_path_dijkstra": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind ShortestPath algorithm selection."
-      },
-      "igraph_get_shortest_paths": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 finite selector-ordered batch paths."
-      },
-      "igraph_get_shortest_paths_bellman_ford": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind batch path algorithm selection."
-      },
-      "igraph_get_shortest_paths_dijkstra": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind batch path algorithm selection."
       },
       "igraph_get_widest_path": {
         "domain": "paths_and_reachability",
@@ -164,10 +150,6 @@
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 independently owned transitive-closure graphs."
       },
-      "igraph_vertex_path_from_edge_path": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide whether this low-level path conversion helper is composed or internal."
-      },
       "igraph_voronoi": {
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 graph-distance Voronoi partitioning."
@@ -213,6 +195,18 @@
       "igraph_maximal_cliques_file": {
         "domain": "cliques",
         "rationale": "The C stdio handle and output-only contract do not fit the Go-owned result API."
+      },
+      "igraph_get_all_shortest_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Upstream materializes every geodesic without a result limit, which cannot satisfy the package bounded-allocation contract."
+      },
+      "igraph_get_all_shortest_paths_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "The weighted variant materializes every geodesic without a result limit, which cannot satisfy the package bounded-allocation contract."
+      },
+      "igraph_get_shortest_path_astar": {
+        "domain": "paths_and_reachability",
+        "rationale": "The heuristic callback would cross the Go/C boundary and the generic ShortestPath API already provides a safe Go-owned route contract."
       }
     }
   }

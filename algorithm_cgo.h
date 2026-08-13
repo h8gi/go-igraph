@@ -63,6 +63,16 @@ igraph_error_t go_igraph_distances(
 igraph_error_t go_igraph_get_shortest_path(
     const igraph_t *, const igraph_vector_t *, igraph_vector_int_t *,
     igraph_vector_int_t *, igraph_int_t, igraph_int_t, igraph_neimode_t);
+igraph_error_t go_igraph_get_shortest_paths(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_int_list_t *,
+    igraph_vector_int_list_t *, igraph_int_t, igraph_vs_t, igraph_neimode_t);
+igraph_error_t go_igraph_get_k_shortest_paths(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_int_list_t *,
+    igraph_vector_int_list_t *, igraph_int_t, igraph_int_t, igraph_int_t,
+    igraph_neimode_t);
+igraph_error_t go_igraph_get_all_simple_paths(
+    const igraph_t *, igraph_vector_int_list_t *, igraph_int_t, igraph_vs_t,
+    igraph_neimode_t, igraph_int_t, igraph_int_t, igraph_int_t);
 igraph_error_t go_igraph_density(const igraph_t *, const igraph_vector_t *,
                                  igraph_real_t *, igraph_bool_t);
 igraph_error_t go_igraph_diameter(

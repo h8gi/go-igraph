@@ -205,6 +205,33 @@ igraph_error_t go_igraph_get_shortest_path(
         graph, weights, vertices, edges, source, target, mode));
 }
 
+igraph_error_t go_igraph_get_shortest_paths(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_int_list_t *vertices, igraph_vector_int_list_t *edges,
+    igraph_int_t source, igraph_vs_t targets, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_get_shortest_paths(
+        graph, weights, vertices, edges, source, targets, mode, NULL, NULL));
+}
+
+igraph_error_t go_igraph_get_k_shortest_paths(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_int_list_t *vertices, igraph_vector_int_list_t *edges,
+    igraph_int_t k, igraph_int_t source, igraph_int_t target,
+    igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_get_k_shortest_paths(
+        graph, weights, vertices, edges, k, source, target, mode));
+}
+
+igraph_error_t go_igraph_get_all_simple_paths(
+    const igraph_t *graph, igraph_vector_int_list_t *paths,
+    igraph_int_t source, igraph_vs_t targets, igraph_neimode_t mode,
+    igraph_int_t min_length, igraph_int_t max_length,
+    igraph_int_t max_results) {
+    GO_IGRAPH_CALL(igraph_get_all_simple_paths(
+        graph, paths, source, targets, mode, min_length, max_length,
+        max_results));
+}
+
 igraph_error_t go_igraph_density(const igraph_t *graph,
                                  const igraph_vector_t *weights,
                                  igraph_real_t *result,
