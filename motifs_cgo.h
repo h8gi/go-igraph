@@ -16,5 +16,21 @@ igraph_error_t go_igraph_count_triangles(const igraph_t *graph,
                                          igraph_real_t *result);
 igraph_error_t go_igraph_list_triangles(const igraph_t *graph,
                                         igraph_vector_int_t *result);
+igraph_error_t go_igraph_motifs_randesu(const igraph_t *graph,
+                                        igraph_vector_t *histogram,
+                                        igraph_int_t size,
+                                        const igraph_vector_t *cut_probability);
+igraph_error_t go_igraph_motifs_randesu_estimate(
+    const igraph_t *graph,
+    igraph_real_t *estimate,
+    igraph_int_t size,
+    const igraph_vector_t *cut_probability,
+    igraph_int_t sample_size,
+    const igraph_vector_int_t *sample);
+igraph_error_t go_igraph_motifs_randesu_no(
+    const igraph_t *graph,
+    igraph_real_t *count,
+    igraph_int_t size,
+    const igraph_vector_t *cut_probability);
 
 #endif

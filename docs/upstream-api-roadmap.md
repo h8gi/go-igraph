@@ -741,7 +741,7 @@ public methods and in this final audit.
 
 Goal: Provide complete Go bindings for dyad census, triad census, triangle counting/listing, RANDESU motif counting/sampling, and graphlet decomposition/projection over `igraph_motifs.h` and `igraph_graphlets.h`.
 
-Status: in progress. Initial inventory dispositions and API contract plan are established in [#200](https://github.com/h8gi/go-igraph/issues/200).
+Status: in progress. Planning, census/triangle APIs, and RANDESU counting and sampling are implemented through [#202](https://github.com/h8gi/go-igraph/issues/202); graphlet and final integration work remain.
 
 Implemented & Planned areas:
 
@@ -758,7 +758,7 @@ Shared motif and graphlet contracts:
 - `DyadCensus` returns Go struct `DyadCensusResult` with Go-owned `int64` fields.
 - `TriadCensus` returns a Go-owned 16-element slice of `int64` representing Davis-Leinhardt classes.
 - `TrianglesList` returns Go-owned `[][3]int` matrix layout without exposing raw C vectors.
-- RANDESU motif counting validates subgraph sizes (3 or 4) and cut probability length matches size. Stochastic sampling options take optional `Seed *uint64` and execute safely within `withRNG`.
+- RANDESU motif counting validates subgraph sizes (3 or 4), finite cut probabilities in `[0, 1]`, and cut probability length matching size. Histograms are Go-owned `[]float64` values that preserve upstream NaN markers for impossible isomorphism classes. Estimation accepts either a positive random sample size or a non-empty unique explicit vertex selector, returns a possibly fractional estimate, and executes stochastic work safely within `withRNG` with optional `Seed *uint64`.
 - `igraph_motifs_randesu_callback` is marked as `intentionally_unsupported` to prevent unsafe C callbacks across the cgo boundary.
 - Graphlet APIs accept optional weights validated against `NumEdges()`, copy clique indices into Go-owned slices, and handle optional initial `Mu` vectors correctly (`startMu`).
 

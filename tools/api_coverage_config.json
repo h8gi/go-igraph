@@ -35,18 +35,6 @@
       "igraph_graphlets_project": {
         "domain": "motifs_and_graphlets",
         "rationale": "Planned for Milestone 13 graphlets work."
-      },
-      "igraph_motifs_randesu": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 RANDESU motifs work."
-      },
-      "igraph_motifs_randesu_estimate": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 RANDESU motifs work."
-      },
-      "igraph_motifs_randesu_no": {
-        "domain": "motifs_and_graphlets",
-        "rationale": "Planned for Milestone 13 RANDESU motifs work."
       }
     },
     "intentionally_unsupported": {
