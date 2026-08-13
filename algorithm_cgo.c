@@ -232,6 +232,68 @@ igraph_error_t go_igraph_get_all_simple_paths(
         max_results));
 }
 
+igraph_error_t go_igraph_distances_cutoff(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_matrix_t *result, igraph_vs_t sources, igraph_vs_t targets,
+    igraph_neimode_t mode, igraph_real_t cutoff) {
+    GO_IGRAPH_CALL(igraph_distances_cutoff(
+        graph, weights, result, sources, targets, mode, cutoff));
+}
+
+igraph_error_t go_igraph_eccentricity(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_vs_t vertices, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_eccentricity(graph, weights, result, vertices, mode));
+}
+
+igraph_error_t go_igraph_radius(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_real_t *result, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_radius(graph, weights, result, mode));
+}
+
+igraph_error_t go_igraph_graph_center(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_int_t *result, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_graph_center(graph, weights, result, mode));
+}
+
+igraph_error_t go_igraph_pseudo_diameter(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_real_t *diameter, igraph_int_t start, igraph_int_t *from,
+    igraph_int_t *to, igraph_bool_t directed, igraph_bool_t unconnected) {
+    GO_IGRAPH_CALL(igraph_pseudo_diameter(
+        graph, weights, diameter, start, from, to, directed, unconnected));
+}
+
+igraph_error_t go_igraph_global_efficiency(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_real_t *result, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_global_efficiency(graph, weights, result, directed));
+}
+
+igraph_error_t go_igraph_local_efficiency(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_vs_t vertices, igraph_bool_t directed,
+    igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_local_efficiency(
+        graph, weights, result, vertices, directed, mode));
+}
+
+igraph_error_t go_igraph_average_local_efficiency(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_real_t *result, igraph_bool_t directed, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_average_local_efficiency(
+        graph, weights, result, directed, mode));
+}
+
+igraph_error_t go_igraph_path_length_hist(
+    const igraph_t *graph, igraph_vector_t *result,
+    igraph_real_t *unconnected, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_path_length_hist(
+        graph, result, unconnected, directed));
+}
+
 igraph_error_t go_igraph_density(const igraph_t *graph,
                                  const igraph_vector_t *weights,
                                  igraph_real_t *result,
