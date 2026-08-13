@@ -3,7 +3,8 @@
 // Graph and Vector values own C resources and should be closed when they are
 // no longer needed. Close is idempotent, and methods on a closed resource
 // return ErrClosed. Selectors, Matrix, Path, Cycle, GirthResult,
-// SimpleCyclesResult, cycle-basis, feedback-set, census, triangle, motif, and
+// SimpleCyclesResult, PathsResult, path collections, cycle-basis, feedback-set,
+// census, triangle, motif, and
 // graphlet collections,
 // ConnectedComponents, articulation-point and bridge slices,
 // BiconnectedComponents, IDMapping, GraphIDMapping, subgraph and graph-operator
