@@ -505,6 +505,15 @@ validated and copied into sorted Go-owned `MatchedPair` slices before temporary
 C vectors are destroyed. No solver state or unmatched sentinel escapes, and
 the result remains valid after graph closure.
 
+Random bipartite constructors borrow `BipartiteRandomOptions` and its optional
+seed pointer only for the synchronous call. Stochastic execution is serialized
+under the package RNG lock, so equal seeds and options replay exactly without
+interference from concurrent seeded calls. Each result owns an independent
+graph and a non-nil Go-owned partition that remains valid after graph closure.
+The GNP and GNM constructors produce simple graphs; IEA independently assigns
+edge draws and may produce parallel edges. Bipartite self-loops are never
+generated.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:

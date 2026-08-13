@@ -23,20 +23,7 @@
         "rationale": "The public API composes weighted clique-number lookup with explicitly bounded weighted enumeration."
       }
     },
-    "deferred": {
-      "igraph_bipartite_game_gnm": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 reproducible random bipartite graph generation."
-      },
-      "igraph_bipartite_game_gnp": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 reproducible random bipartite graph generation."
-      },
-      "igraph_bipartite_iea_game": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 reproducible random bipartite graph generation."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",

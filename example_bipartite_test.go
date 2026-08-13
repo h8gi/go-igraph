@@ -7,6 +7,23 @@ import (
 	igraph "github.com/h8gi/go-igraph"
 )
 
+func ExampleNewBipartiteGNM() {
+	seed := uint64(42)
+	result, err := igraph.NewBipartiteGNM(3, 2, 4, igraph.BipartiteRandomOptions{Seed: &seed})
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer result.Graph.Close()
+
+	vertices, _ := result.Graph.VertexCount()
+	edges, _ := result.Graph.EdgeCount()
+	fmt.Println(vertices, edges)
+	fmt.Println(result.Partition)
+	// Output:
+	// 5 4
+	// [false false false true true]
+}
+
 func ExampleNewWeightedBiadjacency() {
 	matrix, err := igraph.NewMatrixFromRows([][]float64{
 		{1.5, 0, 2},
