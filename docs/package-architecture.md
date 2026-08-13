@@ -215,6 +215,13 @@ projection, generation, and matching. Partitions remain Go-owned values rather
 than hidden graph attributes, while projection graphs reuse the independently
 owned graph and provenance contracts established by earlier milestones.
 
+Milestone 15 applies the rule to paths, reachability, and routing. It extends
+the existing selector, matrix, weight, nested-result, bounded-enumeration, and
+independently owned graph contracts instead of exposing algorithm-specific C
+entry points. Unbounded enumeration, A* callbacks, C bitsets, and low-level path
+conversion helpers remain deferred until their final review can prove a
+bounded, Go-owned API or assign a composed, internal, or unsupported status.
+
 Reconsider a larger restructure only with measurements that identify a
 specific compilation, navigation, duplication, or safety problem and a
 proposed boundary that improves it.
