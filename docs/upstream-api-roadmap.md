@@ -942,6 +942,12 @@ require finite non-negative edge lengths. Algorithm-specific distance
 declarations are composed behind `Distances` and `CutoffDistances`; callers do
 not select Bellman-Ford, Dijkstra, Johnson, or Floyd-Warshall directly.
 
+The #228 reachability slice converts upstream component-indexed bitsets into
+vertex-indexed Go-owned reachable sets, adds per-vertex reachable counts, and
+returns independently owned neighborhood and transitive-closure graphs.
+Neighborhood results preserve root selector order and duplicates and include a
+Go-owned mapping from each result vertex back to its source vertex ID.
+
 Reachability results do not expose C bitsets. Derived graph results include
 source vertex or edge provenance wherever IDs can change and such provenance
 is meaningful. Nil weights select unweighted calculation; non-nil weights or
