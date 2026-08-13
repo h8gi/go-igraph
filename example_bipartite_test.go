@@ -62,3 +62,28 @@ func ExampleGraph_BipartiteProjections() {
 	// [3 4]
 	// [2]
 }
+
+func ExampleGraph_MaximumBipartiteMatching() {
+	graph, err := igraph.NewBipartite(
+		igraph.BipartitePartition{false, false, true, true},
+		[]igraph.Edge{{From: 0, To: 2}, {From: 0, To: 3}, {From: 1, To: 2}, {From: 1, To: 3}},
+		false,
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Graph.Close()
+
+	matching, err := graph.Graph.MaximumBipartiteMatching(
+		graph.Partition,
+		igraph.BipartiteMatchingOptions{Weights: []float64{1, 5, 4, 1}},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(matching.Size, matching.Weight)
+	fmt.Println(matching.Pairs)
+	// Output:
+	// 2 9
+	// [{0 3} {1 2}]
+}

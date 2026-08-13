@@ -18,7 +18,7 @@ Examples are grouped by functional domain:
 - `example_isomorphism_test.go`: Isomorphism decisions, explicit mappings, bounded enumeration, canonical graphs, and automorphisms.
 - `example_clique_test.go`: Clique extrema, bounded maximum-weight results, and independent sets.
 - `example_cycle_test.go`: Bounded cycle enumeration, cycle bases, feedback sets, and topological verification.
-- `example_bipartite_test.go`: Bipartite matrix construction, explicit partitions, weights, and source-ID-preserving conversion.
+- `example_bipartite_test.go`: Bipartite matrix construction, explicit partitions, source-ID-preserving projection, and weighted matching.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).

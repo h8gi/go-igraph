@@ -497,6 +497,14 @@ Two-mode projection cleans both initialized graphs if either multiplicity
 conversion fails. Closing the source or either sibling does not affect the
 other graph or any returned slice.
 
+Bipartite matching borrows the graph, explicit partition, candidate pairs,
+optional edge weights, and epsilon only for the synchronous call. Candidate
+pairs are converted into a temporary symmetric C mate vector whose `-1`
+unmatched values never enter the public API. Maximum-matching mate vectors are
+validated and copied into sorted Go-owned `MatchedPair` slices before temporary
+C vectors are destroyed. No solver state or unmatched sentinel escapes, and
+the result remains valid after graph closure.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:
