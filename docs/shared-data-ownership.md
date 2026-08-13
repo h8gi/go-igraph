@@ -354,6 +354,9 @@ Widest-path sequences and matrices and Voronoi memberships/distances are
 Go-owned. Spanner graphs are independently owned, must be closed by the caller,
 and carry a Go-owned result-edge-to-source-edge provenance slice.
 
+Eulerian path and cycle traversals reuse the Go-owned `Path` contract. Their
+vertex and edge slices remain valid after the source graph is closed.
+
 A non-nil empty weight slice therefore represents a weighted call only for a
 graph with no edges; it is not interchangeable with `nil` on a graph that has
 edges. Path algorithms support finite negative weights and report reachable

@@ -88,20 +88,7 @@
         "rationale": "Public path APIs return aligned Go-owned vertex and edge sequences and do not require caller-side path conversion."
       }
     },
-    "deferred": {
-      "igraph_eulerian_cycle": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 Go-owned Eulerian cycle results."
-      },
-      "igraph_eulerian_path": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 Go-owned Eulerian path results."
-      },
-      "igraph_is_eulerian": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 Eulerian existence queries."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",

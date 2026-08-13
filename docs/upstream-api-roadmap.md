@@ -953,6 +953,10 @@ partitions with deterministic or seeded-random tie breaking, and independently
 owned spanner graphs with source-edge provenance. Width inputs are required and
 finite; Voronoi and spanner lengths are finite and non-negative.
 
+The #230 Eulerian slice adds existence queries and aligned Go-owned path and
+cycle traversals. A missing traversal is represented by `Found == false` with
+non-nil empty vertex and edge slices rather than as an error.
+
 Reachability results do not expose C bitsets. Derived graph results include
 source vertex or edge provenance wherever IDs can change and such provenance
 is meaningful. Nil weights select unweighted calculation; non-nil weights or
