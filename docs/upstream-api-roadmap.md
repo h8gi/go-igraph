@@ -741,7 +741,7 @@ public methods and in this final audit.
 
 Goal: Provide complete Go bindings for dyad census, triad census, triangle counting/listing, RANDESU motif counting/sampling, and graphlet decomposition/projection over `igraph_motifs.h` and `igraph_graphlets.h`.
 
-Status: in progress. Planning, census/triangle APIs, and RANDESU counting and sampling are implemented through [#202](https://github.com/h8gi/go-igraph/issues/202); graphlet and final integration work remain.
+Status: in progress. All planned motif and graphlet bindings are implemented through [#203](https://github.com/h8gi/go-igraph/issues/203); final integration, examples, and audit work remain.
 
 Implemented & Planned areas:
 
@@ -760,7 +760,7 @@ Shared motif and graphlet contracts:
 - `TrianglesList` returns Go-owned `[][3]int` matrix layout without exposing raw C vectors.
 - RANDESU motif counting validates subgraph sizes (3 or 4), finite cut probabilities in `[0, 1]`, and cut probability length matching size. Histograms are Go-owned `[]float64` values that preserve upstream NaN markers for impossible isomorphism classes. Estimation accepts either a positive random sample size or a non-empty unique explicit vertex selector, returns a possibly fractional estimate, and executes stochastic work safely within `withRNG` with optional `Seed *uint64`.
 - `igraph_motifs_randesu_callback` is marked as `intentionally_unsupported` to prevent unsafe C callbacks across the cgo boundary.
-- Graphlet APIs accept optional weights validated against `NumEdges()`, copy clique indices into Go-owned slices, and handle optional initial `Mu` vectors correctly (`startMu`).
+- Graphlet APIs treat nil weights as unit weights and otherwise require one finite non-negative value per edge. Candidate bases, thresholds, and projected coefficients are copied into aligned Go-owned slices. Projection validates and copies complete, unique clique inputs and sets `startMu` only for a non-empty, length-matched initial coefficient vector.
 
 Final reviewed disposition: All 12 declarations across `igraph_motifs.h` and `igraph_graphlets.h` are accounted for (11 user-facing bindings and 1 intentionally unsupported callback).
 
