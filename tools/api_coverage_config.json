@@ -48,21 +48,9 @@
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 projection work; the final audit will decide whether this size helper is public, composed, or internal."
       },
-      "igraph_create_bipartite": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 explicit bipartite construction."
-      },
-      "igraph_full_bipartite": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 deterministic bipartite construction."
-      },
       "igraph_get_biadjacency": {
         "domain": "bipartite_networks",
         "rationale": "Planned for Milestone 14 graph-to-biadjacency conversion with explicit row and column provenance."
-      },
-      "igraph_is_bipartite": {
-        "domain": "bipartite_networks",
-        "rationale": "Planned for Milestone 14 bipartite validation and partition discovery."
       },
       "igraph_is_matching": {
         "domain": "bipartite_networks",

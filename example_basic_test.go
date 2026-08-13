@@ -32,6 +32,44 @@ func ExampleNewGraphFromEdges() {
 	// Vertices: 3, Edges: 2
 }
 
+func ExampleNewFullBipartite() {
+	result, err := igraph.NewFullBipartite(2, 3, false, igraph.DirectionOut)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer result.Graph.Close()
+
+	edges, err := result.Graph.EdgeCount()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(result.Partition)
+	fmt.Println(edges)
+	// Output:
+	// [false false true true true]
+	// 6
+}
+
+func ExampleGraph_Bipartite() {
+	graph, err := igraph.NewGraphFromEdges(4, []igraph.Edge{
+		{From: 0, To: 2}, {From: 1, To: 2}, {From: 1, To: 3},
+	}, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Close()
+
+	result, err := graph.Bipartite()
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(result.IsBipartite)
+	fmt.Println(len(result.Partition))
+	// Output:
+	// true
+	// 4
+}
+
 func ExampleGraph_DeleteVertices() {
 	graph, err := igraph.NewGraphFromEdges(4, []igraph.Edge{
 		{From: 0, To: 1}, {From: 1, To: 2},

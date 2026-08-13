@@ -471,6 +471,15 @@ Graph-returning flow APIs (`ResidualGraph`, `ReverseResidualGraph`, `GomoryHuTre
 new Go `*Graph`. The returned graph survives closing the source graph and can be
 closed independently.
 
+Bipartite partitions are explicit Go-owned boolean slices aligned with vertex
+IDs; they are not stored as hidden graph attributes. Constructor inputs are
+borrowed only for the synchronous call and copied into temporary C vectors.
+`Bipartite` copies a discovered partition into Go storage before releasing the
+graph read lock. `NewBipartite` and `NewFullBipartite` return independently
+owned graphs that the caller closes plus non-nil partition copies that remain
+valid after graph closure. Failed construction adopts no graph, and temporary
+partition and edge vectors are destroyed on every return path.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:
