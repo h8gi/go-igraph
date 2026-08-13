@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 12 are complete. The later domain milestones
+Status: Milestones 5 through 13 are complete. The later domain milestones
 below remain candidates. Later milestone numbers express dependency order, not
 a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
@@ -764,9 +764,95 @@ Shared motif and graphlet contracts:
 
 Final reviewed disposition: All 12 declarations across `igraph_motifs.h` and `igraph_graphlets.h` are accounted for (11 user-facing bindings and 1 intentionally unsupported callback), with no deferred declarations. Package and standalone examples exercise both motif and graphlet workflows, and the integration pipeline verifies aligned Go-owned results through graph closure.
 
+## Milestone 14: Bipartite networks and matching
+
+Goal: construct, validate, convert, project, generate, and match bipartite
+networks through one explicit partition contract, with source provenance and
+Go-owned graph and value results.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#211](https://github.com/h8gi/go-igraph/issues/211).
+
+Reference workflows:
+
+- affiliation and recommendation networks construct a user-item or
+  author-paper graph from a biadjacency matrix, recover the row and column
+  source IDs, project either mode, and retain projection multiplicities; and
+- assignment networks validate a supplied partition and compute unweighted or
+  weighted maximum matchings without exposing upstream unmatched sentinels.
+
+Planned areas:
+
+- explicit partition discovery, validation, and deterministic construction
+  ([#212](https://github.com/h8gi/go-igraph/issues/212));
+- unweighted and weighted biadjacency construction and matrix conversion with
+  explicit row and column vertex-ID mappings
+  ([#213](https://github.com/h8gi/go-igraph/issues/213));
+- one-mode and two-mode projection with independently owned graphs, source
+  vertex mappings, and edge multiplicities
+  ([#214](https://github.com/h8gi/go-igraph/issues/214));
+- matching validation and maximum cardinality or weighted matching through
+  Go-owned result types
+  ([#215](https://github.com/h8gi/go-igraph/issues/215));
+- reproducible random bipartite graph generators under the existing seeded RNG
+  isolation contract
+  ([#216](https://github.com/h8gi/go-igraph/issues/216)); and
+- the final contract audit, integration pipeline, executable examples,
+  ownership and race coverage, documentation, and inventory update
+  ([#217](https://github.com/h8gi/go-igraph/issues/217)).
+
+Execution order: #211 establishes the domain dispositions, reference
+workflows, shared contracts, and issue plan. #212 defines the explicit
+partition vocabulary used by every later slice. #213, #214, #215, and #216 may
+then proceed independently where their implementation does not require another
+slice's result type. #217 follows all implementation issues and removes every
+stale deferred disposition in the final audit.
+
+Shared bipartite contract: a partition is explicit Go-owned data aligned with
+vertex IDs; it is not hidden graph attribute state and does not introduce a
+second graph lifetime model. Public partition, matrix, weight, and options
+inputs are borrowed only for the synchronous call and copied before C retains
+or mutates them. Returned partitions, mappings, multiplicities, matchings,
+matrices, and weights are non-nil Go-owned values that remain valid after graph
+closure. Every returned graph is independently owned, survives source and
+sibling closure, and must be closed by the caller.
+
+Biadjacency results include row and column source vertex IDs so matrix position
+is never an implicit provenance contract. Weighted construction returns weights
+aligned with the resulting edge IDs. Projection results identify the source
+vertex corresponding to every projected vertex and align multiplicities with
+projected edge IDs. Matching results use Go-native pairs or equivalent result
+values instead of exposing negative upstream mate sentinels; output order is
+not a compatibility promise unless pinned igraph documents it.
+
+Partition length and validity, matrix dimensions and entries, weight length and
+finiteness, integer conversion, directed orientation, loops, parallel edges,
+empty modes, isolated vertices, and disconnected graphs must be validated or
+documented for each operation. Stochastic constructors use optional
+`Seed *uint64` values under `withRNG`, require exact replay for equal seeds, and
+must not interfere across concurrent calls. No C callback, attribute table,
+solver object, graph storage, or temporary vector escapes the synchronous call.
+
+Completion criteria:
+
+- both reference workflows are expressible without C types, hidden attributes,
+  or caller-inferred vertex ordering;
+- initialization failure, upstream error, early return, checked conversion,
+  and partial graph/vector construction clean up all owned resources;
+- empty, invalid, directed, undirected, loop, parallel-edge, disconnected,
+  weighted, seeded, and use-after-`Close` behaviors are documented and tested;
+- graph results and all aligned Go-owned values survive source and sibling
+  closure, while repeated `Close` remains safe;
+- seeded isolation, concurrent reads, and graph closure are covered under the
+  race detector; and
+- every declaration in `igraph_bipartite.h` and `igraph_matching.h` has a final
+  reviewed disposition, examples cover both workflows, and `make verify`
+  passes while preserving the statement coverage floor.
+
 ### Later domain milestones
 
-Bipartite and spatial analysis; attributes and richer import/export; and other specialized upstream domains
+Spatial analysis; attributes and richer import/export; and other specialized upstream domains
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
 merely to increase the inventory percentage.

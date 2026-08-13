@@ -7,7 +7,7 @@
 - Internal dependencies: **51**
 - Composed APIs: **3**
 - Intentionally unsupported: **8**
-- Deferred declarations: **0**
+- Deferred declarations: **14**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -206,14 +206,14 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_betweenness_subset` | `igraph_centrality.h` | Missing | — |
 | `igraph_bfs` | `igraph_visitor.h` | User-facing | `BreadthFirstSearch` |
 | `igraph_bfs_simple` | `igraph_visitor.h` | Missing | — |
-| `igraph_biadjacency` | `igraph_bipartite.h` | Missing | — |
+| `igraph_biadjacency` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_bibcoupling` | `igraph_cocitation.h` | Missing | — |
 | `igraph_biconnected_components` | `igraph_components.h` | User-facing | `BiconnectedComponents` |
-| `igraph_bipartite_game_gnm` | `igraph_bipartite.h` | Missing | — |
-| `igraph_bipartite_game_gnp` | `igraph_bipartite.h` | Missing | — |
-| `igraph_bipartite_iea_game` | `igraph_bipartite.h` | Missing | — |
-| `igraph_bipartite_projection` | `igraph_bipartite.h` | Missing | — |
-| `igraph_bipartite_projection_size` | `igraph_bipartite.h` | Missing | — |
+| `igraph_bipartite_game_gnm` | `igraph_bipartite.h` | Deferred | — |
+| `igraph_bipartite_game_gnp` | `igraph_bipartite.h` | Deferred | — |
+| `igraph_bipartite_iea_game` | `igraph_bipartite.h` | Deferred | — |
+| `igraph_bipartite_projection` | `igraph_bipartite.h` | Deferred | — |
+| `igraph_bipartite_projection_size` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_bitset_and` | `igraph_bitset.h` | Missing | — |
 | `igraph_bitset_capacity` | `igraph_bitset.h` | Missing | — |
 | `igraph_bitset_countl_one` | `igraph_bitset.h` | Missing | — |
@@ -423,7 +423,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_count_subisomorphisms_vf2` | `igraph_isomorphism.h` | User-facing | `CountSubgraphIsomorphismsVF2` |
 | `igraph_count_triangles` | `igraph_motifs.h` | User-facing | `TrianglesCount` |
 | `igraph_create` | `igraph_constructors.h` | User-facing | `NewGraphFromEdges` |
-| `igraph_create_bipartite` | `igraph_bipartite.h` | Missing | — |
+| `igraph_create_bipartite` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_cycle_graph` | `igraph_constructors.h` | Missing | — |
 | `igraph_de_bruijn` | `igraph_constructors.h` | Missing | — |
 | `igraph_decompose` | `igraph_components.h` | User-facing | `Decompose` |
@@ -578,7 +578,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_from_hrg_dendrogram` | `igraph_hrg.h` | Missing | — |
 | `igraph_from_prufer` | `igraph_constructors.h` | Missing | — |
 | `igraph_full` | `igraph_constructors.h` | User-facing | `NewFull` |
-| `igraph_full_bipartite` | `igraph_bipartite.h` | Missing | — |
+| `igraph_full_bipartite` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_full_citation` | `igraph_constructors.h` | Missing | — |
 | `igraph_full_multipartite` | `igraph_constructors.h` | Missing | — |
 | `igraph_fundamental_cycles` | `igraph_cycles.h` | User-facing | `FundamentalCycleBasis` |
@@ -590,7 +590,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_get_all_shortest_paths` | `igraph_paths.h` | Missing | — |
 | `igraph_get_all_shortest_paths_dijkstra` | `igraph_paths.h` | Missing | — |
 | `igraph_get_all_simple_paths` | `igraph_paths.h` | Missing | — |
-| `igraph_get_biadjacency` | `igraph_bipartite.h` | Missing | — |
+| `igraph_get_biadjacency` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_get_edgelist` | `igraph_conversion.h` | User-facing | `Edges` |
 | `igraph_get_eid` | `igraph_interface.h` | User-facing | `EdgeID` |
 | `igraph_get_eids` | `igraph_interface.h` | Missing | — |
@@ -767,7 +767,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_is_acyclic` | `igraph_structural.h` | User-facing | `IsAcyclic` |
 | `igraph_is_biconnected` | `igraph_components.h` | Missing | — |
 | `igraph_is_bigraphical` | `igraph_graphicality.h` | User-facing | `IsBigraphical` |
-| `igraph_is_bipartite` | `igraph_bipartite.h` | Missing | — |
+| `igraph_is_bipartite` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_is_bipartite_coloring` | `igraph_coloring.h` | Missing | — |
 | `igraph_is_chordal` | `igraph_structural.h` | Missing | — |
 | `igraph_is_clique` | `igraph_structural.h` | User-facing | `IsClique` |
@@ -781,8 +781,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_is_graphical` | `igraph_graphicality.h` | User-facing | `IsGraphical` |
 | `igraph_is_independent_vertex_set` | `igraph_structural.h` | User-facing | `IsIndependentVertexSet` |
 | `igraph_is_loop` | `igraph_structural.h` | Missing | — |
-| `igraph_is_matching` | `igraph_matching.h` | Missing | — |
-| `igraph_is_maximal_matching` | `igraph_matching.h` | Missing | — |
+| `igraph_is_matching` | `igraph_matching.h` | Deferred | — |
+| `igraph_is_maximal_matching` | `igraph_matching.h` | Deferred | — |
 | `igraph_is_minimal_separator` | `igraph_separators.h` | Missing | — |
 | `igraph_is_multiple` | `igraph_structural.h` | Missing | — |
 | `igraph_is_mutual` | `igraph_structural.h` | Missing | — |
@@ -1243,7 +1243,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_maximal_cliques_hist` | `igraph_cliques.h` | User-facing | `MaximalCliqueSizeHistogram` |
 | `igraph_maximal_cliques_subset` | `igraph_cliques.h` | User-facing | `MaximalCliquesFromVertices` |
 | `igraph_maximal_independent_vertex_sets` | `igraph_cliques.h` | User-facing | `MaximalIndependentVertexSets` |
-| `igraph_maximum_bipartite_matching` | `igraph_matching.h` | Missing | — |
+| `igraph_maximum_bipartite_matching` | `igraph_matching.h` | Deferred | — |
 | `igraph_maximum_cardinality_search` | `igraph_structural.h` | Missing | — |
 | `igraph_mean_degree` | `igraph_structural.h` | Missing | — |
 | `igraph_mincut` | `igraph_flow.h` | User-facing | `MinCut` |
@@ -2103,7 +2103,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_warningf` | `igraph_error.h` | Missing | — |
 | `igraph_watts_strogatz_game` | `igraph_games.h` | User-facing | `WattsStrogatzGame` |
 | `igraph_weighted_adjacency` | `igraph_constructors.h` | Missing | — |
-| `igraph_weighted_biadjacency` | `igraph_bipartite.h` | Missing | — |
+| `igraph_weighted_biadjacency` | `igraph_bipartite.h` | Deferred | — |
 | `igraph_weighted_clique_number` | `igraph_cliques.h` | User-facing | `WeightedCliqueNumber` |
 | `igraph_weighted_cliques` | `igraph_cliques.h` | User-facing | `WeightedCliques` |
 | `igraph_wheel` | `igraph_constructors.h` | Missing | — |
