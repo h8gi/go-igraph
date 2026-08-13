@@ -42,6 +42,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | cycle predicates, topological order, `Cycle`, and `GirthResult` | Go-owned scalars or slices | none | witnesses and orders are non-nil copies that remain valid and mutable after graph closure |
 | `SimpleCyclesResult` and cycle-basis results | Go-owned nested slices and Boolean | none | bounded paired cycles and every basis element are non-nil independent copies that survive graph closure |
 | feedback edge/vertex sets | Go-owned slices | none | weight inputs are borrowed and copied for the synchronous call; result IDs survive graph closure |
+| dyad/triad census and triangle results | Go-owned structs, slices, or nested fixed arrays | none | selectors are borrowed and materialized for the synchronous call; exact counts and triangle IDs survive graph closure |
 | `DifferenceResult` | independently owned `*Graph` plus left-operand `GraphIDMapping` | close `Graph` | vertex mapping is exact; edge mapping follows the documented structural convention |
 | `CompositionResult` | independently owned `*Graph`, Go-owned vertex mappings and edge provenance | close `Graph` | `Edges` is indexed by result edge ID and preserves one-to-many source participation |
 | `CommunityPartition` | Go-owned result value and slices | none | membership, sizes, community count, and modularity score remain valid and mutable after graph closure |
