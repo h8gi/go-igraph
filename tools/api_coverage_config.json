@@ -7,6 +7,16 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_get_widest_path": {
+        "go_api": "WidestPath",
+        "domain": "paths_and_reachability",
+        "rationale": "WidestPath composes the finite batch widest-path implementation for one target."
+      },
+      "igraph_widest_path_widths_floyd_warshall": {
+        "go_api": "WidestPathWidths",
+        "domain": "paths_and_reachability",
+        "rationale": "WidestPathWidths owns algorithm selection and exposes one selector-ordered matrix API."
+      },
       "igraph_distances_bellman_ford": {
         "go_api": "Distances",
         "domain": "paths_and_reachability",
@@ -87,33 +97,9 @@
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 Go-owned Eulerian path results."
       },
-      "igraph_get_widest_path": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 widest-route analysis."
-      },
-      "igraph_get_widest_paths": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 finite selector-ordered widest routes."
-      },
       "igraph_is_eulerian": {
         "domain": "paths_and_reachability",
         "rationale": "Planned for Milestone 15 Eulerian existence queries."
-      },
-      "igraph_spanner": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 spanners with explicit source-edge provenance."
-      },
-      "igraph_voronoi": {
-        "domain": "paths_and_reachability",
-        "rationale": "Planned for Milestone 15 graph-distance Voronoi partitioning."
-      },
-      "igraph_widest_path_widths_dijkstra": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind widest-path width calculation."
-      },
-      "igraph_widest_path_widths_floyd_warshall": {
-        "domain": "paths_and_reachability",
-        "rationale": "Milestone 15 will decide its composed/internal role behind widest-path width calculation."
       }
     },
     "intentionally_unsupported": {

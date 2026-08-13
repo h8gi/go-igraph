@@ -350,6 +350,10 @@ independently owned and must each be closed by the caller. Every neighborhood
 result includes a Go-owned source-vertex mapping that remains valid after the
 source graph or any sibling graph is closed.
 
+Widest-path sequences and matrices and Voronoi memberships/distances are
+Go-owned. Spanner graphs are independently owned, must be closed by the caller,
+and carry a Go-owned result-edge-to-source-edge provenance slice.
+
 A non-nil empty weight slice therefore represents a weighted call only for a
 graph with no edges; it is not interchangeable with `nil` on a graph that has
 edges. Path algorithms support finite negative weights and report reachable

@@ -96,6 +96,19 @@ igraph_error_t go_igraph_average_local_efficiency(
     igraph_neimode_t);
 igraph_error_t go_igraph_path_length_hist(
     const igraph_t *, igraph_vector_t *, igraph_real_t *, igraph_bool_t);
+igraph_error_t go_igraph_get_widest_paths(
+    const igraph_t *, igraph_vector_int_list_t *, igraph_vector_int_list_t *,
+    igraph_int_t, igraph_vs_t, const igraph_vector_t *, igraph_neimode_t);
+igraph_error_t go_igraph_widest_path_widths(
+    const igraph_t *, igraph_matrix_t *, igraph_vs_t, igraph_vs_t,
+    const igraph_vector_t *, igraph_neimode_t);
+igraph_error_t go_igraph_voronoi(
+    const igraph_t *, igraph_vector_int_t *, igraph_vector_t *,
+    const igraph_vector_int_t *, const igraph_vector_t *, igraph_neimode_t,
+    igraph_voronoi_tiebreaker_t);
+igraph_error_t go_igraph_spanner(
+    const igraph_t *, igraph_vector_int_t *, igraph_real_t,
+    const igraph_vector_t *);
 igraph_error_t go_igraph_density(const igraph_t *, const igraph_vector_t *,
                                  igraph_real_t *, igraph_bool_t);
 igraph_error_t go_igraph_diameter(

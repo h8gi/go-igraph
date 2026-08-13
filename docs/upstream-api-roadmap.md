@@ -948,6 +948,11 @@ returns independently owned neighborhood and transitive-closure graphs.
 Neighborhood results preserve root selector order and duplicates and include a
 Go-owned mapping from each result vertex back to its source vertex ID.
 
+The #229 routing slice adds aligned widest paths and width matrices, Voronoi
+partitions with deterministic or seeded-random tie breaking, and independently
+owned spanner graphs with source-edge provenance. Width inputs are required and
+finite; Voronoi and spanner lengths are finite and non-negative.
+
 Reachability results do not expose C bitsets. Derived graph results include
 source vertex or edge provenance wherever IDs can change and such provenance
 is meaningful. Nil weights select unweighted calculation; non-nil weights or

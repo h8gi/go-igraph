@@ -294,6 +294,36 @@ igraph_error_t go_igraph_path_length_hist(
         graph, result, unconnected, directed));
 }
 
+igraph_error_t go_igraph_get_widest_paths(
+    const igraph_t *graph, igraph_vector_int_list_t *vertices,
+    igraph_vector_int_list_t *edges, igraph_int_t from, igraph_vs_t to,
+    const igraph_vector_t *weights, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_get_widest_paths(
+        graph, vertices, edges, from, to, weights, mode, NULL, NULL));
+}
+
+igraph_error_t go_igraph_widest_path_widths(
+    const igraph_t *graph, igraph_matrix_t *result, igraph_vs_t from,
+    igraph_vs_t to, const igraph_vector_t *weights, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_widest_path_widths_dijkstra(
+        graph, result, from, to, weights, mode));
+}
+
+igraph_error_t go_igraph_voronoi(
+    const igraph_t *graph, igraph_vector_int_t *membership,
+    igraph_vector_t *distances, const igraph_vector_int_t *generators,
+    const igraph_vector_t *weights, igraph_neimode_t mode,
+    igraph_voronoi_tiebreaker_t tiebreaker) {
+    GO_IGRAPH_CALL(igraph_voronoi(
+        graph, membership, distances, generators, weights, mode, tiebreaker));
+}
+
+igraph_error_t go_igraph_spanner(
+    const igraph_t *graph, igraph_vector_int_t *edges,
+    igraph_real_t stretch, const igraph_vector_t *weights) {
+    GO_IGRAPH_CALL(igraph_spanner(graph, edges, stretch, weights));
+}
+
 igraph_error_t go_igraph_density(const igraph_t *graph,
                                  const igraph_vector_t *weights,
                                  igraph_real_t *result,
