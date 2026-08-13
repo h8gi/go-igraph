@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 13 are complete. The later domain milestones
+Status: Milestones 5 through 14 are complete. The later domain milestones
 below remain candidates. Later milestone numbers express dependency order, not
 a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
@@ -857,6 +857,107 @@ unsupported declarations. Package examples and `examples/bipartite/` cover
 affiliation projection and assignment matching, while the integration pipeline
 also exercises matrix round trips, weighted and unweighted matching, seeded
 generation, bipartite layout, ownership across closure, and race-safe access.
+
+## Milestone 15: Paths, reachability, and routing
+
+Goal: deepen the general-purpose graph API with finite and explicitly bounded
+route analysis, distance-derived metrics, reachability and derived graphs,
+widest/Voronoi/spanner workflows, and Eulerian traversals.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#225](https://github.com/h8gi/go-igraph/issues/225).
+
+Reference workflows:
+
+- route analysis computes selector-ordered shortest routes, bounded alternative
+  routes, cutoff distances and summaries, widest routes, and a sparse spanner
+  while retaining aligned vertex and edge identities; and
+- directed reachability computes reachable sets and counts, constructs
+  independently owned neighborhood and transitive-closure graphs with explicit
+  source provenance, partitions vertices by graph distance, and produces an
+  Eulerian traversal when one exists.
+
+Planned areas:
+
+- finite batch shortest paths and explicitly bounded k-shortest and simple-path
+  enumeration ([#226](https://github.com/h8gi/go-igraph/issues/226));
+- cutoff distances, algorithm selection, eccentricity, radius, center,
+  pseudo-diameter, efficiency, and path-length histograms
+  ([#227](https://github.com/h8gi/go-igraph/issues/227));
+- Go-owned reachable sets and counts plus independently owned neighborhood and
+  transitive-closure graphs
+  ([#228](https://github.com/h8gi/go-igraph/issues/228));
+- widest paths and widths, graph Voronoi partitioning, and spanners with
+  explicit provenance ([#229](https://github.com/h8gi/go-igraph/issues/229));
+- Eulerian existence checks and aligned vertex/edge traversals
+  ([#230](https://github.com/h8gi/go-igraph/issues/230)); and
+- final integration, examples, documentation, race/ownership coverage, and
+  inventory audit ([#231](https://github.com/h8gi/go-igraph/issues/231)).
+
+Execution order: #225 establishes the initial dispositions and shared
+contracts. #226, #227, #228, and #230 may then proceed independently. #229
+reuses the distance and reachability decisions from #227 and #228. #231 follows
+all implementation slices and removes every stale deferred disposition.
+
+Shared path and reachability contract: `Path`, `PathOptions`,
+`VertexSelector`, immutable `Matrix`, edge-weight validation, checked integer
+conversion, stable graph locking, and independently owned graph results remain
+the common vocabulary. Public slice, selector, matrix, weight, capacity,
+generator, and option inputs are borrowed only for the synchronous call and
+copied before C retains or mutates them. Returned paths, matrices, partitions,
+histograms, mappings, and nested collections are non-nil Go-owned values that
+survive graph closure. Returned neighborhood, closure, or spanner graphs are
+independently owned, survive source and sibling closure, and must be closed by
+the caller.
+
+Finite batch operations preserve materialized selector order and duplicates.
+Every path result aligns its vertex and edge sequences and represents
+unreachability without leaking upstream negative sentinels. Potentially
+exponential enumeration requires explicit non-negative limits before entering
+C. The unbounded all-shortest-path declarations remain deferred until #226
+proves that allocation can be bounded before materialization; otherwise the
+final audit records them as intentionally unsupported. Algorithm-specific
+shortest-path, distance, and widest-path declarations should normally be
+composed behind automatic Go selection rather than exposed as parallel public
+methods.
+
+Reachability results do not expose C bitsets. Derived graph results include
+source vertex or edge provenance wherever IDs can change and such provenance
+is meaningful. Nil weights select unweighted calculation; non-nil weights or
+capacities are copied, edge-aligned, finite, and follow operation-specific sign
+constraints. Cutoffs, limits, stretch factors, unreachable values, Voronoi
+ties, directed modes, empty values, loops, parallel edges, and disconnected
+graphs have explicit Go-native semantics. Random Voronoi tie-breaking, if
+exposed, uses optional `Seed *uint64` under `withRNG`; deterministic modes do
+not touch package RNG state. No C callback, bitset, iterator, graph storage, or
+temporary vector/list escapes the synchronous call.
+
+Initial disposition: the seven declarations already covered in these headers
+remain user-facing. The other 39 declarations are deferred to #226–#230. This
+includes algorithm variants and low-level path conversion helpers whose final
+status may be composed or internal, A* whose callback boundary requires a
+safety decision, and unbounded all-shortest-path declarations whose allocation
+contract requires explicit review. The final audit must resolve every deferred
+entry.
+
+Completion criteria:
+
+- both reference workflows are expressible without C types, caller-inferred ID
+  ordering, negative sentinels, or unbounded result allocation;
+- initialization failure, upstream error, early return, checked conversion,
+  and partial nested-vector or multi-graph construction clean up all resources;
+- empty, invalid, directed, undirected, loop, parallel-edge, disconnected,
+  unreachable, weighted, capacity, tied, bounded, and use-after-`Close`
+  behavior is documented and tested;
+- graph results and all aligned Go-owned values survive source and sibling
+  closure, while repeated `Close` remains safe;
+- seeded isolation where applicable, concurrent reads, and graph closure are
+  covered under the race detector; and
+- every declaration in `igraph_paths.h`, `igraph_reachability.h`,
+  `igraph_neighborhood.h`, and `igraph_eulerian.h` has a final reviewed
+  disposition, examples cover both workflows, and `make verify` passes while
+  preserving the statement coverage floor.
 
 ### Later domain milestones
 

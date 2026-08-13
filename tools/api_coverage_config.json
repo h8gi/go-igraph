@@ -23,7 +23,164 @@
         "rationale": "The public API composes weighted clique-number lookup with explicitly bounded weighted enumeration."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_average_local_efficiency": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 distance-derived efficiency metrics."
+      },
+      "igraph_count_reachable": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Go-owned reachability counts."
+      },
+      "igraph_distances_bellman_ford": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind automatic distance algorithm selection."
+      },
+      "igraph_distances_cutoff": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 bounded distance matrices."
+      },
+      "igraph_distances_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind automatic distance algorithm selection."
+      },
+      "igraph_distances_dijkstra_cutoff": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind bounded distance calculation."
+      },
+      "igraph_distances_floyd_warshall": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind automatic distance algorithm selection."
+      },
+      "igraph_distances_johnson": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind automatic distance algorithm selection."
+      },
+      "igraph_eccentricity": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 distance-derived graph metrics."
+      },
+      "igraph_eulerian_cycle": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Go-owned Eulerian cycle results."
+      },
+      "igraph_eulerian_path": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Go-owned Eulerian path results."
+      },
+      "igraph_expand_path_to_pairs": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide whether this low-level path conversion helper is composed or internal."
+      },
+      "igraph_get_all_shortest_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will audit whether all-shortest-path materialization can satisfy the bounded allocation contract."
+      },
+      "igraph_get_all_shortest_paths_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will audit bounded allocation and its composed role behind weighted path enumeration."
+      },
+      "igraph_get_all_simple_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 explicitly bounded simple-path enumeration."
+      },
+      "igraph_get_k_shortest_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 bounded alternative-route enumeration."
+      },
+      "igraph_get_shortest_path_astar": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide whether the heuristic callback contract can remain internal or must be unsupported."
+      },
+      "igraph_get_shortest_path_bellman_ford": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind ShortestPath algorithm selection."
+      },
+      "igraph_get_shortest_path_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind ShortestPath algorithm selection."
+      },
+      "igraph_get_shortest_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 finite selector-ordered batch paths."
+      },
+      "igraph_get_shortest_paths_bellman_ford": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind batch path algorithm selection."
+      },
+      "igraph_get_shortest_paths_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind batch path algorithm selection."
+      },
+      "igraph_get_widest_path": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 widest-route analysis."
+      },
+      "igraph_get_widest_paths": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 finite selector-ordered widest routes."
+      },
+      "igraph_global_efficiency": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 distance-derived efficiency metrics."
+      },
+      "igraph_graph_center": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 with explicit documentation of its experimental upstream status."
+      },
+      "igraph_is_eulerian": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Eulerian existence queries."
+      },
+      "igraph_local_efficiency": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 selector-aligned local efficiency metrics."
+      },
+      "igraph_neighborhood_graphs": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 independently owned neighborhood graphs with source provenance."
+      },
+      "igraph_path_length_hist": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Go-owned path-length histograms."
+      },
+      "igraph_pseudo_diameter": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 documented approximate diameter results."
+      },
+      "igraph_radius": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 distance-derived graph metrics."
+      },
+      "igraph_reachability": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 Go-owned reachable sets without exposing C bitsets."
+      },
+      "igraph_spanner": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 spanners with explicit source-edge provenance."
+      },
+      "igraph_transitive_closure": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 independently owned transitive-closure graphs."
+      },
+      "igraph_vertex_path_from_edge_path": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide whether this low-level path conversion helper is composed or internal."
+      },
+      "igraph_voronoi": {
+        "domain": "paths_and_reachability",
+        "rationale": "Planned for Milestone 15 graph-distance Voronoi partitioning."
+      },
+      "igraph_widest_path_widths_dijkstra": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind widest-path width calculation."
+      },
+      "igraph_widest_path_widths_floyd_warshall": {
+        "domain": "paths_and_reachability",
+        "rationale": "Milestone 15 will decide its composed/internal role behind widest-path width calculation."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",
