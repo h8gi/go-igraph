@@ -16,7 +16,6 @@ Examples are grouped by functional domain:
 - `example_centrality_test.go`: Centrality metrics (closeness, betweenness, PageRank).
 - `example_community_test.go`: Community detection algorithms (multilevel, walktrap, etc.).
 - `example_flow_test.go`: Network flows, cuts, and connectivity.
-
 - `example_isomorphism_test.go`: Isomorphism decisions, explicit mappings, bounded enumeration, canonical graphs, and automorphisms.
 - `example_clique_test.go`: Clique extrema, bounded maximum-weight results, and independent sets.
 - `example_cycle_test.go`: Bounded cycle enumeration, cycle bases, feedback sets, and topological verification.
