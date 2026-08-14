@@ -493,10 +493,6 @@
         "domain": "graph_interchange",
         "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
       },
-      "igraph_write_graph_gml": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
       "igraph_write_graph_leda": {
         "domain": "graph_interchange",
         "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."

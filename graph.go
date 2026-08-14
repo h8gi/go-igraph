@@ -9,10 +9,8 @@ import "C"
 import (
 	"errors"
 	"fmt"
-	"os"
 	"runtime"
 	"sync"
-	"unsafe"
 )
 
 const (
@@ -527,56 +525,6 @@ func validateEdge(edge Edge, vertexCount, index int) error {
 	return nil
 }
 
-//igraph:bind igraph_write_graph_edgelist
-func (g *Graph) WriteEdgeList(file *os.File) error {
-	if g == nil {
-		return ErrClosed
-	}
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if g.closed {
-		return ErrClosed
-	}
-
-	fstruct, err := openFileStream(file)
-	if err != nil {
-		return err
-	}
-	defer C.fclose(fstruct)
-	if code := C.igraph_write_graph_edgelist(&g.graph, fstruct); code != C.IGRAPH_SUCCESS {
-		return igraphError("write edge list", int(code))
-	}
-	if C.fflush(fstruct) != 0 {
-		return errors.New("igraph: failed to flush edge list")
-	}
-	return nil
-}
-
-//igraph:bind igraph_write_graph_graphml
-func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
-	if g == nil {
-		return ErrClosed
-	}
-	g.mu.Lock()
-	defer g.mu.Unlock()
-	if g.closed {
-		return ErrClosed
-	}
-
-	fstruct, err := openFileStream(file)
-	if err != nil {
-		return err
-	}
-	defer C.fclose(fstruct)
-	if code := C.igraph_write_graph_graphml(&g.graph, fstruct, booltoint(prefixattr)); code != C.IGRAPH_SUCCESS {
-		return igraphError("write GraphML", int(code))
-	}
-	if C.fflush(fstruct) != 0 {
-		return errors.New("igraph: failed to flush GraphML")
-	}
-	return nil
-}
-
 // Close releases the graph's C resource. It is safe to call more than once or
 // on a nil receiver.
 //
@@ -605,24 +553,4 @@ func (g *Graph) checkClosed() error {
 		return ErrClosed
 	}
 	return nil
-}
-
-func openFileStream(file *os.File) (*C.FILE, error) {
-	if file == nil {
-		return nil, errors.New("igraph: output file is nil")
-	}
-
-	fd := C.dup(C.int(file.Fd()))
-	if fd < 0 {
-		return nil, errors.New("igraph: failed to duplicate output file descriptor")
-	}
-
-	mode := C.CString("w")
-	defer C.free(unsafe.Pointer(mode))
-	fstruct := C.fdopen(fd, mode)
-	if fstruct == nil {
-		C.close(fd)
-		return nil, errors.New("igraph: failed to open output stream")
-	}
-	return fstruct, nil
 }
