@@ -20,6 +20,16 @@
 // hierarchical community dendrogram remains valid after the source graph or
 // temporary C resource is closed.
 //
+// AttributeScope, AttributeType, and AttributeMetadata provide the shared
+// Go-native vocabulary for graph, vertex, and edge boolean, numeric, and
+// string metadata. Attribute names and string values are UTF-8 and may not
+// contain embedded NUL bytes; names are non-empty while values may be empty.
+// Metadata returned by package APIs is Go-owned. The package installs and owns
+// the process-global C attribute table during package initialization, before
+// callers can construct graphs, and does not expose a replacement hook. The C
+// handler is experimental in pinned igraph 1.0.1; its lifecycle remains an
+// internal implementation detail rather than part of the Go API contract.
+//
 // Algorithm option and selector inputs are borrowed only for a call; any slice
 // passed to C is first copied into temporary C storage. DirectionOut is the
 // zero/default direction. Direction is ignored by undirected graphs. A nil

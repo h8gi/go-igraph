@@ -1117,9 +1117,12 @@ explicitly combine that metadata across graph transformations, and exchange
 attributed graphs through practical file formats without exposing C attribute
 tables or file handles.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#253](https://github.com/h8gi/go-igraph/issues/253).
+Status: in progress. The reference workflows, shared contracts, initial
+deferred inventory, and dependency-ordered issue plan were established in
+[#253](https://github.com/h8gi/go-igraph/issues/253). The shared typed
+vocabulary, process-global attribute runtime, checked metadata conversion, and
+record/list cleanup boundary are established in
+[#254](https://github.com/h8gi/go-igraph/issues/254).
 
 Reference workflows:
 
@@ -1205,6 +1208,13 @@ foreign writer bindings remain user-facing. The final audit must resolve every
 deferred declaration as user-facing, composed, internal, or intentionally
 unsupported and leave no stale deferred or accidentally missing declaration in
 either audited domain.
+
+Runtime-foundation disposition: #254 classifies attribute-table installation
+and presence checks plus the record and generated-list initialization,
+destruction, sizing, type-checking, and resize operations used by the shared
+cleanup boundary as ten internal dependencies. The remaining 154 scoped
+declarations stay deferred to the focused value, transformation, interchange,
+and final-audit issues.
 
 Completion criteria:
 

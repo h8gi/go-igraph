@@ -11,6 +11,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods that require a live graph return `ErrClosed` afterwards |
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
+| `AttributeMetadata` | Go-owned name, scope, and type | none | names never alias C storage; metadata remains valid after graph closure |
 | spatial point matrices and `NearestNeighborOptions` | borrowed Go values | none | point row `i` maps to vertex ID `i`; matrices and optional bound pointers are copied or read only during a synchronous call and are never retained |
 | `ConvexHullResult` and spatial edge lengths | Go-owned values | none | hull indices align with coordinate rows; edge lengths align with edge IDs; all returned storage survives input or graph closure |
 | nearest-neighbor graph result | independently owned `*Graph` | close `Graph` | point row `i` becomes vertex ID `i`; the graph retains no point matrix or option pointer and survives independently of all inputs |
@@ -61,6 +62,35 @@ C types, C-backed slices, or cleanup functions for internal values.
 
 `Graph` and `Vector` install finalizers as a leak fallback, but deterministic
 code should still use `Close`, normally with `defer` or `t.Cleanup`.
+
+## Attribute runtime and value boundary
+
+The package installs C-igraph's C attribute table during package
+initialization, before exported graph constructors can run. The table is
+process-global in pinned C-igraph 1.0.1, so installation is guarded by
+`sync.Once`, repeated setup is read-only, and callers cannot detach or replace
+it through the Go API. If another C consumer has already installed a different
+table, package initialization fails instead of creating graphs whose attribute
+storage would be managed by inconsistent handlers. Pinned C-igraph 1.0.1 marks
+the C handler experimental; no handler-specific storage or replacement
+mechanism is therefore exposed as a stable Go contract.
+
+Public attribute vocabulary is restricted to graph, vertex, and edge scopes
+and Boolean, numeric, and string scalar types. C tables, unions, attribute
+records, object values, generated record lists, and their destructors remain
+internal. Attribute names must be non-empty valid UTF-8 without embedded NUL
+bytes. String values may be empty but follow the same UTF-8 and NUL rules.
+Metadata name/type collections must be length-aligned and contain no duplicate
+name within one scope. Conversion eagerly copies names and returns a non-nil
+Go-owned slice, including for an empty collection.
+
+Internal attribute records own their type-specific C vector and are destroyed
+exactly once after successful initialization. A failed record or generated-list
+initializer transfers no ownership to Go; partially initialized upstream
+storage is cleaned by the upstream initializer's error path. Resize, type
+checking, and list access propagate upstream error codes as Go errors. These
+helpers establish the cleanup boundary used by the graph-, vertex-, edge-, and
+interchange slices without exposing C lifecycle operations publicly.
 
 Selectors are reusable. Their graph-independent shape is validated when they
 are constructed, and bounds, missing endpoint pairs, and closed graphs are
@@ -291,11 +321,14 @@ ascending source IDs from each direction and assigns ascending result IDs for
 that endpoint group. These are deterministic structural conventions, not
 attribute provenance.
 
-The package does not expose graph attributes or raw
-`igraph_attribute_combination_t` policies. Simplification passes no edge
-attribute combination and therefore discards edge attributes when it runs.
-Undirected collapse and mutual conversion likewise pass no combination and
-discard edge attributes; per-edge undirected conversion preserves them under
+The package does not yet expose graph attribute values or raw
+`igraph_attribute_combination_t` policies. Milestone 17 has established the
+typed scope/type/runtime boundary, while graph-, vertex-, and edge-value APIs
+and combination policies remain follow-up slices. Simplification currently
+passes no edge attribute combination and therefore discards edge attributes.
+Until the transformation slice lands, undirected collapse and mutual
+conversion likewise pass no combination and discard edge attributes; per-edge
+undirected conversion preserves them under
 upstream semantics. Directed conversion uses upstream attribute behavior with
 no configurable policy.
 Binary graph operators borrow operands while `withLockedGraphs` holds every
