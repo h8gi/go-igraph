@@ -1192,6 +1192,18 @@ by C-igraph during setters; getter results and metadata are Go-owned. Reads use
 the graph read lock, writes are serialized, and a racing `Close` waits or makes
 the operation return `ErrClosed`.
 
+The vertex/edge slice from
+[#256](https://github.com/h8gi/go-igraph/issues/256) provides the same typed
+metadata, scalar, vector, and removal contracts in vertex-ID and edge-ID order.
+Full-vector setters are the only operations that create an element attribute;
+their length must exactly match the current vertex or edge count, with nil and
+empty both denoting length zero. Scalar setters update an existing typed
+attribute at a checked ID. After topology growth, C-igraph's missing-value
+defaults are exposed explicitly as NaN for numeric, the empty string for
+string, and false for Boolean attributes; callers can fill them with scalar or
+aligned-vector setters. Input slices are borrowed synchronously and returned
+slices are non-nil Go-owned copies, including on empty graphs.
+
 Shared interchange contract: public graph readers return independently owned
 `Graph` values and destroy every partially initialized graph or attribute
 record on parse, conversion, or adoption failure. Reader and writer file

@@ -93,6 +93,18 @@ are valid, and numeric setters reject NaN and infinities. Removing a missing
 name is an explicit not-found error, while removing all graph attributes is
 idempotent and does not touch vertex or edge attributes.
 
+Vertex and edge metadata follows the same lexical order. Full value getters
+return non-nil Go-owned slices aligned with vertex IDs or edge IDs and remain
+valid after graph closure. Full-vector setters borrow and copy inputs during
+the call, require exact graph-size alignment, and are the only element setters
+that create an attribute; nil and empty both mean a zero-length vector and are
+valid only for an empty scope. Scalar setters require an existing attribute and
+a valid current ID. Topology growth appends C-igraph's explicit missing-value
+defaults: numeric NaN, empty string, and Boolean false. Numeric setter inputs
+must still be finite, while getters preserve a NaN missing marker until callers
+replace it. Removal operates on complete named vectors, and remove-all methods
+affect only their selected vertex or edge scope.
+
 Internal attribute records own their type-specific C vector and are destroyed
 exactly once after successful initialization. A failed record or generated-list
 initializer transfers no ownership to Go; partially initialized upstream
@@ -330,11 +342,10 @@ ascending source IDs from each direction and assigns ascending result IDs for
 that endpoint group. These are deterministic structural conventions, not
 attribute provenance.
 
-The package exposes typed graph-level attribute values but not vertex or edge
-attribute values or raw `igraph_attribute_combination_t` policies. Milestone
-17 has established the typed scope/type/runtime boundary and graph-value APIs,
-while vertex-, edge-value, and combination policies remain follow-up slices.
-Simplification currently
+The package exposes typed graph, vertex, and edge attribute values but not raw
+`igraph_attribute_combination_t` policies. Milestone 17 has established the
+typed scope/type/runtime boundary and value APIs, while combination policies
+remain a follow-up slice. Simplification currently
 passes no edge attribute combination and therefore discards edge attributes.
 Until the transformation slice lands, undirected collapse and mutual
 conversion likewise pass no combination and discard edge attributes; per-edge

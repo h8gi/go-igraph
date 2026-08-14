@@ -34,6 +34,15 @@
 // ErrAttributeTypeMismatch for wrong types. Setters copy names and string
 // values before returning, allow empty strings, reject non-finite numeric
 // values, and only overwrite attributes of the same type.
+// Vertex and edge attribute vectors are aligned with current IDs. Full-vector
+// setters require exact scope length and are the only element operations that
+// create attributes; scalar setters update an existing attribute at a checked
+// ID. Nil and empty vectors both denote length zero. Topology growth appends
+// missing-value defaults of numeric NaN, empty string, and Boolean false.
+// Returned vectors are non-nil Go-owned copies that survive graph closure.
+// Attribute names, scalar string values, and input vectors are borrowed only
+// for a synchronous call and copied before return; no Go backing storage is
+// retained by C-igraph.
 //
 // Algorithm option and selector inputs are borrowed only for a call; any slice
 // passed to C is first copied into temporary C storage. DirectionOut is the
