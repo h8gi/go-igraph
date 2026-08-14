@@ -43,3 +43,31 @@ igraph_error_t go_igraph_attribute_record_list_init(
     igraph_int_t size) {
     GO_IGRAPH_CALL(igraph_attribute_record_list_init(list, size));
 }
+
+igraph_error_t go_igraph_cattribute_list_graph(
+    const igraph_t *graph,
+    igraph_strvector_t *names,
+    igraph_vector_int_t *types) {
+    GO_IGRAPH_CALL(igraph_cattribute_list(graph, names, types, NULL, NULL, NULL, NULL));
+}
+
+igraph_error_t go_igraph_cattribute_GAN_set(
+    igraph_t *graph,
+    const char *name,
+    igraph_real_t value) {
+    GO_IGRAPH_CALL(igraph_cattribute_GAN_set(graph, name, value));
+}
+
+igraph_error_t go_igraph_cattribute_GAS_set(
+    igraph_t *graph,
+    const char *name,
+    const char *value) {
+    GO_IGRAPH_CALL(igraph_cattribute_GAS_set(graph, name, value));
+}
+
+igraph_error_t go_igraph_cattribute_GAB_set(
+    igraph_t *graph,
+    const char *name,
+    igraph_bool_t value) {
+    GO_IGRAPH_CALL(igraph_cattribute_GAB_set(graph, name, value));
+}

@@ -84,6 +84,15 @@ Metadata name/type collections must be length-aligned and contain no duplicate
 name within one scope. Conversion eagerly copies names and returns a non-nil
 Go-owned slice, including for an empty collection.
 
+Graph-level attribute metadata is returned in lexical name order. Typed
+getters distinguish `ErrAttributeNotFound` from `ErrAttributeTypeMismatch` and
+copy string results into Go storage. Setters borrow names and values only for
+the synchronous call; C-igraph copies them before return. Same-type setters
+overwrite, cross-type setters fail without modification, empty string values
+are valid, and numeric setters reject NaN and infinities. Removing a missing
+name is an explicit not-found error, while removing all graph attributes is
+idempotent and does not touch vertex or edge attributes.
+
 Internal attribute records own their type-specific C vector and are destroyed
 exactly once after successful initialization. A failed record or generated-list
 initializer transfers no ownership to Go; partially initialized upstream
@@ -321,10 +330,11 @@ ascending source IDs from each direction and assigns ascending result IDs for
 that endpoint group. These are deterministic structural conventions, not
 attribute provenance.
 
-The package does not yet expose graph attribute values or raw
-`igraph_attribute_combination_t` policies. Milestone 17 has established the
-typed scope/type/runtime boundary, while graph-, vertex-, and edge-value APIs
-and combination policies remain follow-up slices. Simplification currently
+The package exposes typed graph-level attribute values but not vertex or edge
+attribute values or raw `igraph_attribute_combination_t` policies. Milestone
+17 has established the typed scope/type/runtime boundary and graph-value APIs,
+while vertex-, edge-value, and combination policies remain follow-up slices.
+Simplification currently
 passes no edge attribute combination and therefore discards edge attributes.
 Until the transformation slice lands, undirected collapse and mutual
 conversion likewise pass no combination and discard edge attributes; per-edge

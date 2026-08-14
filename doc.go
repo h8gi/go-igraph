@@ -29,6 +29,11 @@
 // callers can construct graphs, and does not expose a replacement hook. The C
 // handler is experimental in pinned igraph 1.0.1; its lifecycle remains an
 // internal implementation detail rather than part of the Go API contract.
+// GraphAttributes returns graph-level metadata in lexical name order. Typed
+// graph attribute getters return ErrAttributeNotFound for missing names and
+// ErrAttributeTypeMismatch for wrong types. Setters copy names and string
+// values before returning, allow empty strings, reject non-finite numeric
+// values, and only overwrite attributes of the same type.
 //
 // Algorithm option and selector inputs are borrowed only for a call; any slice
 // passed to C is first copied into temporary C storage. DirectionOut is the
