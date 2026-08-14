@@ -86,6 +86,11 @@
         "go_api": "Path",
         "domain": "paths_and_reachability",
         "rationale": "Public path APIs return aligned Go-owned vertex and edge sequences and do not require caller-side path conversion."
+      },
+      "igraph_cattribute_has_attr": {
+        "go_api": "GraphAttributes",
+        "domain": "attributes",
+        "rationale": "Typed graph attribute operations preflight names and types through sorted metadata, so callers do not need a separate untyped existence predicate."
       }
     },
     "deferred": {
@@ -301,47 +306,7 @@
         "domain": "attributes",
         "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
       },
-      "igraph_cattribute_GAB": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_GAB_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_GAN": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_GAN_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_GAS": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_GAS_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_has_attr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_list": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_remove_all": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
       "igraph_cattribute_remove_e": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_cattribute_remove_g": {
         "domain": "attributes",
         "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
       },

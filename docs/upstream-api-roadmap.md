@@ -1182,6 +1182,16 @@ Operations that cannot preserve or combine a requested attribute without loss
 must reject the request or document deterministic loss rather than silently
 invent provenance.
 
+The graph-level slice from
+[#255](https://github.com/h8gi/go-igraph/issues/255) lists Boolean, numeric, and
+string metadata in stable name order and provides typed scalar getters,
+setters, and removal operations. Missing names and wrong types have distinct
+errors, same-type setters overwrite, empty strings are retained, and numeric
+setters reject non-finite values before mutation. Names and strings are copied
+by C-igraph during setters; getter results and metadata are Go-owned. Reads use
+the graph read lock, writes are serialized, and a racing `Close` waits or makes
+the operation return `ErrClosed`.
+
 Shared interchange contract: public graph readers return independently owned
 `Graph` values and destroy every partially initialized graph or attribute
 record on parse, conversion, or adoption failure. Reader and writer file
