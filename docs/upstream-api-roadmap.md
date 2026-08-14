@@ -1009,9 +1009,10 @@ Goal: construct spatial graphs from point-coordinate matrices, compute
 edge-aligned spatial lengths, and extract two-dimensional convex hulls through
 Go-owned graph and value results.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#239](https://github.com/h8gi/go-igraph/issues/239).
+Status: complete. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan were established in
+[#239](https://github.com/h8gi/go-igraph/issues/239), and implementation and
+final audit were completed through #240–#245.
 
 Reference workflows:
 
@@ -1079,6 +1080,15 @@ Initial disposition: all nine currently missing declarations in
 `igraph_spatial.h` are deferred to #241–#244. The final audit must resolve each
 as user-facing, composed, internal, or intentionally unsupported and leave no
 stale deferred or accidentally missing declaration in the audited domain.
+
+Final reviewed disposition: all nine declarations in `igraph_spatial.h` are
+user-facing bindings, with no deferred, composed, internal, or intentionally
+unsupported declarations in the domain. Package examples and
+`examples/spatial/` cover weighted spatial routing and planar geometry, while
+the milestone integration pipeline verifies hull/proximity invariants,
+edge-ID-aligned values, ownership across closure, concurrent construction, and
+race-safe spatial edge-length reads. Generated coverage reports 9/9 spatial
+declarations with a final disposition and zero deferred declarations overall.
 
 Completion criteria:
 
