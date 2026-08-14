@@ -249,50 +249,6 @@
         "domain": "attributes",
         "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
       },
-      "igraph_enter_safelocale": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_exit_safelocale": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_dimacs_flow": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_dl": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_edgelist": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_gml": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_graphdb": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_graphml": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_lgl": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_ncol": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
-      "igraph_read_graph_pajek": {
-        "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
-      },
       "igraph_vector_int_list_capacity": {
         "domain": "attributes",
         "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
@@ -559,6 +515,30 @@
       }
     },
     "intentionally_unsupported": {
+      "igraph_read_graph_ncol": {
+        "domain": "graph_interchange",
+        "rationale": "NCOL requires caller-selected symbolic-name and weight policies and cannot represent isolated vertices; the core reader contract avoids this silent identity and topology loss."
+      },
+      "igraph_read_graph_lgl": {
+        "domain": "graph_interchange",
+        "rationale": "LGL requires caller-selected symbolic-name and weight policies and has format-level topology limitations; it is not part of the loss-explicit core reader contract."
+      },
+      "igraph_read_graph_pajek": {
+        "domain": "graph_interchange",
+        "rationale": "Pajek has broad format-specific attribute renaming and mixed-network semantics that need a dedicated policy API rather than an implicit core import."
+      },
+      "igraph_read_graph_dl": {
+        "domain": "graph_interchange",
+        "rationale": "DL is a specialized legacy matrix/edge-list family whose directedness is supplied outside the file; exposing it requires a separate format-policy API."
+      },
+      "igraph_read_graph_graphdb": {
+        "domain": "graph_interchange",
+        "rationale": "GraphDB is a specialized binary graph-database format without the typed attributed interchange contract targeted by the package."
+      },
+      "igraph_read_graph_dimacs_flow": {
+        "domain": "graph_interchange",
+        "rationale": "DIMACS flow returns source, target, and capacity outputs in addition to a graph and needs a dedicated flow-problem result contract."
+      },
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",
         "rationale": "A public C callback would violate the bounded Go-owned result contract and cross-boundary concurrency model."
