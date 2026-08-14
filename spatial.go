@@ -56,13 +56,35 @@ func (metric SpatialMetric) cValue() (C.igraph_metric_t, error) {
 // Metric defaults to SpatialEuclidean. MaxNeighbors and Cutoff are borrowed
 // only for a synchronous call and are never retained. A nil bound is unlimited;
 // an explicit maximum-neighbor count or cutoff must be non-negative, and the
-// cutoff must be finite. Directed controls whether neighbor relationships retain
-// their point-to-neighbor orientation.
+// cutoff must be finite. Pinned igraph 1.0.1 includes only points strictly
+// closer than Cutoff; a point at exactly the cutoff is excluded. Directed
+// controls whether neighbor relationships retain their point-to-neighbor
+// orientation.
 type NearestNeighborOptions struct {
 	Metric       SpatialMetric
 	MaxNeighbors *int
 	Cutoff       *float64
 	Directed     bool
+}
+
+// NewNearestNeighborGraph constructs a spatial nearest-neighbor graph. Point
+// matrix row i becomes vertex i. In a directed result, every vertex has an edge
+// to at most MaxNeighbors nearest points strictly closer than Cutoff. In an
+// undirected result, an edge is present when either endpoint selects the other,
+// and reciprocal selections are collapsed. Self-loops and parallel edges are
+// not created.
+// When a maximum-neighbor boundary contains equal-distance points, which tied
+// points are selected is not a compatibility promise.
+//
+// The point matrix and option pointers are borrowed only for the synchronous
+// call and copied or read before return. The returned graph is independently
+// owned and must be closed by the caller. Empty point input returns an empty
+// graph, including when represented by a 0-by-0 Matrix. This binds an
+// experimental API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_nearest_neighbor_graph
+func NewNearestNeighborGraph(points Matrix, options NearestNeighborOptions) (*Graph, error) {
+	return newNearestNeighborGraph(points, options, nil)
 }
 
 type validatedNearestNeighborOptions struct {
@@ -105,6 +127,58 @@ func validateNearestNeighborOptions(options NearestNeighborOptions) (validatedNe
 		cutoff:       cutoff,
 		directed:     options.Directed,
 	}, nil
+}
+
+type nearestNeighborGraphCallResult struct {
+	graph C.igraph_t
+	code  int
+}
+
+type nearestNeighborGraphAdapters struct {
+	newMatrix func(Matrix) (*cMatrix, error)
+	call      func(*cMatrix, validatedNearestNeighborOptions) nearestNeighborGraphCallResult
+}
+
+func defaultNearestNeighborGraphAdapters() nearestNeighborGraphAdapters {
+	return nearestNeighborGraphAdapters{
+		newMatrix: newCMatrix,
+		call: func(points *cMatrix, options validatedNearestNeighborOptions) nearestNeighborGraphCallResult {
+			var graph C.igraph_t
+			metric, _ := options.metric.cValue()
+			code := C.go_igraph_nearest_neighbor_graph(
+				&graph,
+				&points.value,
+				metric,
+				C.igraph_int_t(options.maxNeighbors),
+				C.igraph_real_t(options.cutoff),
+				booltoint(options.directed),
+			)
+			return nearestNeighborGraphCallResult{graph: graph, code: int(code)}
+		},
+	}
+}
+
+func newNearestNeighborGraph(points Matrix, options NearestNeighborOptions, adapters *nearestNeighborGraphAdapters) (*Graph, error) {
+	validated, err := validateNearestNeighborOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	resolved := defaultNearestNeighborGraphAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	cPoints, err := newSpatialPoints(points, spatialPointRequirements{
+		operation: "nearest-neighbor graph", minDimensions: 1,
+	}, resolved.newMatrix)
+	if err != nil {
+		return nil, err
+	}
+	defer cPoints.close()
+	call := resolved.call(cPoints, validated)
+	if call.code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("construct nearest-neighbor graph", call.code)
+	}
+	return adoptInitializedGraph(&call.graph), nil
 }
 
 type convexHullAdapters struct {

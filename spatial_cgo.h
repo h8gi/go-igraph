@@ -8,5 +8,8 @@ igraph_error_t go_igraph_convex_hull_2d(
 igraph_error_t go_igraph_spatial_edge_lengths(
     const igraph_t *, igraph_vector_t *, const igraph_matrix_t *,
     igraph_metric_t);
+igraph_error_t go_igraph_nearest_neighbor_graph(
+    igraph_t *, const igraph_matrix_t *, igraph_metric_t, igraph_int_t,
+    igraph_real_t, igraph_bool_t);
 
 #endif

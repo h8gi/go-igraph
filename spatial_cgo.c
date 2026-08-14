@@ -14,3 +14,11 @@ igraph_error_t go_igraph_spatial_edge_lengths(
     GO_IGRAPH_CALL(igraph_spatial_edge_lengths(
         graph, lengths, points, metric));
 }
+
+igraph_error_t go_igraph_nearest_neighbor_graph(
+        igraph_t *graph, const igraph_matrix_t *points,
+        igraph_metric_t metric, igraph_int_t max_neighbors,
+        igraph_real_t cutoff, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_nearest_neighbor_graph(
+        graph, points, metric, max_neighbors, cutoff, directed));
+}

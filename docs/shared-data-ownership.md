@@ -13,6 +13,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | spatial point matrices and `NearestNeighborOptions` | borrowed Go values | none | point row `i` maps to vertex ID `i`; matrices and optional bound pointers are copied or read only during a synchronous call and are never retained |
 | `ConvexHullResult` and spatial edge lengths | Go-owned values | none | hull indices align with coordinate rows; edge lengths align with edge IDs; all returned storage survives input or graph closure |
+| nearest-neighbor graph result | independently owned `*Graph` | close `Graph` | point row `i` becomes vertex ID `i`; the graph retains no point matrix or option pointer and survives independently of all inputs |
 | `Path` | Go-owned result value | none | vertex and edge slices remain valid after the graph is closed; an unreachable target has `Found == false` and non-nil empty slices |
 | `*SpectralEmbeddingResult` | Go-owned result value | none | `X`, `Y`, and `SingularValues` are Go-owned copies and remain valid after the graph is closed; `Y` is an empty matrix for undirected graphs and `SingularValues` is empty for edgeless graphs |
 | `DiameterResult` | Go-owned result value | none | scalar fields and its `Path` remain valid after the graph is closed; when no diameter path exists, endpoint IDs are -1 and path slices are non-nil empty slices |
