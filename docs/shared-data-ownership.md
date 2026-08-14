@@ -9,6 +9,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | Value | Storage | Caller action | Lifetime rule |
 | --- | --- | --- | --- |
 | `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods that require a live graph return `ErrClosed` afterwards |
+| graph-reader input and result | caller-owned `*os.File`; independently owned `*Graph` | keep the file open during the call; close the returned graph | edge-list, GraphML, and GML readers synchronously snapshot from the current offset without changing it or closing the file; the result retains no file or snapshot storage |
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | `AttributeMetadata` | Go-owned name, scope, and type | none | names never alias C storage; metadata remains valid after graph closure |

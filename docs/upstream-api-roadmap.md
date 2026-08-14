@@ -1122,7 +1122,9 @@ deferred inventory, and dependency-ordered issue plan were established in
 [#253](https://github.com/h8gi/go-igraph/issues/253). The shared typed
 vocabulary, process-global attribute runtime, checked metadata conversion, and
 record/list cleanup boundary are established in
-[#254](https://github.com/h8gi/go-igraph/issues/254).
+[#254](https://github.com/h8gi/go-igraph/issues/254). Graph-, vertex-, and
+edge-level typed attributes and explicit transformation combination policies
+are implemented through [#257](https://github.com/h8gi/go-igraph/issues/257).
 
 Reference workflows:
 
@@ -1181,6 +1183,24 @@ combination uses Go-native policies for supported operations and keeps raw
 Operations that cannot preserve or combine a requested attribute without loss
 must reject the request or document deterministic loss rather than silently
 invent provenance.
+
+Reader contract: `ReadEdgeList`, `ReadGraphML`, and `ReadGML` borrow an open,
+seekable regular `*os.File` only for the synchronous call. They snapshot bytes
+from its current offset without changing that offset or closing the file, and
+return an independently owned graph. Edge-list options state minimum vertex
+count and directedness explicitly. GraphML selects a zero-based top-level graph
+and imports supported Boolean, numeric, and string attributes; unsupported
+attribute types return an error. GML preserves its directed flag and node-ID
+mapping while importing simple numeric and string attributes. Parse and index
+errors return no partially owned graph.
+
+Final reader disposition for #258: `igraph_read_graph_edgelist`,
+`igraph_read_graph_graphml`, and `igraph_read_graph_gml` are user-facing;
+`igraph_enter_safelocale` and `igraph_exit_safelocale` are internal reader
+plumbing. NCOL, LGL, Pajek, DL, GraphDB, and DIMACS-flow readers are
+intentionally unsupported: their symbolic identity/weight choices, lossy or
+specialized format semantics, or auxiliary flow outputs require dedicated
+policy/result APIs. No reader declaration reviewed by #258 remains deferred.
 
 The graph-level slice from
 [#255](https://github.com/h8gi/go-igraph/issues/255) lists Boolean, numeric, and
