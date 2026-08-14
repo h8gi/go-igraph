@@ -2,12 +2,33 @@ package igraph
 
 // #cgo pkg-config: igraph
 // #include <igraph.h>
+// #include "spatial_cgo.h"
 import "C"
 
 import (
 	"fmt"
 	"math"
 )
+
+// ConvexHullResult contains the source point-row indices and coordinates of a
+// two-dimensional convex hull in traversal order. PointIndices[i] identifies
+// Coordinates row i. Both values are non-nil and Go-owned and retain no input
+// or C storage.
+type ConvexHullResult struct {
+	PointIndices []int
+	Coordinates  Matrix
+}
+
+// ConvexHull2D computes the convex hull of a two-dimensional point set. Row i
+// of points identifies point i. The input Matrix is borrowed only for the
+// synchronous call and copied into temporary C storage. Empty input returns a
+// non-nil empty index slice and a 0-by-2 coordinate matrix. Collinear and
+// duplicate points follow pinned igraph 1.0.1 hull selection semantics.
+//
+//igraph:bind igraph_convex_hull_2d
+func ConvexHull2D(points Matrix) (ConvexHullResult, error) {
+	return convexHull2D(points, nil)
+}
 
 // SpatialMetric selects the distance metric used by spatial graph operations.
 // Its zero value is SpatialEuclidean.
@@ -84,6 +105,161 @@ func validateNearestNeighborOptions(options NearestNeighborOptions) (validatedNe
 		cutoff:       cutoff,
 		directed:     options.Directed,
 	}, nil
+}
+
+type convexHullAdapters struct {
+	newMatrix     func(Matrix) (*cMatrix, error)
+	newInt        func([]int) (*intVector, error)
+	call          func(*cMatrix, *intVector, *cMatrix) int
+	convertInt    func(*intVector) ([]int, error)
+	convertMatrix func(*cMatrix) (Matrix, error)
+}
+
+func defaultConvexHullAdapters() convexHullAdapters {
+	return convexHullAdapters{
+		newMatrix: newCMatrix,
+		newInt:    newIntVector,
+		call: func(points *cMatrix, indices *intVector, coordinates *cMatrix) int {
+			return int(C.go_igraph_convex_hull_2d(&points.value, &indices.value, &coordinates.value))
+		},
+		convertInt:    (*intVector).slice,
+		convertMatrix: (*cMatrix).matrix,
+	}
+}
+
+func convexHull2D(points Matrix, adapters *convexHullAdapters) (ConvexHullResult, error) {
+	resolved := defaultConvexHullAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	if points.rows == 0 && points.columns == 0 {
+		var err error
+		points, err = NewMatrix(0, 2)
+		if err != nil {
+			return ConvexHullResult{}, err
+		}
+	}
+	cPoints, err := newSpatialPoints(points, spatialPointRequirements{
+		operation: "2D convex hull", exactDimensions: 2,
+	}, resolved.newMatrix)
+	if err != nil {
+		return ConvexHullResult{}, err
+	}
+	defer cPoints.close()
+	indices, err := resolved.newInt(nil)
+	if err != nil {
+		return ConvexHullResult{}, err
+	}
+	defer indices.close()
+	coordinates, err := resolved.newMatrix(Matrix{})
+	if err != nil {
+		return ConvexHullResult{}, err
+	}
+	defer coordinates.close()
+	if code := resolved.call(cPoints, indices, coordinates); code != int(C.IGRAPH_SUCCESS) {
+		return ConvexHullResult{}, igraphError("calculate 2D convex hull", code)
+	}
+	pointIndices, err := resolved.convertInt(indices)
+	if err != nil {
+		return ConvexHullResult{}, err
+	}
+	pointIndices = append([]int{}, pointIndices...)
+	hullCoordinates, err := resolved.convertMatrix(coordinates)
+	if err != nil {
+		return ConvexHullResult{}, err
+	}
+	rows, columns := hullCoordinates.Dims()
+	if columns != 2 || rows != len(pointIndices) {
+		return ConvexHullResult{}, fmt.Errorf(
+			"igraph: convex hull result dimensions (%d, %d) do not align with %d point indices",
+			rows, columns, len(pointIndices),
+		)
+	}
+	return ConvexHullResult{PointIndices: pointIndices, Coordinates: hullCoordinates}, nil
+}
+
+type spatialEdgeLengthAdapters struct {
+	newMatrix func(Matrix) (*cMatrix, error)
+	newReal   func([]float64) (*realVector, error)
+	call      func(*Graph, *realVector, *cMatrix, SpatialMetric) int
+	convert   func(*realVector) ([]float64, error)
+}
+
+func defaultSpatialEdgeLengthAdapters() spatialEdgeLengthAdapters {
+	return spatialEdgeLengthAdapters{
+		newMatrix: newCMatrix,
+		newReal:   newRealVector,
+		call: func(graph *Graph, lengths *realVector, points *cMatrix, metric SpatialMetric) int {
+			cMetric, _ := metric.cValue()
+			return int(C.go_igraph_spatial_edge_lengths(&graph.graph, &lengths.value, &points.value, cMetric))
+		},
+		convert: (*realVector).slice,
+	}
+}
+
+// SpatialEdgeLengths computes one distance per edge in edge-ID order. Row i of
+// points contains the coordinates of vertex i and arbitrary positive
+// dimensionality is supported. Loops have length zero and parallel edges have
+// repeated lengths. The point matrix is borrowed and copied for the synchronous
+// call; the returned non-nil slice is Go-owned and survives graph closure.
+// This binds an experimental API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_spatial_edge_lengths
+func (g *Graph) SpatialEdgeLengths(points Matrix, metric SpatialMetric) ([]float64, error) {
+	return g.spatialEdgeLengths(points, metric, nil)
+}
+
+func (g *Graph) spatialEdgeLengths(points Matrix, metric SpatialMetric, adapters *spatialEdgeLengthAdapters) ([]float64, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	if _, err := metric.cValue(); err != nil {
+		return nil, err
+	}
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	if points.rows != vertexCount {
+		return nil, fmt.Errorf(
+			"igraph: spatial point count %d does not match vertex count %d",
+			points.rows, vertexCount,
+		)
+	}
+	resolved := defaultSpatialEdgeLengthAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	cPoints, err := newSpatialPoints(points, spatialPointRequirements{
+		operation: "spatial edge lengths", minDimensions: 1,
+	}, resolved.newMatrix)
+	if err != nil {
+		return nil, err
+	}
+	defer cPoints.close()
+	lengths, err := resolved.newReal(nil)
+	if err != nil {
+		return nil, err
+	}
+	defer lengths.close()
+	if code := resolved.call(g, lengths, cPoints, metric); code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("calculate spatial edge lengths", code)
+	}
+	values, err := resolved.convert(lengths)
+	if err != nil {
+		return nil, err
+	}
+	values = append([]float64{}, values...)
+	edgeCount := int(C.igraph_ecount(&g.graph))
+	if len(values) != edgeCount {
+		return nil, fmt.Errorf(
+			"igraph: spatial edge length count %d does not match edge count %d",
+			len(values), edgeCount,
+		)
+	}
+	return values, nil
 }
 
 type spatialPointRequirements struct {

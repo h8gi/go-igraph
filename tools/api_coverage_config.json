@@ -97,10 +97,6 @@
         "domain": "spatial",
         "rationale": "Milestone 16 will define the positive-beta, two-dimensional, and experimental API contract."
       },
-      "igraph_convex_hull_2d": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will define an aligned Go-owned hull-index and coordinate result."
-      },
       "igraph_delaunay_graph": {
         "domain": "spatial",
         "rationale": "Milestone 16 will define point-row identity, dimensionality, duplicate-point, and graph-ownership semantics."
@@ -120,10 +116,6 @@
       "igraph_relative_neighborhood_graph": {
         "domain": "spatial",
         "rationale": "Milestone 16 will define point-row identity and independently owned proximity-graph semantics."
-      },
-      "igraph_spatial_edge_lengths": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will return Go-owned distances aligned with receiver edge IDs behind a Go-native metric type."
       }
     },
     "intentionally_unsupported": {
