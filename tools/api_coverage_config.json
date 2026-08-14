@@ -89,18 +89,6 @@
       }
     },
     "deferred": {
-      "igraph_beta_weighted_gabriel_graph": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will define an independently owned graph result with edge-ID-aligned Go-owned threshold-beta values."
-      },
-      "igraph_circle_beta_skeleton": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will define the positive-beta, two-dimensional, and experimental API contract."
-      },
-      "igraph_lune_beta_skeleton": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will define positive-beta, dimensionality, and experimental API semantics."
-      }
     },
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {

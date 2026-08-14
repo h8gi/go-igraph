@@ -37,3 +37,20 @@ igraph_error_t go_igraph_relative_neighborhood_graph(
         igraph_t *graph, const igraph_matrix_t *points) {
     GO_IGRAPH_CALL(igraph_relative_neighborhood_graph(graph, points));
 }
+
+igraph_error_t go_igraph_lune_beta_skeleton(
+        igraph_t *graph, const igraph_matrix_t *points, igraph_real_t beta) {
+    GO_IGRAPH_CALL(igraph_lune_beta_skeleton(graph, points, beta));
+}
+
+igraph_error_t go_igraph_circle_beta_skeleton(
+        igraph_t *graph, const igraph_matrix_t *points, igraph_real_t beta) {
+    GO_IGRAPH_CALL(igraph_circle_beta_skeleton(graph, points, beta));
+}
+
+igraph_error_t go_igraph_beta_weighted_gabriel_graph(
+        igraph_t *graph, igraph_vector_t *weights,
+        const igraph_matrix_t *points, igraph_real_t max_beta) {
+    GO_IGRAPH_CALL(igraph_beta_weighted_gabriel_graph(
+        graph, weights, points, max_beta));
+}
