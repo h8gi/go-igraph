@@ -284,6 +284,209 @@ func newProximityGraph(points Matrix, operation proximityGraphOperation, adapter
 	return adoptInitializedGraph(&call.graph), nil
 }
 
+// NewLuneBetaSkeleton constructs the lune-based beta skeleton of a point set.
+// Beta must be positive and finite. Arbitrary positive dimensionality is
+// supported when beta is at least 1; beta values below 1 require exactly two
+// dimensions. Point matrix row i becomes vertex i, and points must have finite
+// coordinates and be pairwise distinct.
+//
+// The input is borrowed and copied only for the synchronous call. The returned
+// undirected simple graph is independently owned and must be closed. Empty
+// input returns an empty graph. Edge enumeration order is unspecified. This
+// binds an experimental API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_lune_beta_skeleton
+func NewLuneBetaSkeleton(points Matrix, beta float64) (*Graph, error) {
+	requirements := spatialPointRequirements{
+		operation: "lune beta skeleton", minDimensions: 1, distinct: true,
+	}
+	if beta < 1 {
+		requirements.minDimensions = 0
+		requirements.exactDimensions = 2
+		if points.rows == 0 && points.columns == 0 {
+			points, _ = NewMatrix(0, 2)
+		}
+	}
+	return newBetaSkeleton(points, beta, requirements, betaSkeletonLune, nil)
+}
+
+// NewCircleBetaSkeleton constructs the circle-based beta skeleton of a 2D
+// point set. Beta must be positive and finite. Point matrix row i becomes
+// vertex i, and points must have finite coordinates and be pairwise distinct.
+//
+// The input is borrowed and copied only for the synchronous call. The returned
+// undirected simple graph is independently owned and must be closed. Empty
+// input returns an empty graph. Edge enumeration order is unspecified. This
+// binds an experimental API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_circle_beta_skeleton
+func NewCircleBetaSkeleton(points Matrix, beta float64) (*Graph, error) {
+	if points.rows == 0 && points.columns == 0 {
+		points, _ = NewMatrix(0, 2)
+	}
+	return newBetaSkeleton(points, beta, spatialPointRequirements{
+		operation: "circle beta skeleton", exactDimensions: 2, distinct: true,
+	}, betaSkeletonCircle, nil)
+}
+
+type betaSkeletonKind uint8
+
+const (
+	betaSkeletonLune betaSkeletonKind = iota
+	betaSkeletonCircle
+)
+
+type betaSkeletonCallResult struct {
+	graph C.igraph_t
+	code  int
+}
+
+type betaSkeletonAdapters struct {
+	newMatrix func(Matrix) (*cMatrix, error)
+	call      func(betaSkeletonKind, *cMatrix, float64) betaSkeletonCallResult
+}
+
+func defaultBetaSkeletonAdapters() betaSkeletonAdapters {
+	return betaSkeletonAdapters{
+		newMatrix: newCMatrix,
+		call: func(kind betaSkeletonKind, points *cMatrix, beta float64) betaSkeletonCallResult {
+			var graph C.igraph_t
+			var code C.igraph_error_t
+			switch kind {
+			case betaSkeletonLune:
+				code = C.go_igraph_lune_beta_skeleton(&graph, &points.value, C.igraph_real_t(beta))
+			case betaSkeletonCircle:
+				code = C.go_igraph_circle_beta_skeleton(&graph, &points.value, C.igraph_real_t(beta))
+			default:
+				code = C.IGRAPH_EINVAL
+			}
+			return betaSkeletonCallResult{graph: graph, code: int(code)}
+		},
+	}
+}
+
+func newBetaSkeleton(points Matrix, beta float64, requirements spatialPointRequirements, kind betaSkeletonKind, adapters *betaSkeletonAdapters) (*Graph, error) {
+	if math.IsNaN(beta) || math.IsInf(beta, 0) || beta <= 0 {
+		return nil, fmt.Errorf("igraph: beta must be positive and finite: %v", beta)
+	}
+	resolved := defaultBetaSkeletonAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	cPoints, err := newSpatialPoints(points, requirements, resolved.newMatrix)
+	if err != nil {
+		return nil, err
+	}
+	defer cPoints.close()
+	call := resolved.call(kind, cPoints, beta)
+	if call.code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("construct "+requirements.operation, call.code)
+	}
+	return adoptInitializedGraph(&call.graph), nil
+}
+
+// BetaWeightedGabrielOptions controls the maximum beta searched while
+// calculating Gabriel-edge thresholds. A nil MaxBeta requests an unlimited
+// search. An explicit value must be positive and finite. The pointer is
+// borrowed only for the synchronous call and is never retained.
+type BetaWeightedGabrielOptions struct {
+	MaxBeta *float64
+}
+
+// BetaWeightedGabrielResult contains a Gabriel graph and one threshold beta per
+// edge ID. ThresholdBetas[i] is the beta at which edge i ceases to belong to the
+// lune-based beta skeleton. Positive infinity is a valid value: the edge either
+// persists arbitrarily or beyond the requested MaxBeta. ThresholdBetas is a
+// non-nil Go-owned slice.
+type BetaWeightedGabrielResult struct {
+	Graph          *Graph
+	ThresholdBetas []float64
+}
+
+// NewBetaWeightedGabrielGraph constructs an arbitrary-dimensional Gabriel
+// graph and calculates its lune-based beta thresholds. Point matrix row i
+// becomes vertex i. Points must have positive dimensionality, finite
+// coordinates, and be pairwise distinct.
+//
+// The matrix and options are borrowed and copied or read only for the
+// synchronous call. The returned undirected simple Graph is independently owned
+// and must be closed; ThresholdBetas is Go-owned and remains valid after graph
+// closure. Empty input returns an empty graph and a non-nil empty slice. Edge
+// enumeration order is unspecified, but thresholds always align with the
+// returned graph's edge IDs. This binds an experimental API in pinned igraph
+// 1.0.1.
+//
+//igraph:bind igraph_beta_weighted_gabriel_graph
+func NewBetaWeightedGabrielGraph(points Matrix, options BetaWeightedGabrielOptions) (BetaWeightedGabrielResult, error) {
+	return newBetaWeightedGabrielGraph(points, options, nil)
+}
+
+type betaWeightedGabrielCallResult struct {
+	graph C.igraph_t
+	code  int
+}
+
+type betaWeightedGabrielAdapters struct {
+	newMatrix func(Matrix) (*cMatrix, error)
+	newReal   func([]float64) (*realVector, error)
+	call      func(*cMatrix, *realVector, float64) betaWeightedGabrielCallResult
+	convert   func(*realVector) ([]float64, error)
+}
+
+func defaultBetaWeightedGabrielAdapters() betaWeightedGabrielAdapters {
+	return betaWeightedGabrielAdapters{
+		newMatrix: newCMatrix,
+		newReal:   newRealVector,
+		call: func(points *cMatrix, weights *realVector, maxBeta float64) betaWeightedGabrielCallResult {
+			var graph C.igraph_t
+			code := C.go_igraph_beta_weighted_gabriel_graph(
+				&graph, &weights.value, &points.value, C.igraph_real_t(maxBeta),
+			)
+			return betaWeightedGabrielCallResult{graph: graph, code: int(code)}
+		},
+		convert: (*realVector).slice,
+	}
+}
+
+func newBetaWeightedGabrielGraph(points Matrix, options BetaWeightedGabrielOptions, adapters *betaWeightedGabrielAdapters) (BetaWeightedGabrielResult, error) {
+	maxBeta := math.Inf(1)
+	if options.MaxBeta != nil {
+		if math.IsNaN(*options.MaxBeta) || math.IsInf(*options.MaxBeta, 0) || *options.MaxBeta <= 0 {
+			return BetaWeightedGabrielResult{}, fmt.Errorf(
+				"igraph: maximum beta must be positive and finite: %v", *options.MaxBeta,
+			)
+		}
+		maxBeta = *options.MaxBeta
+	}
+	resolved := defaultBetaWeightedGabrielAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	cPoints, err := newSpatialPoints(points, spatialPointRequirements{
+		operation: "beta-weighted Gabriel graph", minDimensions: 1, distinct: true,
+	}, resolved.newMatrix)
+	if err != nil {
+		return BetaWeightedGabrielResult{}, err
+	}
+	defer cPoints.close()
+	weights, err := resolved.newReal(nil)
+	if err != nil {
+		return BetaWeightedGabrielResult{}, err
+	}
+	defer weights.close()
+	call := resolved.call(cPoints, weights, maxBeta)
+	if call.code != int(C.IGRAPH_SUCCESS) {
+		return BetaWeightedGabrielResult{}, igraphError("construct beta-weighted Gabriel graph", call.code)
+	}
+	converted, err := convertAndAdoptSpatialGraph(&call.graph, spatialGraphValueAdapters{
+		convert: func() ([]float64, error) { return resolved.convert(weights) },
+	})
+	if err != nil {
+		return BetaWeightedGabrielResult{}, err
+	}
+	return BetaWeightedGabrielResult{Graph: converted.graph, ThresholdBetas: converted.values}, nil
+}
+
 type convexHullAdapters struct {
 	newMatrix     func(Matrix) (*cMatrix, error)
 	newInt        func([]int) (*intVector, error)

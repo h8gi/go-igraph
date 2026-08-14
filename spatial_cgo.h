@@ -17,5 +17,11 @@ igraph_error_t go_igraph_gabriel_graph(
     igraph_t *, const igraph_matrix_t *);
 igraph_error_t go_igraph_relative_neighborhood_graph(
     igraph_t *, const igraph_matrix_t *);
+igraph_error_t go_igraph_lune_beta_skeleton(
+    igraph_t *, const igraph_matrix_t *, igraph_real_t);
+igraph_error_t go_igraph_circle_beta_skeleton(
+    igraph_t *, const igraph_matrix_t *, igraph_real_t);
+igraph_error_t go_igraph_beta_weighted_gabriel_graph(
+    igraph_t *, igraph_vector_t *, const igraph_matrix_t *, igraph_real_t);
 
 #endif
