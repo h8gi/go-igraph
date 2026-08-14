@@ -181,6 +181,109 @@ func newNearestNeighborGraph(points Matrix, options NearestNeighborOptions, adap
 	return adoptInitializedGraph(&call.graph), nil
 }
 
+// NewDelaunayGraph constructs the Delaunay graph of a point set. Point matrix
+// row i becomes vertex i. Points must have positive dimensionality, finite
+// coordinates, and be pairwise distinct. One-dimensional points are connected
+// consecutively in coordinate order. In higher dimensions, insufficient or
+// degenerate input (including collinear 2D points) returns an upstream error.
+//
+// The constructor borrows and copies the point matrix only for its synchronous
+// call. It returns an independently owned undirected simple Graph that the
+// caller must close. Empty input returns an empty graph, including a 0-by-0
+// Matrix. Edge enumeration order is unspecified. This binds an experimental
+// API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_delaunay_graph
+func NewDelaunayGraph(points Matrix) (*Graph, error) {
+	return newProximityGraph(points, proximityGraphOperation{
+		name: "Delaunay graph",
+		call: func(graph *C.igraph_t, points *C.igraph_matrix_t) int {
+			return int(C.go_igraph_delaunay_graph(graph, points))
+		},
+	}, nil)
+}
+
+// NewGabrielGraph constructs the Gabriel graph of a point set. Point matrix row
+// i becomes vertex i. Points may have arbitrary positive dimensionality and
+// must have finite coordinates and be pairwise distinct. The input is borrowed
+// and copied only for the synchronous call. The returned graph is independently
+// owned, undirected, and simple and must be closed. Empty input returns an empty
+// graph. Edge enumeration order is unspecified. This binds an experimental API
+// in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_gabriel_graph
+func NewGabrielGraph(points Matrix) (*Graph, error) {
+	return newProximityGraph(points, proximityGraphOperation{
+		name: "Gabriel graph",
+		call: func(graph *C.igraph_t, points *C.igraph_matrix_t) int {
+			return int(C.go_igraph_gabriel_graph(graph, points))
+		},
+	}, nil)
+}
+
+// NewRelativeNeighborhoodGraph constructs the relative neighborhood graph of
+// a point set. Point matrix row i becomes vertex i. Points may have arbitrary
+// positive dimensionality and must have finite coordinates and be pairwise
+// distinct. The input is borrowed and copied only for the synchronous call.
+// The returned graph is independently owned, undirected, and simple and must be
+// closed. Empty input returns an empty graph. Edge enumeration order is
+// unspecified. This binds an experimental API in pinned igraph 1.0.1.
+//
+//igraph:bind igraph_relative_neighborhood_graph
+func NewRelativeNeighborhoodGraph(points Matrix) (*Graph, error) {
+	return newProximityGraph(points, proximityGraphOperation{
+		name: "relative neighborhood graph",
+		call: func(graph *C.igraph_t, points *C.igraph_matrix_t) int {
+			return int(C.go_igraph_relative_neighborhood_graph(graph, points))
+		},
+	}, nil)
+}
+
+type proximityGraphOperation struct {
+	name string
+	call func(*C.igraph_t, *C.igraph_matrix_t) int
+}
+
+type proximityGraphCallResult struct {
+	graph C.igraph_t
+	code  int
+}
+
+type proximityGraphAdapters struct {
+	newMatrix func(Matrix) (*cMatrix, error)
+	call      func(proximityGraphOperation, *cMatrix) proximityGraphCallResult
+}
+
+func defaultProximityGraphAdapters() proximityGraphAdapters {
+	return proximityGraphAdapters{
+		newMatrix: newCMatrix,
+		call: func(operation proximityGraphOperation, points *cMatrix) proximityGraphCallResult {
+			var graph C.igraph_t
+			code := operation.call(&graph, &points.value)
+			return proximityGraphCallResult{graph: graph, code: code}
+		},
+	}
+}
+
+func newProximityGraph(points Matrix, operation proximityGraphOperation, adapters *proximityGraphAdapters) (*Graph, error) {
+	resolved := defaultProximityGraphAdapters()
+	if adapters != nil {
+		resolved = *adapters
+	}
+	cPoints, err := newSpatialPoints(points, spatialPointRequirements{
+		operation: operation.name, minDimensions: 1, distinct: true,
+	}, resolved.newMatrix)
+	if err != nil {
+		return nil, err
+	}
+	defer cPoints.close()
+	call := resolved.call(operation, cPoints)
+	if call.code != int(C.IGRAPH_SUCCESS) {
+		return nil, igraphError("construct "+operation.name, call.code)
+	}
+	return adoptInitializedGraph(&call.graph), nil
+}
+
 type convexHullAdapters struct {
 	newMatrix     func(Matrix) (*cMatrix, error)
 	newInt        func([]int) (*intVector, error)
