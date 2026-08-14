@@ -11,5 +11,11 @@ igraph_error_t go_igraph_spatial_edge_lengths(
 igraph_error_t go_igraph_nearest_neighbor_graph(
     igraph_t *, const igraph_matrix_t *, igraph_metric_t, igraph_int_t,
     igraph_real_t, igraph_bool_t);
+igraph_error_t go_igraph_delaunay_graph(
+    igraph_t *, const igraph_matrix_t *);
+igraph_error_t go_igraph_gabriel_graph(
+    igraph_t *, const igraph_matrix_t *);
+igraph_error_t go_igraph_relative_neighborhood_graph(
+    igraph_t *, const igraph_matrix_t *);
 
 #endif
