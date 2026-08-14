@@ -1110,12 +1110,133 @@ Completion criteria:
   examples cover both workflows, and `make verify` passes while preserving the
   statement coverage floor.
 
-### Later domain milestones
+## Milestone 17: Attributes and graph interchange
 
-Attributes and richer import/export, plus other specialized upstream domains,
-remain candidates after the milestones above. They should advance when a
-concrete use case can define a coherent Go API and its resource model, not
-merely to increase the inventory percentage.
+Goal: attach typed metadata to graphs, vertices, and edges, preserve or
+explicitly combine that metadata across graph transformations, and exchange
+attributed graphs through practical file formats without exposing C attribute
+tables or file handles.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#253](https://github.com/h8gi/go-igraph/issues/253).
+
+Reference workflows:
+
+- attributed analysis attaches boolean, numeric, and string metadata to a
+  graph, its vertices, and its edges; inspects and updates those values; then
+  copies, simplifies, decomposes, or combines graphs with explicit attribute
+  preservation and combination semantics; and
+- attributed interchange reads a GraphML or GML graph, inspects and modifies
+  its topology and metadata through the same typed APIs, writes it, and reads
+  it back without undocumented loss of supported information.
+
+Planned areas:
+
+- shared attribute scope/type vocabulary, checked string and metadata
+  conversion, one-time C attribute-table installation, and cleanup seams
+  ([#254](https://github.com/h8gi/go-igraph/issues/254));
+- graph-level boolean, numeric, and string metadata
+  ([#255](https://github.com/h8gi/go-igraph/issues/255));
+- vertex- and edge-ID-aligned boolean, numeric, and string metadata
+  ([#256](https://github.com/h8gi/go-igraph/issues/256));
+- explicit preservation and Go-native combination policies across graph
+  transformations and operators
+  ([#257](https://github.com/h8gi/go-igraph/issues/257));
+- independently owned edge-list, GraphML, and GML graph readers plus reviewed
+  dispositions for the remaining upstream readers
+  ([#258](https://github.com/h8gi/go-igraph/issues/258));
+- richer graph writers, format capability contracts, and attributed
+  round-trip coverage
+  ([#259](https://github.com/h8gi/go-igraph/issues/259)); and
+- final integration, examples, documentation, race/ownership coverage, and
+  inventory audit ([#260](https://github.com/h8gi/go-igraph/issues/260)).
+
+Execution order: #253 establishes the initial dispositions and milestone-wide
+contract. #254 defines the shared runtime, type, conversion, and cleanup
+vocabulary. #255 and #256 may then proceed independently. #257 follows both
+typed attribute slices. #258 follows #254 through #256; #259 follows the typed
+attribute APIs and readers so that it can verify round trips. #260 follows all
+implementation slices and removes every stale deferred disposition.
+
+Shared attribute contract: public APIs expose Go-native attribute scopes and
+boolean, numeric, and string types rather than C tables, records, unions,
+vectors, or generated containers. Names, scalar values, slices, options, and
+files are borrowed only for the synchronous call. Returned attribute metadata
+and collections are non-nil Go-owned values, ordered by vertex or edge ID where
+applicable, and remain valid after graph closure. Missing names, type mismatch,
+embedded NUL bytes, empty values, vector-length mismatch, non-finite numeric
+input, invalid IDs, and overwrite behavior are explicit.
+
+The package installs and owns the upstream C attribute table exactly once
+before attributed graphs are created. Callers cannot replace it or observe raw
+attribute storage. Graph locks cover complete reads and mutations; writes are
+serialized, racing `Close` either waits or returns `ErrClosed`, and imported,
+copied, and derived graphs own their attribute storage independently. Attribute
+combination uses Go-native policies for supported operations and keeps raw
+`igraph_attribute_combination_t` values and custom C callbacks internal.
+Operations that cannot preserve or combine a requested attribute without loss
+must reject the request or document deterministic loss rather than silently
+invent provenance.
+
+Shared interchange contract: public graph readers return independently owned
+`Graph` values and destroy every partially initialized graph or attribute
+record on parse, conversion, or adoption failure. Reader and writer file
+arguments remain caller-owned, stay open after the synchronous call, and never
+leak a `FILE *`. Format options replace upstream integer flags, indices, and
+sentinels with checked Go values. Each format documents directedness, graph
+indexing, supported attribute types and reserved names, identity/order
+guarantees, and any deterministic loss. Locale changes, parser callbacks, and
+flush handling remain internal and cannot weaken concurrent calls or error
+propagation.
+
+The core interchange slice covers edge lists for topology and GraphML/GML for
+attributed round trips. NCOL, LGL, Pajek, DL, GraphDB, DOT, LEDA, and DIMACS
+functions receive individual reviewed dispositions based on whether their
+format-specific semantics support a coherent Go API; the milestone does not
+expose them merely to increase declaration coverage.
+
+Initial disposition: the 146 currently missing declarations discovered through
+`igraph_attributes.h`, including its generated attribute-record list
+operations, and the 18 currently missing declarations in `igraph_foreign.h`
+are deferred to #254–#260. Five generated declarations already used by the
+integer-vector-list infrastructure remain internal, and the two existing
+foreign writer bindings remain user-facing. The final audit must resolve every
+deferred declaration as user-facing, composed, internal, or intentionally
+unsupported and leave no stale deferred or accidentally missing declaration in
+either audited domain.
+
+Completion criteria:
+
+- both reference workflows are expressible without C types, hidden global
+  mutation, caller-inferred ownership or ID alignment, or undocumented format
+  loss;
+- all public names, values, slices, options, and files have explicit borrowed
+  or copied lifetimes, while graphs and returned metadata follow explicit
+  independent ownership rules;
+- initialization failure, upstream or parse error, early return, checked
+  conversion, partial graph/record construction, and writer flush failure
+  release every temporary C resource;
+- missing, invalid, empty, non-finite, duplicate-name, wrong-type,
+  length-mismatch, malformed-input, unsupported-format/type, directed,
+  undirected, loop, parallel-edge, and use-after-`Close` behavior is
+  documented and tested where relevant;
+- copies, subgraphs, decomposition, simplification, direction conversion, and
+  multi-graph operators preserve or combine attributes according to explicit
+  contracts and independently owned results;
+- race tests cover concurrent attribute reads, serialized mutations,
+  concurrent imports and exports, stable multi-graph locking, one-time table
+  installation, and graph closure; and
+- every scoped declaration in `igraph_attributes.h` and
+  `igraph_foreign.h` has a final reviewed disposition, examples cover both
+  workflows, and `make verify` passes while preserving the statement
+  coverage floor.
+
+## Later domain milestones
+
+Other specialized upstream domains remain candidates after the milestones
+above. They should advance when a concrete use case can define a coherent Go
+API and its resource model, not merely to increase the inventory percentage.
 
 Select the next domain by user value, shared-infrastructure readiness, and the
 ability to define a complete Go ownership and concurrency contract.

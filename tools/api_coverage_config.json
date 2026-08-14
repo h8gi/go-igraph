@@ -89,6 +89,662 @@
       }
     },
     "deferred": {
+      "igraph_attribute_combination": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_combination_add": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_combination_destroy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_combination_init": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_combination_query": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_combination_remove": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_check_type": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_destroy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_init": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_init_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_clear": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_destroy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_discard": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_empty": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_get_ptr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_init": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_insert": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_permute": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_push_back_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_remove": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_replace": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_resize": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_size": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_sort": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_swap": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_resize": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_set_default_boolean": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_set_default_numeric": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_set_default_string": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_set_name": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_set_type": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_attribute_record_size": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAB": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAB_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAB_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EABV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAN": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAN_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAN_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EANV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAS": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAS_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EAS_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_EASV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAB": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAB_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAN": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAN_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAS": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_GAS_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_has_attr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_list": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_remove_all": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_remove_e": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_remove_g": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_remove_v": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAB": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAB_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAB_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VABV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAN": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAN_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAN_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VANV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAS": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAS_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VAS_setv": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_cattribute_VASV": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_enter_safelocale": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_exit_safelocale": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_has_attribute_table": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_read_graph_dimacs_flow": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_dl": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_edgelist": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_gml": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_graphdb": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_graphml": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_lgl": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_ncol": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_read_graph_pajek": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_set_attribute_table": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_clear": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_discard": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_empty": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_insert": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_permute": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_remove": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_replace": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_resize": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_sort": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_swap": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_int_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_clear": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_destroy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_discard": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_empty": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_get_ptr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_init": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_insert": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_permute": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_push_back_copy": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_remove": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_replace": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_resize": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_set": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_size": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_sort": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_swap": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_vector_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
+      },
+      "igraph_write_graph_dimacs_flow": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_dot": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_gml": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_leda": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_lgl": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_ncol": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      },
+      "igraph_write_graph_pajek": {
+        "domain": "graph_interchange",
+        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+      }
     },
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
