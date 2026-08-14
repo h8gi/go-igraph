@@ -7,7 +7,7 @@
 - Internal dependencies: **51**
 - Composed APIs: **16**
 - Intentionally unsupported: **11**
-- Deferred declarations: **0**
+- Deferred declarations: **164**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -144,55 +144,55 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_assortativity_nominal` | `igraph_mixing.h` | Missing | — |
 | `igraph_asymmetric_preference_game` | `igraph_games.h` | Missing | — |
 | `igraph_atlas` | `igraph_constructors.h` | Missing | — |
-| `igraph_attribute_combination` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_combination_add` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_combination_destroy` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_combination_init` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_combination_query` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_combination_remove` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_check_type` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_destroy` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_init` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_init_copy` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_list_capacity` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_clear` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_destroy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_discard` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_discard_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_discard_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_empty` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_get_ptr` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_init` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_init_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_insert` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_insert_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_insert_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_permute` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_pop_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_push_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_push_back_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_push_back_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_remove` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_remove_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_replace` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_reserve` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_resize` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_reverse` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_set` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_size` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_sort` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_sort_ind` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_swap` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_swap_elements` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_list_tail_ptr` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_attribute_record_resize` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_set_default_boolean` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_set_default_numeric` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_set_default_string` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_set_name` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_set_type` | `igraph_attributes.h` | Missing | — |
-| `igraph_attribute_record_size` | `igraph_attributes.h` | Missing | — |
+| `igraph_attribute_combination` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination_add` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination_destroy` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination_init` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination_query` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination_remove` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_check_type` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_destroy` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_init` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_init_copy` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_destroy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_get_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_init` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_push_back_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_size` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_resize` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_default_boolean` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_default_numeric` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_default_string` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_name` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_type` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_size` | `igraph_attributes.h` | Deferred | — |
 | `igraph_automorphism_group` | `igraph_isomorphism.h` | User-facing | `AutomorphismGenerators` |
 | `igraph_automorphism_group_bliss` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_average_local_efficiency` | `igraph_paths.h` | User-facing | `AverageLocalEfficiency` |
@@ -283,42 +283,42 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_calloc` | `igraph_memory.h` | Missing | — |
 | `igraph_canonical_permutation` | `igraph_isomorphism.h` | User-facing | `CanonicalPermutation` |
 | `igraph_canonical_permutation_bliss` | `igraph_isomorphism.h` | Missing | — |
-| `igraph_cattribute_EAB` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EABV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAB_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAB_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAN` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EANV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAN_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAN_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAS` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EASV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAS_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_EAS_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAB` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAB_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAN` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAN_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAS` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_GAS_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAB` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VABV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAB_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAB_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAN` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VANV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAN_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAN_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAS` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VASV` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAS_set` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_VAS_setv` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_has_attr` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_list` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_remove_all` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_remove_e` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_remove_g` | `igraph_attributes.h` | Missing | — |
-| `igraph_cattribute_remove_v` | `igraph_attributes.h` | Missing | — |
+| `igraph_cattribute_EAB` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EABV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAB_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAB_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAN` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EANV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAN_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAN_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAS` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EASV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAS_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_EAS_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAB` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAB_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAN` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAN_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAS` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_GAS_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAB` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VABV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAB_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAB_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAN` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VANV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAN_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAN_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAS` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VASV` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAS_set` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_VAS_setv` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_has_attr` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_list` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_remove_all` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_remove_e` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_remove_g` | `igraph_attributes.h` | Deferred | — |
+| `igraph_cattribute_remove_v` | `igraph_attributes.h` | Deferred | — |
 | `igraph_centralization` | `igraph_centrality.h` | User-facing | `CalculateCentralization` |
 | `igraph_centralization_betweenness` | `igraph_centrality.h` | User-facing | `BetweennessCentralization` |
 | `igraph_centralization_betweenness_tmax` | `igraph_centrality.h` | User-facing | `BetweennessCentralization` |
@@ -531,7 +531,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_eit_destroy` | `igraph_iterators.h` | Internal | `close` |
 | `igraph_empty` | `igraph_interface.h` | User-facing | `NewGraph` |
 | `igraph_empty_attrs` | `igraph_interface.h` | Missing | — |
-| `igraph_enter_safelocale` | `igraph_foreign.h` | Missing | — |
+| `igraph_enter_safelocale` | `igraph_foreign.h` | Deferred | — |
 | `igraph_erdos_renyi_game_gnm` | `igraph_games.h` | User-facing | `ErdosRenyiGNM` |
 | `igraph_erdos_renyi_game_gnp` | `igraph_games.h` | User-facing | `ErdosRenyiGNP` |
 | `igraph_error` | `igraph_error.h` | Missing | — |
@@ -564,7 +564,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_eulerian_cycle` | `igraph_eulerian.h` | User-facing | `EulerianCycle` |
 | `igraph_eulerian_path` | `igraph_eulerian.h` | User-facing | `EulerianPath` |
 | `igraph_even_tarjan_reduction` | `igraph_flow.h` | User-facing | `EvenTarjanReduction` |
-| `igraph_exit_safelocale` | `igraph_foreign.h` | Missing | — |
+| `igraph_exit_safelocale` | `igraph_foreign.h` | Deferred | — |
 | `igraph_expand_path_to_pairs` | `igraph_paths.h` | Composed | `Path` |
 | `igraph_extended_chordal_ring` | `igraph_constructors.h` | Missing | — |
 | `igraph_famous` | `igraph_constructors.h` | Missing | — |
@@ -657,7 +657,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_growing_random_game` | `igraph_games.h` | Missing | — |
 | `igraph_harmonic_centrality` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
 | `igraph_harmonic_centrality_cutoff` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
-| `igraph_has_attribute_table` | `igraph_attributes.h` | Missing | — |
+| `igraph_has_attribute_table` | `igraph_attributes.h` | Deferred | — |
 | `igraph_has_loop` | `igraph_structural.h` | Missing | — |
 | `igraph_has_multiple` | `igraph_structural.h` | Internal | `operatorGraphHasMultiple` |
 | `igraph_has_mutual` | `igraph_structural.h` | Missing | — |
@@ -1292,15 +1292,15 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_random_spanning_tree` | `igraph_structural.h` | User-facing | `RandomSpanningTree` |
 | `igraph_random_walk` | `igraph_paths.h` | User-facing | `RandomWalk` |
 | `igraph_reachability` | `igraph_reachability.h` | User-facing | `Reachability` |
-| `igraph_read_graph_dimacs_flow` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_dl` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_edgelist` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_gml` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_graphdb` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_graphml` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_lgl` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_ncol` | `igraph_foreign.h` | Missing | — |
-| `igraph_read_graph_pajek` | `igraph_foreign.h` | Missing | — |
+| `igraph_read_graph_dimacs_flow` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_dl` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_edgelist` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_gml` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_graphdb` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_graphml` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_lgl` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_ncol` | `igraph_foreign.h` | Deferred | — |
+| `igraph_read_graph_pajek` | `igraph_foreign.h` | Deferred | — |
 | `igraph_real_fprintf` | `igraph_types.h` | Missing | — |
 | `igraph_real_fprintf_aligned` | `igraph_types.h` | Missing | — |
 | `igraph_real_fprintf_precise` | `igraph_types.h` | Missing | — |
@@ -1351,7 +1351,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_roots_for_tree_layout` | `igraph_layout.h` | Missing | — |
 | `igraph_running_mean` | `igraph_nongraph.h` | Missing | — |
 | `igraph_sbm_game` | `igraph_games.h` | User-facing | `SBMGame` |
-| `igraph_set_attribute_table` | `igraph_attributes.h` | Missing | — |
+| `igraph_set_attribute_table` | `igraph_attributes.h` | Deferred | — |
 | `igraph_set_error_handler` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_set_fatal_handler` | `igraph_error.h` | Missing | — |
 | `igraph_set_interruption_handler` | `igraph_interrupt.h` | Missing | — |
@@ -1882,38 +1882,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_vector_int_isnull` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_lex_cmp` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_lex_cmp_untyped` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_list_capacity` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_clear` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_int_list_destroy` | `igraph_attributes.h (generated)` | Internal | `close` |
-| `igraph_vector_int_list_discard` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_discard_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_discard_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_empty` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_int_list_get_ptr` | `igraph_attributes.h (generated)` | Internal | `slices` |
 | `igraph_vector_int_list_init` | `igraph_attributes.h (generated)` | Internal | `newIntVectorList` |
-| `igraph_vector_int_list_init_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_insert` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_insert_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_insert_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_permute` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_pop_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_push_back` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_int_list_push_back_copy` | `igraph_attributes.h (generated)` | Internal | `newLADDomainList` |
-| `igraph_vector_int_list_push_back_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_remove` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_remove_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_replace` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_reserve` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_resize` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_reverse` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_set` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_int_list_size` | `igraph_attributes.h (generated)` | Internal | `slices` |
-| `igraph_vector_int_list_sort` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_sort_ind` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_swap` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_swap_elements` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_int_list_tail_ptr` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_int_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_int_max` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_maxdifference` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_min` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1967,38 +1967,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_vector_isnull` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_lex_cmp` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_lex_cmp_untyped` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_list_capacity` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_clear` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_destroy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_discard` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_discard_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_discard_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_empty` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_get_ptr` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_init` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_init_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_insert` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_insert_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_insert_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_permute` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_pop_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_push_back` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_push_back_copy` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_push_back_new` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_remove` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_remove_fast` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_replace` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_reserve` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_resize` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_reverse` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_set` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_size` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_sort` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_sort_ind` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_swap` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_swap_elements` | `igraph_attributes.h (generated)` | Missing | — |
-| `igraph_vector_list_tail_ptr` | `igraph_attributes.h (generated)` | Missing | — |
+| `igraph_vector_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_destroy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_get_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_init` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_push_back_copy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_size` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_vector_max` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_maxdifference` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_min` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -2109,12 +2109,12 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_wheel` | `igraph_constructors.h` | Missing | — |
 | `igraph_widest_path_widths_dijkstra` | `igraph_paths.h` | User-facing | `WidestPathWidths` |
 | `igraph_widest_path_widths_floyd_warshall` | `igraph_paths.h` | Composed | `WidestPathWidths` |
-| `igraph_write_graph_dimacs_flow` | `igraph_foreign.h` | Missing | — |
-| `igraph_write_graph_dot` | `igraph_foreign.h` | Missing | — |
+| `igraph_write_graph_dimacs_flow` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_dot` | `igraph_foreign.h` | Deferred | — |
 | `igraph_write_graph_edgelist` | `igraph_foreign.h` | User-facing | `WriteEdgeList` |
-| `igraph_write_graph_gml` | `igraph_foreign.h` | Missing | — |
+| `igraph_write_graph_gml` | `igraph_foreign.h` | Deferred | — |
 | `igraph_write_graph_graphml` | `igraph_foreign.h` | User-facing | `WriteGraphML` |
-| `igraph_write_graph_leda` | `igraph_foreign.h` | Missing | — |
-| `igraph_write_graph_lgl` | `igraph_foreign.h` | Missing | — |
-| `igraph_write_graph_ncol` | `igraph_foreign.h` | Missing | — |
-| `igraph_write_graph_pajek` | `igraph_foreign.h` | Missing | — |
+| `igraph_write_graph_leda` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_lgl` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_ncol` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_pajek` | `igraph_foreign.h` | Deferred | — |
