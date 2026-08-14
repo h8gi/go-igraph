@@ -11,7 +11,7 @@ import (
 func TestDisjointUnionPreservesOrderMultiplicityAndMappings(t *testing.T) {
 	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {0, 1}, {2, 2}}, true)
 	right := testGraphFromEdges(t, 2, []Edge{{1, 0}, {1, 1}}, true)
-	result, err := left.DisjointUnion(right)
+	result, err := left.DisjointUnion(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -35,7 +35,7 @@ func TestUnionAndIntersectionMappingsLoopsParallelAndOperandOrder(t *testing.T) 
 	left := testGraphFromEdges(t, 4, []Edge{{0, 1}, {0, 1}, {1, 1}, {3, 0}}, true)
 	right := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 1}, {1, 1}, {2, 0}}, true)
 
-	union, err := left.Union(right)
+	union, err := left.Union(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -45,7 +45,7 @@ func TestUnionAndIntersectionMappingsLoopsParallelAndOperandOrder(t *testing.T) 
 	assertOperatorMappingConsistent(t, left, union.Graph, union.Left)
 	assertOperatorMappingConsistent(t, right, union.Graph, union.Right)
 
-	intersection, err := left.Intersection(right)
+	intersection, err := left.Intersection(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -59,7 +59,7 @@ func TestUnionAndIntersectionMappingsLoopsParallelAndOperandOrder(t *testing.T) 
 		t.Errorf("intersection exact inverse maps = %v / %v", intersection.Left.Edges.NewToOld, intersection.Right.Edges.NewToOld)
 	}
 
-	reversed, err := right.Union(left)
+	reversed, err := right.Union(left, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -135,7 +135,7 @@ func TestDifferenceIsOrderedAndComplementOptions(t *testing.T) {
 func TestComposeReturnsPerResultEdgeProvenance(t *testing.T) {
 	left := testGraphFromEdges(t, 4, []Edge{{0, 1}, {0, 2}, {0, 2}, {2, 2}}, true)
 	right := testGraphFromEdges(t, 4, []Edge{{1, 3}, {2, 3}, {2, 3}, {2, 2}}, true)
-	result, err := left.Compose(right)
+	result, err := left.Compose(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,7 +170,7 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 	empty := testGraphFromEdges(t, 0, nil, false)
 	self := testGraphFromEdges(t, 2, []Edge{{0, 1}, {0, 1}, {1, 1}}, false)
 
-	disjoint, err := empty.DisjointUnion(empty)
+	disjoint, err := empty.DisjointUnion(empty, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -179,11 +179,11 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 	assertNonNilBinaryMappings(t, disjoint)
 	for name, call := range map[string]func() (*Graph, error){
 		"union": func() (*Graph, error) {
-			result, err := empty.Union(empty)
+			result, err := empty.Union(empty, nil)
 			return result.Graph, err
 		},
 		"intersection": func() (*Graph, error) {
-			result, err := empty.Intersection(empty)
+			result, err := empty.Intersection(empty, nil)
 			return result.Graph, err
 		},
 		"difference": func() (*Graph, error) {
@@ -191,7 +191,7 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 			return result.Graph, err
 		},
 		"composition": func() (*Graph, error) {
-			result, err := empty.Compose(empty)
+			result, err := empty.Compose(empty, nil)
 			if result.Edges == nil {
 				t.Error("empty composition provenance is nil")
 			}
@@ -211,13 +211,13 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 		assertGraphShape(t, graph, 0, 0, false)
 	}
 
-	union, err := self.Union(self)
+	union, err := self.Union(self, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = union.Graph.Close() })
 	assertGraphShape(t, union.Graph, 2, 3, false)
-	intersection, err := self.Intersection(self)
+	intersection, err := self.Intersection(self, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +229,7 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 	}
 	t.Cleanup(func() { _ = difference.Graph.Close() })
 	assertGraphShape(t, difference.Graph, 2, 0, false)
-	composition, err := self.Compose(self)
+	composition, err := self.Compose(self, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -244,11 +244,11 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 	assertGraphShape(t, union.Graph, 2, 3, false)
 	union.Left.Edges.OldToNew[0] = 99
 	for name, call := range map[string]func() error{
-		"disjoint":   func() error { _, err := self.DisjointUnion(empty); return err },
-		"union":      func() error { _, err := self.Union(empty); return err },
-		"intersect":  func() error { _, err := self.Intersection(empty); return err },
+		"disjoint":   func() error { _, err := self.DisjointUnion(empty, nil); return err },
+		"union":      func() error { _, err := self.Union(empty, nil); return err },
+		"intersect":  func() error { _, err := self.Intersection(empty, nil); return err },
 		"difference": func() error { _, err := self.Difference(empty); return err },
-		"compose":    func() error { _, err := self.Compose(empty); return err },
+		"compose":    func() error { _, err := self.Compose(empty, nil); return err },
 		"complement": func() error { _, err := self.Complement(false); return err },
 	} {
 		if err := call(); !errors.Is(err, ErrClosed) {
@@ -256,7 +256,7 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 		}
 	}
 	var nilGraph *Graph
-	if _, err := nilGraph.Union(empty); !errors.Is(err, ErrClosed) {
+	if _, err := nilGraph.Union(empty, nil); !errors.Is(err, ErrClosed) {
 		t.Errorf("nil Union error = %v", err)
 	}
 }
@@ -264,7 +264,7 @@ func TestOperatorsEmptySelfOwnershipAndClosed(t *testing.T) {
 func TestComposeDifferentVertexCounts(t *testing.T) {
 	left := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
 	right := testGraphFromEdges(t, 3, []Edge{{1, 2}}, true)
-	result, err := left.Compose(right)
+	result, err := left.Compose(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +281,7 @@ func TestComposeDifferentVertexCounts(t *testing.T) {
 func TestComposeUndirectedLoopsPreservesExactProvenance(t *testing.T) {
 	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 1}}, false)
 	right := testGraphFromEdges(t, 3, []Edge{{1, 2}, {1, 1}}, false)
-	result, err := left.Compose(right)
+	result, err := left.Compose(right, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -311,19 +311,19 @@ func TestComposeUndirectedLoopsPreservesExactProvenance(t *testing.T) {
 func TestOperatorsRejectMixedDirectednessWithoutResult(t *testing.T) {
 	directed := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
 	undirected := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
-	if result, err := directed.DisjointUnion(undirected); err == nil || result.Graph != nil {
+	if result, err := directed.DisjointUnion(undirected, nil); err == nil || result.Graph != nil {
 		t.Errorf("mixed DisjointUnion = %#v, %v", result, err)
 	}
-	if result, err := directed.Union(undirected); err == nil || result.Graph != nil {
+	if result, err := directed.Union(undirected, nil); err == nil || result.Graph != nil {
 		t.Errorf("mixed Union = %#v, %v", result, err)
 	}
-	if result, err := directed.Intersection(undirected); err == nil || result.Graph != nil {
+	if result, err := directed.Intersection(undirected, nil); err == nil || result.Graph != nil {
 		t.Errorf("mixed Intersection = %#v, %v", result, err)
 	}
 	if result, err := directed.Difference(undirected); err == nil || result.Graph != nil {
 		t.Errorf("mixed Difference = %#v, %v", result, err)
 	}
-	if result, err := directed.Compose(undirected); err == nil || result.Graph != nil {
+	if result, err := directed.Compose(undirected, nil); err == nil || result.Graph != nil {
 		t.Errorf("mixed Compose = %#v, %v", result, err)
 	}
 }
@@ -351,13 +351,25 @@ func TestComplementParallelEdgesRejectionAndLoops(t *testing.T) {
 func TestOperatorLockOrderingHandlesReversedAndRepeatedOperands(t *testing.T) {
 	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
 	right := testGraphFromEdges(t, 3, []Edge{{0, 2}, {2, 1}}, true)
+	for _, graph := range []*Graph{left, right} {
+		if err := graph.SetVertexNumericAttributes("score", []float64{1, 2, 3}); err != nil {
+			t.Fatal(err)
+		}
+		if err := graph.SetEdgeNumericAttributes("weight", []float64{4, 5}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	policy := &GraphOperatorAttributePolicy{
+		Vertices: AttributeCombinationPolicy{Default: AttributeCombineFirst},
+		Edges:    AttributeCombinationPolicy{Default: AttributeCombineSum},
+	}
 	var wait sync.WaitGroup
 	errorsCh := make(chan error, 60)
 	for index := 0; index < 20; index++ {
 		wait.Add(3)
 		go func() {
 			defer wait.Done()
-			result, err := left.Union(right)
+			result, err := left.Union(right, policy)
 			if result.Graph != nil {
 				_ = result.Graph.Close()
 			}
@@ -365,7 +377,7 @@ func TestOperatorLockOrderingHandlesReversedAndRepeatedOperands(t *testing.T) {
 		}()
 		go func() {
 			defer wait.Done()
-			result, err := right.Intersection(left)
+			result, err := right.Intersection(left, policy)
 			if result.Graph != nil {
 				_ = result.Graph.Close()
 			}
@@ -373,7 +385,7 @@ func TestOperatorLockOrderingHandlesReversedAndRepeatedOperands(t *testing.T) {
 		}()
 		go func() {
 			defer wait.Done()
-			result, err := left.Compose(left)
+			result, err := left.Compose(left, policy)
 			if result.Graph != nil {
 				_ = result.Graph.Close()
 			}

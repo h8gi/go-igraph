@@ -320,7 +320,11 @@ exposed because upstream does not return result edge-ID correspondence or a
 result edge-order mapping. Component decomposition also returns no inferred
 provenance: component ordering and vertex renumbering are upstream-defined.
 Every component is removed from its temporary graph list and adopted into a
-separately closable `Graph`.
+separately closable `Graph`. Copies, deletion results, induced and edge
+subgraphs, and decomposed components preserve graph attributes and the vertex
+and edge attributes selected by their upstream ID permutation. Each result has
+independent attribute storage: changing or closing a source, component, or
+sibling does not affect another graph.
 
 `SimplifyInPlace`, `ConvertToDirectedInPlace`, and
 `ConvertToUndirectedInPlace` are explicit mutating transformations. Each one
@@ -342,16 +346,24 @@ ascending source IDs from each direction and assigns ascending result IDs for
 that endpoint group. These are deterministic structural conventions, not
 attribute provenance.
 
-The package exposes typed graph, vertex, and edge attribute values but not raw
-`igraph_attribute_combination_t` policies. Milestone 17 has established the
-typed scope/type/runtime boundary and value APIs, while combination policies
-remain a follow-up slice. Simplification currently
-passes no edge attribute combination and therefore discards edge attributes.
-Until the transformation slice lands, undirected collapse and mutual
-conversion likewise pass no combination and discard edge attributes; per-edge
-undirected conversion preserves them under
-upstream semantics. Directed conversion uses upstream attribute behavior with
-no configurable policy.
+Public `AttributeCombinationPolicy` values select drop, first, last, numeric
+sum/product/minimum/maximum/mean, or string concatenation without
+exposing `igraph_attribute_combination_t`, callbacks, variadic sentinels, or C
+storage. Policies and override maps are borrowed synchronously. Unknown names,
+invalid rules, and rules incompatible with an attribute type are rejected
+before mutation. Internal combination lists are destroyed after every success
+or partial construction failure.
+
+Simplification preserves graph and vertex attributes. Loop-only simplification
+uses first-value semantics to preserve every surviving edge attribute. If
+parallel removal may merge attributed edges, `SimplifyOptions.EdgeAttributes`
+is required, even when the desired rule is to drop them. Directed conversion
+preserves graph and vertex attributes and copies each source edge attribute to
+its derived edge. Per-edge undirected conversion preserves edge attributes;
+collapse and mutual conversion require an explicit edge policy when attributes
+exist. All three mutations remain clone-transform-swap atomic after policy
+validation and combination-list allocation.
+
 Binary graph operators borrow operands while `withLockedGraphs` holds every
 distinct graph lock in stable pointer order. Reversed operand order and repeated
 operands therefore do not deadlock. Directedness must match for every binary
@@ -376,6 +388,21 @@ limited to simple-graph inputs: parallel edges are rejected because upstream's
 complement traversal does not provide reliable multigraph presence semantics.
 No unavailable edge provenance is guessed. All mapping and provenance slices
 are non-nil Go-owned values and remain valid after every graph is closed.
+
+Operator results reconstruct attributes from these exact mappings while the
+operand locks remain held. Disjoint union concatenates same-typed vertex and
+edge values in operand order; same-name graph attributes and element type
+conflicts require a policy. Union and
+intersection preserve a single contributing value and require the matching
+`GraphOperatorAttributePolicy` scope when two same-name values reach one result
+element. Composition applies the same rule to graph and vertex mappings and to
+each exact contributing edge pair. A nil policy is therefore valid only when
+no combination is needed. Difference retains the left graph, vertex, and
+surviving edge attributes. Complement retains graph and vertex attributes and
+has no source edge attributes to copy. Type conflicts require an explicit drop
+rule or return `ErrAttributeTypeMismatch`. Any validation, allocation, or
+upstream failure closes a partial result and leaves both operands unchanged;
+successful results own independent attribute storage.
 
 The current public combination API is deliberately binary. The upstream
 `disjoint_union_many`, `union_many`, and `intersection_many` entry points remain

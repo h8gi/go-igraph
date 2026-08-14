@@ -15,7 +15,7 @@ func TestToUndirectedWithHookFailures(t *testing.T) {
 	if _, err := g.ConvertToDirectedInPlace(DirectedConversionMode(99)); err == nil {
 		t.Error("expected error for invalid DirectedConversionMode")
 	}
-	if _, err := g.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
+	if _, err := g.ConvertToUndirectedInPlace(UndirectedConversionMode(99), nil); err == nil {
 		t.Error("expected error for invalid UndirectedConversionMode")
 	}
 
@@ -29,7 +29,7 @@ func TestToUndirectedWithHookFailures(t *testing.T) {
 			t.Fatal(err)
 		}
 		targetStage := stage
-		_, err = gSub.convertToUndirectedInPlace(UndirectedConversionCollapse, func(s graphTransformationStage) error {
+		_, err = gSub.convertToUndirectedInPlace(UndirectedConversionCollapse, nil, func(s graphTransformationStage) error {
 			if s == targetStage {
 				return errors.New("simulated transformation failure")
 			}

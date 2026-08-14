@@ -4,10 +4,10 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **283 / 2015 (14.04%)**
-- Internal dependencies: **61**
-- Composed APIs: **17**
+- Internal dependencies: **64**
+- Composed APIs: **20**
 - Intentionally unsupported: **11**
-- Deferred declarations: **118**
+- Deferred declarations: **112**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -144,12 +144,12 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_assortativity_nominal` | `igraph_mixing.h` | Missing | — |
 | `igraph_asymmetric_preference_game` | `igraph_games.h` | Missing | — |
 | `igraph_atlas` | `igraph_constructors.h` | Missing | — |
-| `igraph_attribute_combination` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_combination_add` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_combination_destroy` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_combination_init` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_combination_query` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_combination_remove` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_combination` | `igraph_attributes.h` | Composed | `AttributeCombinationPolicy` |
+| `igraph_attribute_combination_add` | `igraph_attributes.h` | Internal | `newAttributeCombination` |
+| `igraph_attribute_combination_destroy` | `igraph_attributes.h` | Internal | `newAttributeCombination` |
+| `igraph_attribute_combination_init` | `igraph_attributes.h` | Internal | `newAttributeCombination` |
+| `igraph_attribute_combination_query` | `igraph_attributes.h` | Composed | `AttributeCombinationPolicy` |
+| `igraph_attribute_combination_remove` | `igraph_attributes.h` | Composed | `AttributeCombinationPolicy` |
 | `igraph_attribute_record_check_type` | `igraph_attributes.h` | Internal | `checkType` |
 | `igraph_attribute_record_destroy` | `igraph_attributes.h` | Internal | `close` |
 | `igraph_attribute_record_init` | `igraph_attributes.h` | Internal | `newAttributeRecord` |

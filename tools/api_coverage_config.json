@@ -91,33 +91,24 @@
         "go_api": "GraphAttributes",
         "domain": "attributes",
         "rationale": "Typed graph attribute operations preflight names and types through sorted metadata, so callers do not need a separate untyped existence predicate."
+      },
+      "igraph_attribute_combination": {
+        "go_api": "AttributeCombinationPolicy",
+        "domain": "attributes",
+        "rationale": "The Go-native immutable policy is assembled internally with checked records instead of exposing the variadic C sentinel API."
+      },
+      "igraph_attribute_combination_query": {
+        "go_api": "AttributeCombinationPolicy",
+        "domain": "attributes",
+        "rationale": "Call-scoped Go policy values are validated before construction and do not expose a mutable C record query API."
+      },
+      "igraph_attribute_combination_remove": {
+        "go_api": "AttributeCombinationPolicy",
+        "domain": "attributes",
+        "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
     "deferred": {
-      "igraph_attribute_combination": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_combination_add": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_combination_destroy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_combination_init": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_combination_query": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_combination_remove": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
       "igraph_attribute_record_init_copy": {
         "domain": "attributes",
         "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."

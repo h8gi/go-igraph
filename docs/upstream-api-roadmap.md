@@ -1204,6 +1204,19 @@ string, and false for Boolean attributes; callers can fill them with scalar or
 aligned-vector setters. Input slices are borrowed synchronously and returned
 slices are non-nil Go-owned copies, including on empty graphs.
 
+The transformation slice from
+[#257](https://github.com/h8gi/go-igraph/issues/257) adds Go-native, typed
+attribute-combination policies while keeping upstream combination records,
+callbacks, and sentinels internal. Lossless copies, deletion, subgraphs,
+decomposition, directedness conversion, difference, and complement preserve
+their documented graph, vertex, and edge values. Simplification, undirected
+edge collapse, union, intersection, disjoint-union graph conflicts, and
+composition require explicit scope-specific rules exactly where multiple
+values reach one result element; same-name type conflicts require an explicit
+drop rule. Mutations remain clone-and-swap atomic and
+derived operator graphs reconstruct Go-visible values from exact provenance
+under stable operand locks.
+
 Shared interchange contract: public graph readers return independently owned
 `Graph` values and destroy every partially initialized graph or attribute
 record on parse, conversion, or adoption failure. Reader and writer file

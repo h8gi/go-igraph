@@ -19,6 +19,19 @@ igraph_bool_t go_igraph_cattribute_table_is_installed(void) {
     return igraph_has_attribute_table();
 }
 
+igraph_error_t go_igraph_attribute_combination_init(
+        igraph_attribute_combination_t *combination) {
+    GO_IGRAPH_CALL(igraph_attribute_combination_init(combination));
+}
+
+igraph_error_t go_igraph_attribute_combination_add(
+        igraph_attribute_combination_t *combination,
+        const char *name,
+        igraph_attribute_combination_type_t type) {
+    GO_IGRAPH_CALL(igraph_attribute_combination_add(
+        combination, name, type, NULL));
+}
+
 igraph_error_t go_igraph_attribute_record_init(
     igraph_attribute_record_t *record,
     const char *name,

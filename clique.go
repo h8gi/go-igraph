@@ -225,7 +225,7 @@ func newSimpleCliqueGraph(source *C.igraph_t, operation string) (*C.igraph_t, er
 	if code := C.go_igraph_copy(simple, source); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("copy graph for "+operation, int(code))
 	}
-	if code := C.go_igraph_simplify(simple, booltoint(true), booltoint(true)); code != C.IGRAPH_SUCCESS {
+	if code := C.go_igraph_simplify(simple, booltoint(true), booltoint(true), nil); code != C.IGRAPH_SUCCESS {
 		C.igraph_destroy(simple)
 		return nil, igraphError("simplify graph for "+operation, int(code))
 	}

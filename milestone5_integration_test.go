@@ -57,7 +57,7 @@ func TestMilestone5DirectedTransformationPipeline(t *testing.T) {
 	assertIDMapping(t, simplified.Mapping.Edges,
 		[]int{0, 1, 2, RemovedID}, []int{0, 1, 2},
 	)
-	converted, err := induced.Graph.ConvertToUndirectedInPlace(UndirectedConversionCollapse)
+	converted, err := induced.Graph.ConvertToUndirectedInPlace(UndirectedConversionCollapse, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestMilestone5DirectedTransformationPipeline(t *testing.T) {
 	assertGraphShape(t, induced.Graph, 3, 3, false)
 
 	pathOperand := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, false)
-	union, err := induced.Graph.Union(pathOperand)
+	union, err := induced.Graph.Union(pathOperand, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +171,7 @@ func TestMilestone5UndirectedEmptyAllAndUnavailableMapping(t *testing.T) {
 	if converted.EdgeMappingAvailable || converted.Mapping.Edges.OldToNew == nil || converted.Mapping.Edges.NewToOld == nil {
 		t.Errorf("mutual conversion availability/mapping = %#v", converted)
 	}
-	composition, err := source.Compose(source)
+	composition, err := source.Compose(source, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
