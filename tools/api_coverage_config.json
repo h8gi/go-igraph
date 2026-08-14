@@ -88,7 +88,44 @@
         "rationale": "Public path APIs return aligned Go-owned vertex and edge sequences and do not require caller-side path conversion."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_beta_weighted_gabriel_graph": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define an independently owned graph result with edge-ID-aligned Go-owned threshold-beta values."
+      },
+      "igraph_circle_beta_skeleton": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define the positive-beta, two-dimensional, and experimental API contract."
+      },
+      "igraph_convex_hull_2d": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define an aligned Go-owned hull-index and coordinate result."
+      },
+      "igraph_delaunay_graph": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define point-row identity, dimensionality, duplicate-point, and graph-ownership semantics."
+      },
+      "igraph_gabriel_graph": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define point-row identity and independently owned proximity-graph semantics."
+      },
+      "igraph_lune_beta_skeleton": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define positive-beta, dimensionality, and experimental API semantics."
+      },
+      "igraph_nearest_neighbor_graph": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will replace negative C sentinels with Go-native optional neighbor and cutoff bounds."
+      },
+      "igraph_relative_neighborhood_graph": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will define point-row identity and independently owned proximity-graph semantics."
+      },
+      "igraph_spatial_edge_lengths": {
+        "domain": "spatial",
+        "rationale": "Milestone 16 will return Go-owned distances aligned with receiver edge IDs behind a Go-native metric type."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_motifs_randesu_callback": {
         "domain": "motifs_and_graphlets",

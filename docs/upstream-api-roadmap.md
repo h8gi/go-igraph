@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 14 are complete. The later domain milestones
+Status: Milestones 5 through 15 are complete. The later domain milestones
 below remain candidates. Later milestone numbers express dependency order, not
 a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
@@ -1003,9 +1003,106 @@ Completion criteria:
   disposition, examples cover both workflows, and `make verify` passes while
   preserving the statement coverage floor.
 
+## Milestone 16: Spatial graphs and geometry
+
+Goal: construct spatial graphs from point-coordinate matrices, compute
+edge-aligned spatial lengths, and extract two-dimensional convex hulls through
+Go-owned graph and value results.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#239](https://github.com/h8gi/go-igraph/issues/239).
+
+Reference workflows:
+
+- spatial routing constructs a nearest-neighbor or proximity graph from a
+  point matrix, computes edge lengths in edge-ID order, and passes those
+  lengths directly to weighted path, centrality, or routing APIs; and
+- planar geometry extracts an index-preserving convex hull and compares
+  Delaunay, Gabriel, relative-neighborhood, and beta-skeleton graphs over the
+  same point rows.
+
+Planned areas:
+
+- shared point-matrix validation, distance-metric vocabulary, optional bound
+  semantics, graph adoption, and aligned-result contracts
+  ([#240](https://github.com/h8gi/go-igraph/issues/240));
+- aligned two-dimensional convex hulls and spatial edge lengths
+  ([#241](https://github.com/h8gi/go-igraph/issues/241));
+- directed or undirected nearest-neighbor graph construction with optional
+  neighbor-count and distance bounds
+  ([#242](https://github.com/h8gi/go-igraph/issues/242));
+- Delaunay, Gabriel, and relative-neighborhood graph construction
+  ([#243](https://github.com/h8gi/go-igraph/issues/243));
+- lune- and circle-based beta skeletons plus beta-weighted Gabriel graphs
+  ([#244](https://github.com/h8gi/go-igraph/issues/244)); and
+- final integration, examples, documentation, race/ownership coverage, and
+  inventory audit ([#245](https://github.com/h8gi/go-igraph/issues/245)).
+
+Execution order: #239 establishes the initial dispositions and milestone-wide
+contract. #240 defines the common metric, validation, graph-adoption, and
+aligned-result vocabulary. #241, #242, and #243 may then proceed independently.
+#244 follows #240 and reuses the graph-plus-aligned-values result contract from
+#241 where practical. #245 follows all implementation slices and removes every
+stale deferred disposition.
+
+Shared spatial contract: an immutable `Matrix` represents a point set, with row
+`i` corresponding to vertex ID `i` and columns representing spatial dimensions.
+Matrix inputs are borrowed only for the synchronous call and copied into
+temporary C storage; no C pointer or matrix storage escapes. Public metrics are
+Go-native Euclidean and Manhattan choices rather than an exposed C enum.
+Operation-specific dimension, duplicate-point, finite-coordinate, neighbor,
+cutoff, and beta constraints are validated explicitly.
+
+Spatial graph constructors return independently owned `Graph` values that must
+be closed by the caller and remain valid independently of the input matrix and
+other results. Vertex IDs retain point-row identity. Graph edge order is not a
+compatibility promise, but every accompanying edge-value slice is aligned with
+the returned graph's edge IDs. `SpatialEdgeLengths` similarly returns one
+Go-owned value per receiver edge in edge-ID order. Convex-hull point indices and
+coordinate rows are aligned, non-nil, Go-owned values.
+
+Optional nearest-neighbor limits use Go option values rather than upstream
+negative sentinels. A missing maximum-neighbor count or cutoff means unbounded
+for that dimension of the search; explicit counts and cutoffs are
+non-negative. Beta-skeleton parameters are positive and finite. A missing
+weighted-Gabriel maximum beta requests the upstream unlimited calculation,
+while positive infinity in a returned threshold is a valid result indicating
+that the edge persists beyond the requested search range.
+
+Eight declarations in `igraph_spatial.h` are experimental in pinned igraph
+1.0.1; only `igraph_convex_hull_2d` is not. This status is stated on every
+corresponding public API. Experimental status does not relax ownership, error,
+cleanup, validation, or behavioral-test requirements.
+
+Initial disposition: all nine currently missing declarations in
+`igraph_spatial.h` are deferred to #241–#244. The final audit must resolve each
+as user-facing, composed, internal, or intentionally unsupported and leave no
+stale deferred or accidentally missing declaration in the audited domain.
+
+Completion criteria:
+
+- both reference workflows are expressible without C types, negative
+  sentinels, hidden attributes, or caller-inferred point/vertex/edge alignment;
+- point matrices, options, and metric inputs are borrowed only for synchronous
+  calls, while graphs, hulls, lengths, weights, and aligned collections follow
+  explicit independent ownership rules;
+- initialization failure, upstream error, checked conversion, partial-result
+  construction, and early-return paths release all temporary C resources;
+- empty, invalid, non-finite, duplicate, degenerate, multidimensional, tied,
+  directed, undirected, loop, parallel-edge, bounded, and use-after-`Close`
+  behavior is documented and tested where relevant;
+- experimental upstream status and any absence of stable edge-order guarantees
+  are visible in public documentation;
+- race tests cover concurrent read-only edge-length calculations and closure,
+  and graph constructors require no package-global mutable state; and
+- every declaration in `igraph_spatial.h` has a final reviewed disposition,
+  examples cover both workflows, and `make verify` passes while preserving the
+  statement coverage floor.
+
 ### Later domain milestones
 
-Spatial analysis; attributes and richer import/export; and other specialized upstream domains
+Attributes and richer import/export, plus other specialized upstream domains,
 remain candidates after the milestones above. They should advance when a
 concrete use case can define a coherent Go API and its resource model, not
 merely to increase the inventory percentage.

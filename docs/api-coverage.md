@@ -7,7 +7,7 @@
 - Internal dependencies: **51**
 - Composed APIs: **16**
 - Intentionally unsupported: **11**
-- Deferred declarations: **0**
+- Deferred declarations: **9**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -200,7 +200,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_avg_nearest_neighbor_degree` | `igraph_structural.h` | Missing | — |
 | `igraph_barabasi_aging_game` | `igraph_games.h` | Missing | — |
 | `igraph_barabasi_game` | `igraph_games.h` | User-facing | `BarabasiGame` |
-| `igraph_beta_weighted_gabriel_graph` | `igraph_spatial.h` | Missing | — |
+| `igraph_beta_weighted_gabriel_graph` | `igraph_spatial.h` | Deferred | — |
 | `igraph_betweenness` | `igraph_centrality.h` | User-facing | `VertexBetweenness` |
 | `igraph_betweenness_cutoff` | `igraph_centrality.h` | User-facing | `VertexBetweenness` |
 | `igraph_betweenness_subset` | `igraph_centrality.h` | Missing | — |
@@ -329,7 +329,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_centralization_eigenvector_centrality` | `igraph_centrality.h` | User-facing | `EigenvectorCentralization` |
 | `igraph_centralization_eigenvector_centrality_tmax` | `igraph_centrality.h` | User-facing | `EigenvectorCentralization` |
 | `igraph_chung_lu_game` | `igraph_games.h` | Missing | — |
-| `igraph_circle_beta_skeleton` | `igraph_spatial.h` | Missing | — |
+| `igraph_circle_beta_skeleton` | `igraph_spatial.h` | Deferred | — |
 | `igraph_circulant` | `igraph_constructors.h` | Missing | — |
 | `igraph_cited_type_game` | `igraph_games.h` | Missing | — |
 | `igraph_citing_cited_type_game` | `igraph_games.h` | Missing | — |
@@ -407,7 +407,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_constraint` | `igraph_centrality.h` | Missing | — |
 | `igraph_contract_vertices` | `igraph_operators.h` | Missing | — |
 | `igraph_convergence_degree` | `igraph_centrality.h` | Missing | — |
-| `igraph_convex_hull_2d` | `igraph_spatial.h` | Missing | — |
+| `igraph_convex_hull_2d` | `igraph_spatial.h` | Deferred | — |
 | `igraph_copy` | `igraph_interface.h` | User-facing | `Clone` |
 | `igraph_coreness` | `igraph_community.h` | User-facing | `Coreness` |
 | `igraph_correlated_game` | `igraph_games.h` | Missing | — |
@@ -431,7 +431,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_degree_1` | `igraph_interface.h` | Missing | — |
 | `igraph_degree_correlation_vector` | `igraph_structural.h` | Missing | — |
 | `igraph_degree_sequence_game` | `igraph_games.h` | User-facing | `DegreeSequenceGame` |
-| `igraph_delaunay_graph` | `igraph_spatial.h` | Missing | — |
+| `igraph_delaunay_graph` | `igraph_spatial.h` | Deferred | — |
 | `igraph_delete_edges` | `igraph_interface.h` | User-facing | `DeleteEdges` |
 | `igraph_delete_vertices` | `igraph_interface.h` | Missing | — |
 | `igraph_delete_vertices_idx` | `igraph_interface.h` | Missing | — |
@@ -582,7 +582,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_full_citation` | `igraph_constructors.h` | Missing | — |
 | `igraph_full_multipartite` | `igraph_constructors.h` | Missing | — |
 | `igraph_fundamental_cycles` | `igraph_cycles.h` | User-facing | `FundamentalCycleBasis` |
-| `igraph_gabriel_graph` | `igraph_spatial.h` | Missing | — |
+| `igraph_gabriel_graph` | `igraph_spatial.h` | Deferred | — |
 | `igraph_generalized_petersen` | `igraph_constructors.h` | Missing | — |
 | `igraph_get_adjacency` | `igraph_conversion.h` | Missing | — |
 | `igraph_get_adjacency_sparse` | `igraph_conversion.h` | Missing | — |
@@ -867,7 +867,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_local_scan_k_ecount_them` | `igraph_scan.h` | Missing | — |
 | `igraph_local_scan_neighborhood_ecount` | `igraph_scan.h` | Missing | — |
 | `igraph_local_scan_subset_ecount` | `igraph_scan.h` | Missing | — |
-| `igraph_lune_beta_skeleton` | `igraph_spatial.h` | Missing | — |
+| `igraph_lune_beta_skeleton` | `igraph_spatial.h` | Deferred | — |
 | `igraph_malloc` | `igraph_memory.h` | Missing | — |
 | `igraph_matrix_add` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_add_cols` | `igraph_arpack.h (generated)` | Missing | — |
@@ -1259,7 +1259,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_motifs_randesu_no` | `igraph_motifs.h` | User-facing | `MotifsRandesuNo` |
 | `igraph_mycielski_graph` | `igraph_constructors.h` | Missing | — |
 | `igraph_mycielskian` | `igraph_operators.h` | Missing | — |
-| `igraph_nearest_neighbor_graph` | `igraph_spatial.h` | Missing | — |
+| `igraph_nearest_neighbor_graph` | `igraph_spatial.h` | Deferred | — |
 | `igraph_neighborhood` | `igraph_neighborhood.h` | User-facing | `Neighborhoods` |
 | `igraph_neighborhood_graphs` | `igraph_neighborhood.h` | User-facing | `NeighborhoodGraphs` |
 | `igraph_neighborhood_size` | `igraph_neighborhood.h` | User-facing | `NeighborhoodSizes` |
@@ -1317,7 +1317,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_reciprocity` | `igraph_structural.h` | Missing | — |
 | `igraph_regular_tree` | `igraph_constructors.h` | Missing | — |
 | `igraph_reindex_membership` | `igraph_community.h` | User-facing | `ReindexMembership` |
-| `igraph_relative_neighborhood_graph` | `igraph_spatial.h` | Missing | — |
+| `igraph_relative_neighborhood_graph` | `igraph_spatial.h` | Deferred | — |
 | `igraph_residual_graph` | `igraph_flow.h` | User-facing | `ResidualGraph` |
 | `igraph_reverse_edges` | `igraph_operators.h` | Missing | — |
 | `igraph_reverse_residual_graph` | `igraph_flow.h` | User-facing | `ReverseResidualGraph` |
@@ -1461,7 +1461,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_sparsemat_utsolve` | `igraph_sparsemat.h` | Missing | — |
 | `igraph_sparsemat_which_min_cols` | `igraph_sparsemat.h` | Missing | — |
 | `igraph_sparsemat_which_min_rows` | `igraph_sparsemat.h` | Missing | — |
-| `igraph_spatial_edge_lengths` | `igraph_spatial.h` | Missing | — |
+| `igraph_spatial_edge_lengths` | `igraph_spatial.h` | Deferred | — |
 | `igraph_split_join_distance` | `igraph_community.h` | User-facing | `SplitJoinDistance` |
 | `igraph_square_lattice` | `igraph_constructors.h` | User-facing | `NewLattice` |
 | `igraph_st_edge_connectivity` | `igraph_flow.h` | User-facing | `STEdgeConnectivity` |
