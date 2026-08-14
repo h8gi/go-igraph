@@ -160,7 +160,7 @@ func TestConvertToUndirectedInPlaceModes(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			graph := transformationGraph(t, 3, edges, true)
-			result, err := graph.ConvertToUndirectedInPlace(test.mode)
+			result, err := graph.ConvertToUndirectedInPlace(test.mode, nil)
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -208,7 +208,7 @@ func TestDirectionConversionIdentityEmptyAndEdgeless(t *testing.T) {
 	undirectedEdges := []Edge{{1, 0}, {1, 1}}
 	undirected := transformationGraph(t, 2, undirectedEdges, false)
 	undirectedBefore := captureGraphState(t, undirected)
-	if _, err := undirected.ConvertToUndirectedInPlace(UndirectedConversionMutual); err != nil {
+	if _, err := undirected.ConvertToUndirectedInPlace(UndirectedConversionMutual, nil); err != nil {
 		t.Fatal(err)
 	}
 	assertCapturedGraphState(t, undirected, undirectedBefore)
@@ -222,7 +222,7 @@ func TestDirectionConversionIdentityEmptyAndEdgeless(t *testing.T) {
 			t.Fatal(err)
 		}
 		assertTransformationGraph(t, graph, vertexCount, true, []Edge{})
-		if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); err != nil {
+		if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach, nil); err != nil {
 			t.Fatal(err)
 		}
 		assertTransformationGraph(t, graph, vertexCount, false, []Edge{})
@@ -249,7 +249,7 @@ func TestGraphTransformationsRejectInvalidModesAndClosedGraphs(t *testing.T) {
 
 	directed := transformationGraph(t, 2, []Edge{{0, 1}}, true)
 	before = captureGraphState(t, directed)
-	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
+	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99), nil); err == nil {
 		t.Error("ConvertToUndirectedInPlace(invalid) error = nil")
 	}
 	assertCapturedGraphState(t, directed, before)
@@ -435,7 +435,7 @@ func assertTransformationClosed(t *testing.T, graph *Graph) {
 	if _, err := graph.ConvertToDirectedInPlace(DirectedConversionArbitrary); !errors.Is(err, ErrClosed) {
 		t.Errorf("ConvertToDirectedInPlace() error = %v, want %v", err, ErrClosed)
 	}
-	if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach); !errors.Is(err, ErrClosed) {
+	if _, err := graph.ConvertToUndirectedInPlace(UndirectedConversionEach, nil); !errors.Is(err, ErrClosed) {
 		t.Errorf("ConvertToUndirectedInPlace() error = %v, want %v", err, ErrClosed)
 	}
 }
@@ -447,7 +447,7 @@ func TestTransformationInvalidModes(t *testing.T) {
 	}
 
 	directed := transformationGraph(t, 2, []Edge{{0, 1}}, true)
-	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99)); err == nil {
+	if _, err := directed.ConvertToUndirectedInPlace(UndirectedConversionMode(99), nil); err == nil {
 		t.Errorf("ConvertToUndirectedInPlace(invalid) error = nil")
 	}
 }

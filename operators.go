@@ -55,10 +55,21 @@ type CompositionResult struct {
 // the vertex and edge counts of g. Operands are borrowed only for the call.
 // They must have the same directedness. Loops and parallel edges are preserved.
 // The result graph is independently owned and must be closed by the caller.
+// Same-typed vertex and edge attributes are copied in operand order. A policy
+// is required for same-name graph attributes and for a same-name element type
+// conflict, which can only be resolved by dropping that attribute.
 //
 //igraph:bind igraph_disjoint_union
-func (g *Graph) DisjointUnion(other *Graph) (BinaryGraphOperatorResult, error) {
+func (g *Graph) DisjointUnion(other *Graph, attributes *GraphOperatorAttributePolicy) (BinaryGraphOperatorResult, error) {
 	return binaryDerivedGraph(g, other, func(left, right *C.igraph_t) (BinaryGraphOperatorResult, error) {
+		leftAttributes, err := snapshotGraphAttributesLocked(left)
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
+		rightAttributes, err := snapshotGraphAttributesLocked(right)
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
 		leftVertices, leftEdges, err := graphCounts(left, "left disjoint-union operand")
 		if err != nil {
 			return BinaryGraphOperatorResult{}, err
@@ -67,7 +78,7 @@ func (g *Graph) DisjointUnion(other *Graph) (BinaryGraphOperatorResult, error) {
 		if err != nil {
 			return BinaryGraphOperatorResult{}, err
 		}
-		return collectBinaryGraphResult(func() (*Graph, error) {
+		result, err := collectBinaryGraphResult(func() (*Graph, error) {
 			var value C.igraph_t
 			if code := C.go_igraph_disjoint_union(&value, left, right); code != C.IGRAPH_SUCCESS {
 				return nil, igraphError("create disjoint union", int(code))
@@ -81,6 +92,14 @@ func (g *Graph) DisjointUnion(other *Graph) (BinaryGraphOperatorResult, error) {
 			rightMapping, err := offsetGraphIDMapping(rightVertices, rightEdges, leftVertices+rightVertices, leftEdges+rightEdges, leftVertices, leftEdges)
 			return leftMapping, rightMapping, err
 		})
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
+		if err := restoreBinaryOperatorAttributes(result.Graph, leftAttributes, rightAttributes, result.Left, result.Right, attributes); err != nil {
+			_ = result.Graph.Close()
+			return BinaryGraphOperatorResult{}, err
+		}
+		return result, nil
 	})
 }
 
@@ -88,11 +107,13 @@ func (g *Graph) DisjointUnion(other *Graph) (BinaryGraphOperatorResult, error) {
 // vertex count, and parallel-edge multiplicity is the larger operand
 // multiplicity for each endpoint pair. Upstream exact edge mappings are
 // returned for both operands. Directedness must match. Operands are borrowed
-// only for the call; the independently owned result must be closed.
+// only for the call; the independently owned result must be closed. Attributes
+// with one contributing value are preserved; same-name values that map to one
+// result element require an explicit scope-specific policy.
 //
 //igraph:bind igraph_union
-func (g *Graph) Union(other *Graph) (BinaryGraphOperatorResult, error) {
-	return g.mappedMerge(other, mappedMergeUnion)
+func (g *Graph) Union(other *Graph, attributes *GraphOperatorAttributePolicy) (BinaryGraphOperatorResult, error) {
+	return g.mappedMerge(other, mappedMergeUnion, attributes)
 }
 
 // Intersection returns the common edges of both graphs. Result vertex count is
@@ -100,11 +121,12 @@ func (g *Graph) Union(other *Graph) (BinaryGraphOperatorResult, error) {
 // smaller operand multiplicity for each endpoint pair. Upstream exact
 // provenance is converted to source-to-result mappings. Directedness must
 // match. Operands are borrowed only for the call; the independently owned
-// result must be closed.
+// result must be closed. Attributes follow the same explicit conflict-policy
+// contract as Union.
 //
 //igraph:bind igraph_intersection
-func (g *Graph) Intersection(other *Graph) (BinaryGraphOperatorResult, error) {
-	return g.mappedMerge(other, mappedMergeIntersection)
+func (g *Graph) Intersection(other *Graph, attributes *GraphOperatorAttributePolicy) (BinaryGraphOperatorResult, error) {
+	return g.mappedMerge(other, mappedMergeIntersection, attributes)
 }
 
 type mappedMergeMode uint8
@@ -114,8 +136,16 @@ const (
 	mappedMergeIntersection
 )
 
-func (g *Graph) mappedMerge(other *Graph, mode mappedMergeMode) (BinaryGraphOperatorResult, error) {
+func (g *Graph) mappedMerge(other *Graph, mode mappedMergeMode, attributes *GraphOperatorAttributePolicy) (BinaryGraphOperatorResult, error) {
 	return binaryDerivedGraph(g, other, func(left, right *C.igraph_t) (BinaryGraphOperatorResult, error) {
+		leftAttributes, err := snapshotGraphAttributesLocked(left)
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
+		rightAttributes, err := snapshotGraphAttributesLocked(right)
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
 		leftVertices, leftEdges, err := graphCounts(left, "left merge operand")
 		if err != nil {
 			return BinaryGraphOperatorResult{}, err
@@ -124,7 +154,7 @@ func (g *Graph) mappedMerge(other *Graph, mode mappedMergeMode) (BinaryGraphOper
 		if err != nil {
 			return BinaryGraphOperatorResult{}, err
 		}
-		return collectMappedMerge(leftVertices, leftEdges, rightVertices, rightEdges, mode, mappedMergeOperations{
+		result, err := collectMappedMerge(leftVertices, leftEdges, rightVertices, rightEdges, mode, mappedMergeOperations{
 			newVector:   func() (*intVector, error) { return newIntVector(nil) },
 			closeVector: (*intVector).close,
 			query: func(leftMap, rightMap *intVector) (*Graph, int, int, error) {
@@ -148,6 +178,14 @@ func (g *Graph) mappedMerge(other *Graph, mode mappedMergeMode) (BinaryGraphOper
 			vectorSlice: func(vector *intVector) ([]int, error) { return vector.slice() },
 			closeGraph:  func(graph *Graph) { _ = graph.Close() },
 		})
+		if err != nil {
+			return BinaryGraphOperatorResult{}, err
+		}
+		if err := restoreBinaryOperatorAttributes(result.Graph, leftAttributes, rightAttributes, result.Left, result.Right, attributes); err != nil {
+			_ = result.Graph.Close()
+			return BinaryGraphOperatorResult{}, err
+		}
+		return result, nil
 	})
 }
 
@@ -158,7 +196,8 @@ func (g *Graph) mappedMerge(other *Graph, mode mappedMergeMode) (BinaryGraphOper
 // in ascending edge-ID order; excess left parallel edges map to RemovedID.
 // This is deterministic structural correspondence, not attribute provenance.
 // Operands are borrowed only for the call; the independently owned result must
-// be closed.
+// be closed. Graph and vertex attributes and retained left-edge attributes are
+// preserved from g; attributes from other do not contribute to the result.
 //
 //igraph:bind igraph_difference
 func (g *Graph) Difference(other *Graph) (DifferenceResult, error) {
@@ -197,12 +236,21 @@ func (g *Graph) Difference(other *Graph) (DifferenceResult, error) {
 // exact contributing operand edge IDs for every result edge; it is not reduced
 // to IDMapping because operand-to-result provenance can be one-to-many.
 // Operands are borrowed only for the call; the independently owned result must
-// be closed.
+// be closed. Non-conflicting attributes are preserved; graph, vertex, or edge
+// values contributed by both operands require the corresponding policy.
 //
 //igraph:bind igraph_compose
-func (g *Graph) Compose(other *Graph) (CompositionResult, error) {
+func (g *Graph) Compose(other *Graph, attributes *GraphOperatorAttributePolicy) (CompositionResult, error) {
 	var result CompositionResult
 	err := withLockedGraphs([]*Graph{g, other}, func(values []*C.igraph_t) error {
+		leftAttributes, err := snapshotGraphAttributesLocked(values[0])
+		if err != nil {
+			return err
+		}
+		rightAttributes, err := snapshotGraphAttributesLocked(values[1])
+		if err != nil {
+			return err
+		}
 		leftVertices, leftEdges, err := graphCounts(values[0], "composition left operand")
 		if err != nil {
 			return err
@@ -229,7 +277,15 @@ func (g *Graph) Compose(other *Graph) (CompositionResult, error) {
 			vectorSlice: func(vector *intVector) ([]int, error) { return vector.slice() },
 			closeGraph:  func(graph *Graph) { _ = graph.Close() },
 		})
-		return err
+		if err != nil {
+			return err
+		}
+		if err := restoreCompositionAttributes(result.Graph, leftAttributes, rightAttributes, result, attributes); err != nil {
+			_ = result.Graph.Close()
+			result = CompositionResult{}
+			return err
+		}
+		return nil
 	})
 	return result, err
 }

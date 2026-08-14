@@ -107,7 +107,7 @@ func TestCommunityLeadingEigenvector(t *testing.T) {
 		}
 		defer g2.Close()
 
-		res, err := g1.DisjointUnion(g2)
+		res, err := g1.DisjointUnion(g2, nil)
 		if err != nil {
 			t.Fatalf("DisjointUnion failed: %v", err)
 		}

@@ -61,9 +61,10 @@ igraph_error_t go_igraph_get_edgelist(
 
 igraph_error_t go_igraph_simplify(igraph_t *graph,
                                   igraph_bool_t remove_multiple,
-                                  igraph_bool_t remove_loops) {
+                                  igraph_bool_t remove_loops,
+                                  const igraph_attribute_combination_t *edge_comb) {
     GO_IGRAPH_CALL(igraph_simplify(
-        graph, remove_multiple, remove_loops, NULL));
+        graph, remove_multiple, remove_loops, edge_comb));
 }
 
 igraph_error_t go_igraph_to_directed(igraph_t *graph,
@@ -72,8 +73,9 @@ igraph_error_t go_igraph_to_directed(igraph_t *graph,
 }
 
 igraph_error_t go_igraph_to_undirected(igraph_t *graph,
-                                       igraph_to_undirected_t mode) {
-    GO_IGRAPH_CALL(igraph_to_undirected(graph, mode, NULL));
+                                       igraph_to_undirected_t mode,
+                                       const igraph_attribute_combination_t *edge_comb) {
+    GO_IGRAPH_CALL(igraph_to_undirected(graph, mode, edge_comb));
 }
 
 igraph_error_t go_igraph_vs_vector_copy(igraph_vs_t *value,

@@ -29,6 +29,10 @@ type GraphTransformationResult struct {
 type SimplifyOptions struct {
 	RemoveParallel bool
 	RemoveLoops    bool
+	// EdgeAttributes is required when RemoveParallel may merge attributed
+	// edges. It is borrowed only for the call. Loop-only simplification
+	// preserves surviving edge attributes without requiring a policy.
+	EdgeAttributes *AttributeCombinationPolicy
 }
 
 // DirectedConversionMode controls how an undirected edge becomes directed.
@@ -98,10 +102,11 @@ func (mode UndirectedConversionMode) cValue() (C.igraph_to_undirected_t, error) 
 // already simple. A zero options value is a no-op.
 //
 // The result contains an exact structural edge mapping; parallel sources may
-// map to the same result edge and NewToOld selects their lowest source ID. The
-// binding passes no attribute-combination policy, so upstream discards edge
-// attributes, including on unaffected edges. This package currently exposes
-// no graph, vertex, or edge attributes.
+// map to the same result edge and NewToOld selects their lowest source ID.
+// Graph and vertex attributes are preserved. Surviving edge attributes are
+// preserved when only loops are removed. When parallel edges may be merged,
+// EdgeAttributes must explicitly select how every edge attribute is combined;
+// validation and upstream failures leave the receiver unchanged.
 //
 //igraph:bind igraph_simplify
 func (g *Graph) SimplifyInPlace(options SimplifyOptions) (GraphTransformationResult, error) {
@@ -120,9 +125,26 @@ func (g *Graph) simplifyInPlace(options SimplifyOptions, hook graphTransformatio
 	if !options.RemoveParallel && !options.RemoveLoops {
 		return identityGraphTransformationResult(int(C.igraph_vcount(&g.graph)), int(C.igraph_ecount(&g.graph)))
 	}
+	edgeAttributes, err := attributeMetadataLocked(&g.graph, AttributeEdge)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	policy := options.EdgeAttributes
+	if !options.RemoveParallel && policy == nil {
+		policy = &AttributeCombinationPolicy{Default: AttributeCombineFirst}
+	}
+	combination, err := newAttributeCombination(policy, edgeAttributes)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	defer combination.close()
 	return g.applyAtomicGraphTransformation("simplify graph", hook, func(replacement *C.igraph_t) C.igraph_error_t {
+		var cCombination *C.igraph_attribute_combination_t
+		if combination != nil {
+			cCombination = &combination.value
+		}
 		return C.go_igraph_simplify(
-			replacement, booltoint(options.RemoveParallel), booltoint(options.RemoveLoops),
+			replacement, booltoint(options.RemoveParallel), booltoint(options.RemoveLoops), cCombination,
 		)
 	}, func(before, after []Edge, directed bool) (IDMapping, bool, error) {
 		return simplifyEdgeMapping(before, after, directed, options)
@@ -136,9 +158,9 @@ func (g *Graph) simplifyInPlace(options SimplifyOptions, hook graphTransformatio
 // conversion. When mutual conversion actually duplicates edges it is
 // one-to-many, which IDMapping cannot represent, so EdgeMappingAvailable is
 // false and its edge slices are non-nil and empty. No-op and empty conversions
-// have available identity mappings. Vertex IDs remain unchanged. Existing
-// attributes follow upstream behavior; this package currently exposes no
-// graph, vertex, or edge attributes.
+// have available identity mappings. Vertex IDs remain unchanged. Graph and
+// vertex attributes are preserved. Existing edge attributes are
+// copied to each derived edge and remain independently owned.
 //
 //igraph:bind igraph_to_directed
 func (g *Graph) ConvertToDirectedInPlace(mode DirectedConversionMode) (GraphTransformationResult, error) {
@@ -183,16 +205,16 @@ func (g *Graph) convertToDirectedInPlace(mode DirectedConversionMode, hook graph
 // Each, collapse, and mutual return structural edge provenance. For equivalent
 // parallel edges, reciprocal pairing follows ascending source and result edge
 // ID order; it is an ID convention, not attribute lineage. Vertex IDs remain
-// unchanged. The binding passes no attribute-combination policy; collapse and
-// mutual therefore discard edge attributes, while each preserves them. This
-// package currently exposes no graph, vertex, or edge attributes.
+// unchanged. Each preserves edge attributes without a policy. Collapse and
+// mutual require an explicit policy when edge attributes exist; the policy is
+// borrowed only for the call. Every successful result owns its attributes.
 //
 //igraph:bind igraph_to_undirected
-func (g *Graph) ConvertToUndirectedInPlace(mode UndirectedConversionMode) (GraphTransformationResult, error) {
-	return g.convertToUndirectedInPlace(mode, nil)
+func (g *Graph) ConvertToUndirectedInPlace(mode UndirectedConversionMode, edgeAttributes *AttributeCombinationPolicy) (GraphTransformationResult, error) {
+	return g.convertToUndirectedInPlace(mode, edgeAttributes, nil)
 }
 
-func (g *Graph) convertToUndirectedInPlace(mode UndirectedConversionMode, hook graphTransformationFailureHook) (GraphTransformationResult, error) {
+func (g *Graph) convertToUndirectedInPlace(mode UndirectedConversionMode, edgeAttributePolicy *AttributeCombinationPolicy, hook graphTransformationFailureHook) (GraphTransformationResult, error) {
 	if g == nil {
 		return GraphTransformationResult{}, ErrClosed
 	}
@@ -208,8 +230,27 @@ func (g *Graph) convertToUndirectedInPlace(mode UndirectedConversionMode, hook g
 	if C.igraph_is_directed(&g.graph) == booltoint(false) {
 		return identityGraphTransformationResult(int(C.igraph_vcount(&g.graph)), int(C.igraph_ecount(&g.graph)))
 	}
+	edgeAttributes, err := attributeMetadataLocked(&g.graph, AttributeEdge)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	if mode != UndirectedConversionEach && edgeAttributePolicy == nil && len(edgeAttributes) != 0 {
+		return GraphTransformationResult{}, fmt.Errorf("igraph: an explicit edge attribute combination policy is required")
+	}
+	var combination *attributeCombination
+	if edgeAttributePolicy != nil {
+		combination, err = newAttributeCombination(edgeAttributePolicy, edgeAttributes)
+		if err != nil {
+			return GraphTransformationResult{}, err
+		}
+	}
+	defer combination.close()
 	return g.applyAtomicGraphTransformation("convert graph to undirected", hook, func(replacement *C.igraph_t) C.igraph_error_t {
-		return C.go_igraph_to_undirected(replacement, cMode)
+		var cCombination *C.igraph_attribute_combination_t
+		if combination != nil {
+			cCombination = &combination.value
+		}
+		return C.go_igraph_to_undirected(replacement, cMode, cCombination)
 	}, func(before, after []Edge, _ bool) (IDMapping, bool, error) {
 		var mapping IDMapping
 		var err error
