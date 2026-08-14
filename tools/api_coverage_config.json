@@ -109,10 +109,6 @@
         "domain": "spatial",
         "rationale": "Milestone 16 will define positive-beta, dimensionality, and experimental API semantics."
       },
-      "igraph_nearest_neighbor_graph": {
-        "domain": "spatial",
-        "rationale": "Milestone 16 will replace negative C sentinels with Go-native optional neighbor and cutoff bounds."
-      },
       "igraph_relative_neighborhood_graph": {
         "domain": "spatial",
         "rationale": "Milestone 16 will define point-row identity and independently owned proximity-graph semantics."
