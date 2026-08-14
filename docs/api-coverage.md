@@ -4,10 +4,10 @@
 
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **248 / 2015 (12.31%)**
-- Internal dependencies: **51**
+- Internal dependencies: **61**
 - Composed APIs: **16**
 - Intentionally unsupported: **11**
-- Deferred declarations: **164**
+- Deferred declarations: **154**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -150,19 +150,19 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_attribute_combination_init` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_combination_query` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_combination_remove` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_check_type` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_destroy` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_init` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_check_type` | `igraph_attributes.h` | Internal | `checkType` |
+| `igraph_attribute_record_destroy` | `igraph_attributes.h` | Internal | `close` |
+| `igraph_attribute_record_init` | `igraph_attributes.h` | Internal | `newAttributeRecord` |
 | `igraph_attribute_record_init_copy` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_record_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_destroy` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_destroy` | `igraph_attributes.h (generated)` | Internal | `close` |
 | `igraph_attribute_record_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_get_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_init` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_init` | `igraph_attributes.h (generated)` | Internal | `newAttributeRecordList` |
 | `igraph_attribute_record_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
@@ -180,19 +180,19 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_attribute_record_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_size` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_size` | `igraph_attributes.h (generated)` | Internal | `size` |
 | `igraph_attribute_record_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
 | `igraph_attribute_record_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_resize` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_resize` | `igraph_attributes.h` | Internal | `resize` |
 | `igraph_attribute_record_set_default_boolean` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_record_set_default_numeric` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_record_set_default_string` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_record_set_name` | `igraph_attributes.h` | Deferred | — |
 | `igraph_attribute_record_set_type` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_size` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_size` | `igraph_attributes.h` | Internal | `size` |
 | `igraph_automorphism_group` | `igraph_isomorphism.h` | User-facing | `AutomorphismGenerators` |
 | `igraph_automorphism_group_bliss` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_average_local_efficiency` | `igraph_paths.h` | User-facing | `AverageLocalEfficiency` |
@@ -657,7 +657,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_growing_random_game` | `igraph_games.h` | Missing | — |
 | `igraph_harmonic_centrality` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
 | `igraph_harmonic_centrality_cutoff` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
-| `igraph_has_attribute_table` | `igraph_attributes.h` | Deferred | — |
+| `igraph_has_attribute_table` | `igraph_attributes.h` | Internal | `ensureAttributeRuntime` |
 | `igraph_has_loop` | `igraph_structural.h` | Missing | — |
 | `igraph_has_multiple` | `igraph_structural.h` | Internal | `operatorGraphHasMultiple` |
 | `igraph_has_mutual` | `igraph_structural.h` | Missing | — |
@@ -1351,7 +1351,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_roots_for_tree_layout` | `igraph_layout.h` | Missing | — |
 | `igraph_running_mean` | `igraph_nongraph.h` | Missing | — |
 | `igraph_sbm_game` | `igraph_games.h` | User-facing | `SBMGame` |
-| `igraph_set_attribute_table` | `igraph_attributes.h` | Deferred | — |
+| `igraph_set_attribute_table` | `igraph_attributes.h` | Internal | `ensureAttributeRuntime` |
 | `igraph_set_error_handler` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_set_fatal_handler` | `igraph_error.h` | Missing | — |
 | `igraph_set_interruption_handler` | `igraph_interrupt.h` | Missing | — |
