@@ -40,7 +40,7 @@ func (g *Graph) GraphAttributes() ([]AttributeMetadata, error) {
 }
 
 func graphAttributesLocked(graph *C.igraph_t) ([]AttributeMetadata, error) {
-	return graphAttributesLockedWithHooks(graph, graphAttributeListHooks{})
+	return attributeMetadataLocked(graph, AttributeGraph)
 }
 
 type graphAttributeListHooks struct {
@@ -55,6 +55,25 @@ func graphAttributesLockedWithHooks(
 	graph *C.igraph_t,
 	hooks graphAttributeListHooks,
 ) ([]AttributeMetadata, error) {
+	return attributeMetadataLockedWithHooks(graph, AttributeGraph, hooks)
+}
+
+func attributeMetadataLocked(
+	graph *C.igraph_t,
+	scope AttributeScope,
+) ([]AttributeMetadata, error) {
+	return attributeMetadataLockedWithHooks(graph, scope, graphAttributeListHooks{})
+}
+
+func attributeMetadataLockedWithHooks(
+	graph *C.igraph_t,
+	scope AttributeScope,
+	hooks graphAttributeListHooks,
+) ([]AttributeMetadata, error) {
+	cScope, err := scope.cValue()
+	if err != nil {
+		return nil, err
+	}
 	newNames := hooks.newNames
 	if newNames == nil {
 		newNames = func() (*stringVector, error) { return newStringVector(nil) }
@@ -89,8 +108,13 @@ func graphAttributesLockedWithHooks(
 		if err := hooks.list(); err != nil {
 			return nil, err
 		}
-	} else if code := C.go_igraph_cattribute_list_graph(graph, &names.value, &types.value); code != C.IGRAPH_SUCCESS {
-		return nil, igraphError("list graph attributes", int(code))
+	} else if code := C.go_igraph_cattribute_list_scope(
+		graph,
+		cScope,
+		&names.value,
+		&types.value,
+	); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError(fmt.Sprintf("list %s attributes", attributeScopeLabel(scope)), int(code))
 	}
 	goNames, err := names.slice()
 	if err != nil {
@@ -100,7 +124,7 @@ func graphAttributesLockedWithHooks(
 	if err != nil {
 		return nil, err
 	}
-	metadata, err := attributeMetadataFromSlices(AttributeGraph, goNames, goTypes)
+	metadata, err := attributeMetadataFromSlices(scope, goNames, goTypes)
 	if err != nil {
 		return nil, err
 	}
