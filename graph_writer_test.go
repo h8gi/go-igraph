@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"reflect"
+	"sort"
 	"sync"
 	"testing"
 )
@@ -51,17 +52,18 @@ func TestWriteEdgeListRoundTrip(t *testing.T) {
 
 		normRead := normalizeEdges(readEdges, directed)
 		normOrig := normalizeEdges(edges, directed)
-		sortEdges := func(s []Edge) {
-			for i := 0; i < len(s); i++ {
-				for j := i + 1; j < len(s); j++ {
-					if s[i].From > s[j].From || (s[i].From == s[j].From && s[i].To > s[j].To) {
-						s[i], s[j] = s[j], s[i]
-					}
-				}
+		sort.Slice(normRead, func(i, j int) bool {
+			if normRead[i].From == normRead[j].From {
+				return normRead[i].To < normRead[j].To
 			}
-		}
-		sortEdges(normRead)
-		sortEdges(normOrig)
+			return normRead[i].From < normRead[j].From
+		})
+		sort.Slice(normOrig, func(i, j int) bool {
+			if normOrig[i].From == normOrig[j].From {
+				return normOrig[i].To < normOrig[j].To
+			}
+			return normOrig[i].From < normOrig[j].From
+		})
 		if !reflect.DeepEqual(normRead, normOrig) {
 			t.Fatalf("edges (directed=%v) = %v, want %v", directed, normRead, normOrig)
 		}
@@ -317,22 +319,29 @@ func TestWritersRejectInvalidInputsAndOptions(t *testing.T) {
 		t.Fatalf("closed graph WriteGML = %v, want ErrClosed", err)
 	}
 
-	// invalid GML options: NUL byte in creator
-	if err := g.WriteGML(file, GMLWriteOptions{Creator: "invalid\x00creator"}); err == nil {
-		t.Fatal("expected error for NUL byte in GML Creator")
+	// invalid GML options: NUL byte, quotes, and newlines in creator
+	for _, invalidCreator := range []string{"invalid\x00creator", `creator"with"quotes`, "creator\nwith\nnewlines"} {
+		if err := g.WriteGML(file, GMLWriteOptions{Creator: invalidCreator}); err == nil {
+			t.Fatalf("expected error for invalid GML Creator %q", invalidCreator)
+		}
 	}
 
-	// GML attribute names containing non-alphanumeric characters are rejected
-	gWithInvalidAttr, err := NewGraph()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer gWithInvalidAttr.Close()
-	if err := gWithInvalidAttr.SetGraphNumericAttribute("g_num", 1.0); err != nil {
-		t.Fatal(err)
-	}
-	if err := gWithInvalidAttr.WriteGML(file, GMLWriteOptions{}); err == nil {
-		t.Fatal("expected error for attribute name containing underscore in WriteGML")
+	// GML attribute names starting with digits, containing symbols, or reserved keywords are rejected
+	invalidNames := []string{"g_num", "1stAttr", "id", "directed", "source", "target", "Creator"}
+	for _, name := range invalidNames {
+		gInv, err := NewGraph()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := gInv.SetGraphNumericAttribute(name, 1.0); err != nil {
+			gInv.Close()
+			t.Fatal(err)
+		}
+		if err := gInv.WriteGML(file, GMLWriteOptions{}); err == nil {
+			gInv.Close()
+			t.Fatalf("expected error for invalid GML attribute name %q", name)
+		}
+		gInv.Close()
 	}
 
 	// write failure to read-only fd (e.g. read end of pipe)

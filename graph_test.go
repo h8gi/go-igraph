@@ -1,7 +1,6 @@
 package igraph
 
 import (
-	"bufio"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -10,78 +9,6 @@ import (
 	"path/filepath"
 	"testing"
 )
-
-func TestWriteEdgeList(t *testing.T) {
-	g := testLattice(t, false)
-	file := createTempOutput(t, "graph.edgelist")
-
-	if err := g.WriteEdgeList(file); err != nil {
-		t.Fatalf("WriteEdgeList() error = %v", err)
-	}
-	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		t.Fatalf("Seek() error = %v", err)
-	}
-
-	edges := make(map[string]bool)
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		var from, to int
-		if _, err := fmt.Sscanf(scanner.Text(), "%d %d", &from, &to); err != nil {
-			t.Fatalf("invalid edge %q: %v", scanner.Text(), err)
-		}
-		if from < 0 || from >= 4 || to < 0 || to >= 4 {
-			t.Fatalf("edge outside expected vertex range: %d %d", from, to)
-		}
-		edges[fmt.Sprintf("%d-%d", from, to)] = true
-	}
-	if err := scanner.Err(); err != nil {
-		t.Fatalf("Scan() error = %v", err)
-	}
-	if len(edges) != 4 {
-		t.Fatalf("edge count = %d, want 4", len(edges))
-	}
-}
-
-func TestWriteGraphML(t *testing.T) {
-	for _, directed := range []bool{false, true} {
-		t.Run(fmt.Sprintf("directed=%t", directed), func(t *testing.T) {
-			g := testLattice(t, directed)
-			file := createTempOutput(t, "graph.graphml")
-
-			if err := g.WriteGraphML(file, false); err != nil {
-				t.Fatalf("WriteGraphML() error = %v", err)
-			}
-			if _, err := file.Seek(0, io.SeekStart); err != nil {
-				t.Fatalf("Seek() error = %v", err)
-			}
-
-			wantDefault := "undirected"
-			if directed {
-				wantDefault = "directed"
-			}
-			assertGraphML(t, file, wantDefault, 4, 4)
-		})
-	}
-}
-
-func TestGraphWritersRejectInvalidFiles(t *testing.T) {
-	g := testLattice(t, false)
-
-	if err := g.WriteEdgeList(nil); err == nil {
-		t.Error("WriteEdgeList(nil) error = nil")
-	}
-	if err := g.WriteGraphML(nil, false); err == nil {
-		t.Error("WriteGraphML(nil) error = nil")
-	}
-
-	closed := createTempOutput(t, "closed")
-	if err := closed.Close(); err != nil {
-		t.Fatalf("Close() error = %v", err)
-	}
-	if err := g.WriteEdgeList(closed); err == nil {
-		t.Error("WriteEdgeList(closed) error = nil")
-	}
-}
 
 func TestOpenFileStreamRejectsReadOnlyDescriptor(t *testing.T) {
 	reader, writer, err := os.Pipe()
