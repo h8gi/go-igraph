@@ -20,6 +20,7 @@ Examples are grouped by functional domain:
 - `example_clique_test.go`: Clique extrema, bounded maximum-weight results, and independent sets.
 - `example_cycle_test.go`: Bounded cycle enumeration, cycle bases, feedback sets, and topological verification.
 - `example_bipartite_test.go`: Bipartite matrix construction, reproducible random generation, explicit partitions, source-ID-preserving projection, and weighted matching.
+- `example_spatial_test.go`: Spatial graph construction, edge-ID-aligned distances, weighted routing, convex hulls, and proximity-graph comparison.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).
@@ -45,6 +46,7 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/cliques/main.go`
 - `examples/cycles/main.go`
 - `examples/bipartite/main.go`
+- `examples/spatial/main.go`
 
 ### Usage & Verification
 Users can run any standalone example using:

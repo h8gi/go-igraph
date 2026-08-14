@@ -541,6 +541,17 @@ The GNP and GNM constructors produce simple graphs; IEA independently assigns
 edge draws and may produce parallel edges. Bipartite self-loops are never
 generated.
 
+Spatial constructors copy immutable point matrices into temporary C storage;
+point row `i` remains vertex ID `i`, and no constructor retains the matrix.
+Every returned graph is independently owned. Hull coordinates, hull indices,
+edge lengths, and weighted-Gabriel thresholds are copied into Go-owned storage
+before temporary C resources are destroyed. Edge-value slices align with the
+returned or receiver graph's edge IDs even though edge enumeration order itself
+is unspecified. `SpatialEdgeLengths` holds the graph read lock for its complete
+synchronous call, so concurrent reads are safe and a racing `Close` either
+waits or causes the operation to return `ErrClosed`; spatial constructors use no
+package-global mutable state.
+
 ## Verification
 
 Run the same complete verification entry point used by CI:
