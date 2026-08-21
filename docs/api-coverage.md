@@ -6,13 +6,14 @@
 - User-facing bindings: **287 / 2015 (14.24%)**
 - Internal dependencies: **66**
 - Composed APIs: **20**
-- Intentionally unsupported: **17**
-- Deferred declarations: **100**
+- Intentionally unsupported: **117**
+- Deferred declarations: **0**
+- Completed domains: **attributes, graph_interchange**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
 rationale in `tools/api_coverage_config.json`. `Missing` therefore means unreviewed, not
-merely unbound.
+merely unbound. Completed domains reject deferred declarations during validation.
 
 Headers marked `(generated)` are declaration-discovery locations. PMT-generated
 APIs can appear through several public headers, so the report records the first
@@ -153,45 +154,45 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_attribute_record_check_type` | `igraph_attributes.h` | Internal | `checkType` |
 | `igraph_attribute_record_destroy` | `igraph_attributes.h` | Internal | `close` |
 | `igraph_attribute_record_init` | `igraph_attributes.h` | Internal | `newAttributeRecord` |
-| `igraph_attribute_record_init_copy` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_init_copy` | `igraph_attributes.h` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_capacity` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_clear` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_attribute_record_list_destroy` | `igraph_attributes.h (generated)` | Internal | `close` |
-| `igraph_attribute_record_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_get_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_discard` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_discard_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_discard_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_empty` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_get_ptr` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_attribute_record_list_init` | `igraph_attributes.h (generated)` | Internal | `newAttributeRecordList` |
-| `igraph_attribute_record_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_push_back_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_init_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_insert` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_insert_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_insert_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_permute` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_pop_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_push_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_push_back_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_push_back_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_remove` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_remove_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_replace` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_reserve` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_resize` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_reverse` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_set` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_attribute_record_list_size` | `igraph_attributes.h (generated)` | Internal | `size` |
-| `igraph_attribute_record_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_attribute_record_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_attribute_record_list_sort` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_sort_ind` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_swap` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_swap_elements` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_attribute_record_list_tail_ptr` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_attribute_record_resize` | `igraph_attributes.h` | Internal | `resize` |
-| `igraph_attribute_record_set_default_boolean` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_set_default_numeric` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_set_default_string` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_set_name` | `igraph_attributes.h` | Deferred | — |
-| `igraph_attribute_record_set_type` | `igraph_attributes.h` | Deferred | — |
+| `igraph_attribute_record_set_default_boolean` | `igraph_attributes.h` | Intentionally unsupported | — |
+| `igraph_attribute_record_set_default_numeric` | `igraph_attributes.h` | Intentionally unsupported | — |
+| `igraph_attribute_record_set_default_string` | `igraph_attributes.h` | Intentionally unsupported | — |
+| `igraph_attribute_record_set_name` | `igraph_attributes.h` | Intentionally unsupported | — |
+| `igraph_attribute_record_set_type` | `igraph_attributes.h` | Intentionally unsupported | — |
 | `igraph_attribute_record_size` | `igraph_attributes.h` | Internal | `size` |
 | `igraph_automorphism_group` | `igraph_isomorphism.h` | User-facing | `AutomorphismGenerators` |
 | `igraph_automorphism_group_bliss` | `igraph_isomorphism.h` | Missing | — |
@@ -1882,38 +1883,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_vector_int_isnull` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_lex_cmp` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_lex_cmp_untyped` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_int_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_capacity` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_clear` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_int_list_destroy` | `igraph_attributes.h (generated)` | Internal | `close` |
-| `igraph_vector_int_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_discard` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_discard_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_discard_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_empty` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_int_list_get_ptr` | `igraph_attributes.h (generated)` | Internal | `slices` |
 | `igraph_vector_int_list_init` | `igraph_attributes.h (generated)` | Internal | `newIntVectorList` |
-| `igraph_vector_int_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_init_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_insert` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_insert_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_insert_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_permute` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_pop_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_push_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_int_list_push_back_copy` | `igraph_attributes.h (generated)` | Internal | `newLADDomainList` |
-| `igraph_vector_int_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_push_back_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_remove` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_remove_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_replace` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_reserve` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_resize` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_reverse` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_set` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_int_list_size` | `igraph_attributes.h (generated)` | Internal | `slices` |
-| `igraph_vector_int_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_int_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_int_list_sort` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_sort_ind` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_swap` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_swap_elements` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_int_list_tail_ptr` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_int_max` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_maxdifference` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_int_min` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -1967,38 +1968,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_vector_isnull` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_lex_cmp` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_lex_cmp_untyped` | `igraph_adjlist.h (generated)` | Missing | — |
-| `igraph_vector_list_capacity` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_clear` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_destroy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_discard` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_discard_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_discard_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_empty` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_get_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_init` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_init_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_insert` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_insert_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_insert_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_permute` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_pop_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_push_back` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_push_back_copy` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_push_back_new` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_remove` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_remove_fast` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_replace` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_reserve` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_resize` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_reverse` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_set` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_size` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_sort` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_sort_ind` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_swap` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_swap_elements` | `igraph_attributes.h (generated)` | Deferred | — |
-| `igraph_vector_list_tail_ptr` | `igraph_attributes.h (generated)` | Deferred | — |
+| `igraph_vector_list_capacity` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_clear` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_destroy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_discard` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_discard_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_discard_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_empty` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_get_ptr` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_init` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_init_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_insert` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_insert_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_insert_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_permute` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_pop_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_push_back` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_push_back_copy` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_push_back_new` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_remove` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_remove_consecutive_duplicates` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_remove_fast` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_replace` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_reserve` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_resize` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_reverse` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_set` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_size` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_sort` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_sort_ind` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_swap` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_swap_elements` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
+| `igraph_vector_list_tail_ptr` | `igraph_attributes.h (generated)` | Intentionally unsupported | — |
 | `igraph_vector_max` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_maxdifference` | `igraph_adjlist.h (generated)` | Missing | — |
 | `igraph_vector_min` | `igraph_adjlist.h (generated)` | Missing | — |
@@ -2109,12 +2110,12 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_wheel` | `igraph_constructors.h` | Missing | — |
 | `igraph_widest_path_widths_dijkstra` | `igraph_paths.h` | User-facing | `WidestPathWidths` |
 | `igraph_widest_path_widths_floyd_warshall` | `igraph_paths.h` | Composed | `WidestPathWidths` |
-| `igraph_write_graph_dimacs_flow` | `igraph_foreign.h` | Deferred | — |
-| `igraph_write_graph_dot` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_dimacs_flow` | `igraph_foreign.h` | Intentionally unsupported | — |
+| `igraph_write_graph_dot` | `igraph_foreign.h` | Intentionally unsupported | — |
 | `igraph_write_graph_edgelist` | `igraph_foreign.h` | User-facing | `WriteEdgeList` |
 | `igraph_write_graph_gml` | `igraph_foreign.h` | User-facing | `WriteGML` |
 | `igraph_write_graph_graphml` | `igraph_foreign.h` | User-facing | `WriteGraphML` |
-| `igraph_write_graph_leda` | `igraph_foreign.h` | Deferred | — |
-| `igraph_write_graph_lgl` | `igraph_foreign.h` | Deferred | — |
-| `igraph_write_graph_ncol` | `igraph_foreign.h` | Deferred | — |
-| `igraph_write_graph_pajek` | `igraph_foreign.h` | Deferred | — |
+| `igraph_write_graph_leda` | `igraph_foreign.h` | Intentionally unsupported | — |
+| `igraph_write_graph_lgl` | `igraph_foreign.h` | Intentionally unsupported | — |
+| `igraph_write_graph_ncol` | `igraph_foreign.h` | Intentionally unsupported | — |
+| `igraph_write_graph_pajek` | `igraph_foreign.h` | Intentionally unsupported | — |

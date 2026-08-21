@@ -10,6 +10,7 @@ C types, C-backed slices, or cleanup functions for internal values.
 | --- | --- | --- | --- |
 | `*Graph` | owns an `igraph_t` | call `Close` | `Close` is idempotent; methods that require a live graph return `ErrClosed` afterwards |
 | graph-reader input and result | caller-owned `*os.File`; independently owned `*Graph` | keep the file open during the call; close the returned graph | edge-list, GraphML, and GML readers synchronously snapshot from the current offset without changing it or closing the file; the result retains no file or snapshot storage |
+| graph-writer input | borrowed live `*Graph` and caller-owned `*os.File` | keep both open during the call; retain responsibility for closing both | edge-list, GraphML, and GML writers retain neither value, never close the file, propagate conversion/write/flush failures, and serialize locale-sensitive C I/O internally |
 | `*Vector` | owns an `igraph_vector_t` | call `Close` | construction copies slice input; `Close` is idempotent; methods that require a live vector return `ErrClosed` afterwards |
 | `Matrix` | Go-owned immutable value | none | constructors and `Rows` copy their input or result |
 | `AttributeMetadata` | Go-owned name, scope, and type | none | names never alias C storage; metadata remains valid after graph closure |
@@ -113,6 +114,16 @@ storage is cleaned by the upstream initializer's error path. Resize, type
 checking, and list access propagate upstream error codes as Go errors. These
 helpers establish the cleanup boundary used by the graph-, vertex-, edge-, and
 interchange slices without exposing C lifecycle operations publicly.
+
+Graph interchange duplicates the caller's file descriptor into a temporary
+`FILE *`; all success and failure paths close only that duplicate. Readers use
+a private byte snapshot so the caller's current offset is unchanged. Writers
+flush the duplicate before returning so delayed I/O errors are observable.
+Locale changes needed by C-igraph are serialized and restored internally.
+GraphML is the supported attributed round trip for Boolean, numeric, and
+string values. Imported and transformed graphs own separate attribute storage,
+while returned metadata, value slices, and ID mappings are Go-owned and remain
+valid after every participating graph is closed.
 
 Selectors are reusable. Their graph-independent shape is validated when they
 are constructed, and bounds, missing endpoint pairs, and closed graphs are

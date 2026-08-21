@@ -21,6 +21,7 @@ Examples are grouped by functional domain:
 - `example_cycle_test.go`: Bounded cycle enumeration, cycle bases, feedback sets, and topological verification.
 - `example_bipartite_test.go`: Bipartite matrix construction, reproducible random generation, explicit partitions, source-ID-preserving projection, and weighted matching.
 - `example_spatial_test.go`: Spatial graph construction, edge-ID-aligned distances, weighted routing, convex hulls, and proximity-graph comparison.
+- `example_attributes_test.go`: Typed graph, vertex, and edge metadata with ID-aligned inspection and mutation.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).
@@ -47,11 +48,20 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/cycles/main.go`
 - `examples/bipartite/main.go`
 - `examples/spatial/main.go`
+- `examples/attributes/main.go`
 
 ### Usage & Verification
 Users can run any standalone example using:
 ```bash
 go run ./examples/maxflow
+```
+
+The attributes program demonstrates a complete typed GraphML export and
+reimport while keeping the file and both graphs under explicit caller
+ownership:
+
+```bash
+go run ./examples/attributes
 ```
 
 During build & integration checks, all standalone examples under `examples/` are compiled to ensure API compatibility.

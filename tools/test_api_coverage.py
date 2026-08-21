@@ -192,6 +192,28 @@ class ApiCoverageTest(unittest.TestCase):
                 }
             )
 
+    def test_rejects_deferred_declarations_in_completed_domains(self):
+        config = {
+            "completed_domains": ["attributes"],
+            "dispositions": {
+                "deferred": {
+                    "igraph_attribute_record_init": {
+                        "domain": "attributes",
+                        "rationale": "Review later.",
+                    }
+                }
+            },
+        }
+        with self.assertRaisesRegex(
+            ValueError,
+            "completed domain attributes still defers igraph_attribute_record_init",
+        ):
+            configured_dispositions(config)
+
+        config["completed_domains"] = ["attributes", "attributes"]
+        with self.assertRaisesRegex(ValueError, "completed_domains must not contain duplicates"):
+            configured_dispositions(config)
+
     def test_rejects_unknown_overlap_and_deferred_production_calls(self):
         declarations = {
             "igraph_bound": "a.h",

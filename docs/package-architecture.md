@@ -30,8 +30,9 @@ The files already fall into three practical groups:
 
 - public graph types, selectors, value conversions, ownership, locking, error
   translation, and RNG coordination shared by all domains;
-- feature slices such as centrality, community detection, flow, layout, and
-  clique operations, with focused tests and optional `_cgo.c`/`_cgo.h` pairs;
+- feature slices such as centrality, community detection, flow, layout,
+  attributes, graph interchange, and clique operations, with focused tests
+  and optional `_cgo.c`/`_cgo.h` pairs;
 - development tools and generated documentation under `tools/` and `docs/`.
 
 Tests intentionally use both package forms. External `igraph_test` tests verify

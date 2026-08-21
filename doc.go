@@ -44,6 +44,16 @@
 // for a synchronous call and copied before return; no Go backing storage is
 // retained by C-igraph.
 //
+// Graph readers and writers borrow an open, seekable regular *os.File only for
+// the synchronous call and never close it. Readers snapshot from the current
+// offset without changing it and return an independently owned graph. Writers
+// retain neither the file nor graph data after return. GraphML preserves the
+// supported Boolean, numeric, and string attributes; format-specific losses
+// and options are documented by each method. Temporary FILE handles and
+// process-locale coordination remain internal. Concurrent interchange calls
+// are safe; a writer racing Close completes under the graph lock or returns
+// ErrClosed.
+//
 // Algorithm option and selector inputs are borrowed only for a call; any slice
 // passed to C is first copied into temporary C storage. DirectionOut is the
 // zero/default direction. Direction is ignored by undirected graphs. A nil

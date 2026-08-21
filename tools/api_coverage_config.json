@@ -108,408 +108,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_attribute_record_init_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_capacity": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_clear": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_discard": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_discard_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_discard_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_empty": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_get_ptr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_init_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_insert": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_insert_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_insert_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_permute": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_pop_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_push_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_push_back_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_push_back_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_remove": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_remove_consecutive_duplicates": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_remove_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_replace": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_reserve": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_resize": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_reverse": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_sort": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_sort_ind": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_swap": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_swap_elements": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_list_tail_ptr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_set_default_boolean": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_set_default_numeric": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_set_default_string": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_set_name": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_attribute_record_set_type": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_capacity": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_clear": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_discard": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_discard_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_discard_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_empty": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_init_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_insert": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_insert_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_insert_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_permute": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_pop_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_push_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_push_back_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_remove": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_remove_consecutive_duplicates": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_remove_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_replace": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_reserve": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_resize": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_reverse": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_sort": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_sort_ind": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_swap": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_swap_elements": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_int_list_tail_ptr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_capacity": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_clear": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_destroy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_discard": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_discard_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_discard_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_empty": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_get_ptr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_init": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_init_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_insert": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_insert_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_insert_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_permute": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_pop_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_push_back": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_push_back_copy": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_push_back_new": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_remove": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_remove_consecutive_duplicates": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_remove_fast": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_replace": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_reserve": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_resize": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_reverse": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_set": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_size": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_sort": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_sort_ind": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_swap": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_swap_elements": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_vector_list_tail_ptr": {
-        "domain": "attributes",
-        "rationale": "Planned for Milestone 17 typed attribute contracts and final reviewed disposition in #254–#257 and #260."
-      },
-      "igraph_write_graph_dimacs_flow": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because DIMACS flow export requires explicit source, target, and capacity alignment; it belongs in a dedicated flow-interchange API with validation rather than the general graph writer surface."
-      },
-      "igraph_write_graph_dot": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because DOT is a visualization-oriented, write-only upstream format without a package round-trip path; exposing it requires an explicit typed-attribute loss and escaping contract."
-      },
-      "igraph_write_graph_leda": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because LEDA export selects at most one vertex and one edge attribute by caller-supplied name; a future options API must validate types and document the loss of all unselected attributes."
-      },
-      "igraph_write_graph_lgl": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because LGL cannot faithfully represent directed graphs, loops, multiple edges, or attributes beyond selected names and weights, and isolate emission requires an explicit caller policy."
-      },
-      "igraph_write_graph_ncol": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because NCOL cannot represent isolated vertices and exports only selected vertex names and edge weights; a future API must make those topology and attribute losses explicit."
-      },
-      "igraph_write_graph_pajek": {
-        "domain": "graph_interchange",
-        "rationale": "Deferred after Milestone 17 review because Pajek applies format-specific attribute selection and naming and has no lossless typed round-trip contract; it needs a dedicated policy API rather than an implicit core export."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_read_graph_ncol": {
         "domain": "graph_interchange",
@@ -578,7 +177,411 @@
       "igraph_get_shortest_path_astar": {
         "domain": "paths_and_reachability",
         "rationale": "The heuristic callback would cross the Go/C boundary and the generic ShortestPath API already provides a safe Go-owned route contract."
+      },
+      "igraph_attribute_record_init_copy": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_attribute_record_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_clear": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_discard": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_empty": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_get_ptr": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_insert": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_permute": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_push_back_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_remove": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_replace": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_resize": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_set": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_sort": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_swap": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Generated C attribute-record list lifecycle and mutation plumbing remains internal; Go APIs expose typed metadata and call-scoped combination policies without C containers or ownership transfer."
+      },
+      "igraph_attribute_record_set_default_boolean": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_attribute_record_set_default_numeric": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_attribute_record_set_default_string": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_attribute_record_set_name": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_attribute_record_set_type": {
+        "domain": "attributes",
+        "rationale": "Low-level C attribute-record copying, defaults, names, and type mutation remain internal; public typed attribute APIs own validation and never expose record storage or destructors."
+      },
+      "igraph_vector_int_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_clear": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_discard": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_empty": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_insert": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_permute": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_remove": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_replace": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_resize": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_set": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_sort": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_swap": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_int_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Generated C integer-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned nested integer slices instead of mutable C containers."
+      },
+      "igraph_vector_list_capacity": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_clear": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_destroy": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_discard": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_discard_back": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_discard_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_empty": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_get_ptr": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_init": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_init_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_insert": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_insert_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_insert_new": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_permute": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_pop_back": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_push_back": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_push_back_copy": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_push_back_new": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_remove": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_remove_consecutive_duplicates": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_remove_fast": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_replace": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_reserve": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_resize": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_reverse": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_set": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_size": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_sort": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_sort_ind": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_swap": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_swap_elements": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_vector_list_tail_ptr": {
+        "domain": "attributes",
+        "rationale": "Generated C real-vector list lifecycle and mutation primitives remain internal; public APIs return independently Go-owned slices instead of mutable C containers."
+      },
+      "igraph_write_graph_dimacs_flow": {
+        "domain": "graph_interchange",
+        "rationale": "DIMACS flow export is intentionally outside the core graph writer API because it requires explicit source, target, and capacity alignment and belongs in a dedicated validated flow-interchange contract."
+      },
+      "igraph_write_graph_dot": {
+        "domain": "graph_interchange",
+        "rationale": "DOT export is intentionally outside the core interchange API because it is visualization-oriented and write-only upstream, with no typed round-trip or loss contract."
+      },
+      "igraph_write_graph_leda": {
+        "domain": "graph_interchange",
+        "rationale": "LEDA export is intentionally outside the core interchange API because it selects at most one vertex and one edge attribute and would silently omit the remaining typed metadata."
+      },
+      "igraph_write_graph_lgl": {
+        "domain": "graph_interchange",
+        "rationale": "LGL export is intentionally outside the core interchange API because the format cannot faithfully represent directed graphs, loops, multiple edges, isolates by default, or general typed attributes."
+      },
+      "igraph_write_graph_ncol": {
+        "domain": "graph_interchange",
+        "rationale": "NCOL export is intentionally outside the core interchange API because it cannot represent isolated vertices and carries only selected vertex names and edge weights."
+      },
+      "igraph_write_graph_pajek": {
+        "domain": "graph_interchange",
+        "rationale": "Pajek export is intentionally outside the core interchange API because format-specific attribute selection and naming prevent the package's loss-explicit typed round-trip contract."
       }
     }
-  }
+  },
+  "completed_domains": [
+    "attributes",
+    "graph_interchange"
+  ]
 }

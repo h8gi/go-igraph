@@ -1117,14 +1117,17 @@ explicitly combine that metadata across graph transformations, and exchange
 attributed graphs through practical file formats without exposing C attribute
 tables or file handles.
 
-Status: in progress. The reference workflows, shared contracts, initial
+Status: complete. The reference workflows, shared contracts, initial
 deferred inventory, and dependency-ordered issue plan were established in
 [#253](https://github.com/h8gi/go-igraph/issues/253). The shared typed
 vocabulary, process-global attribute runtime, checked metadata conversion, and
 record/list cleanup boundary are established in
 [#254](https://github.com/h8gi/go-igraph/issues/254). Graph-, vertex-, and
-edge-level typed attributes and explicit transformation combination policies
-are implemented through [#257](https://github.com/h8gi/go-igraph/issues/257).
+edge-level typed attributes, transformation combination policies, readers, and
+writers are implemented through [#259](https://github.com/h8gi/go-igraph/issues/259).
+[#260](https://github.com/h8gi/go-igraph/issues/260) completes the composed
+attributed-interchange workflow, examples, ownership and concurrency review,
+and final inventory audit.
 
 Reference workflows:
 
@@ -1254,7 +1257,7 @@ functions receive individual reviewed dispositions based on whether their
 format-specific semantics support a coherent Go API; the milestone does not
 expose them merely to increase declaration coverage.
 
-Initial disposition: the 146 currently missing declarations discovered through
+Historical initial disposition: the 146 declarations discovered through
 `igraph_attributes.h`, including its generated attribute-record list
 operations, and the 18 currently missing declarations in `igraph_foreign.h`
 are deferred to #254–#260. Five generated declarations already used by the
@@ -1262,7 +1265,13 @@ integer-vector-list infrastructure remain internal, and the two existing
 foreign writer bindings remain user-facing. The final audit must resolve every
 deferred declaration as user-facing, composed, internal, or intentionally
 unsupported and leave no stale deferred or accidentally missing declaration in
-either audited domain.
+either audited domain. The final audit is now complete: no declaration in the
+attributes or graph-interchange domains remains deferred. Public typed APIs,
+composed transformations, internal runtime/container/`FILE *`/locale plumbing,
+and intentionally unsupported lossy or specialized formats each have a final
+reviewed disposition in the generated coverage report. These domains are
+marked completed in the inventory configuration, so a future deferred entry
+fails validation.
 
 Runtime-foundation disposition: #254 classifies attribute-table installation
 and presence checks plus the record and generated-list initialization,
@@ -1296,6 +1305,15 @@ Completion criteria:
   `igraph_foreign.h` has a final reviewed disposition, examples cover both
   workflows, and `make verify` passes while preserving the statement
   coverage floor.
+
+Completion evidence: `milestone17_integration_test.go` exercises attributed
+GraphML import, typed inspection and mutation, union with scope-specific
+combination rules, exact vertex/edge provenance, source closure, export, and
+reimport. Focused tests cover malformed and unsupported inputs, empty graphs,
+flush and initialization failures, use after `Close`, concurrent attribute
+access, imports, exports, stable multi-graph locking, and close races.
+`example_attributes_test.go` is output checked and
+`examples/attributes/main.go` is a standalone attributed round-trip program.
 
 ## Later domain milestones
 
