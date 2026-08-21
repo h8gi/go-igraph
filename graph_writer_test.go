@@ -2,6 +2,7 @@ package igraph
 
 import (
 	"errors"
+	"math"
 	"os"
 	"reflect"
 	"sort"
@@ -270,6 +271,143 @@ func TestWriteGMLRoundTripAndLossyBooleanConversion(t *testing.T) {
 	}
 }
 
+func TestGraphWritersRoundTripNaN(t *testing.T) {
+	graphMLInput := `<?xml version="1.0" encoding="UTF-8"?>
+<graphml xmlns="http://graphml.graphdrawing.org/xmlns">
+  <key id="score" for="node" attr.name="score" attr.type="double"/>
+  <graph id="G" edgedefault="directed">
+    <node id="n0"><data key="score">1.25</data></node>
+    <node id="n1"/>
+    <node id="n2"><data key="score">-2.5</data></node>
+  </graph>
+</graphml>`
+	gmlInput := `Version 1
+graph [
+  directed 1
+  node [ id 0 score 1.25 ]
+  node [ id 1 ]
+  node [ id 2 score -2.5 ]
+]`
+	tests := []struct {
+		name        string
+		input       string
+		importGraph func(*os.File) (*Graph, error)
+		write       func(*Graph, *os.File) error
+		read        func(*os.File) (*Graph, error)
+	}{
+		{
+			name:        "GraphML",
+			input:       graphMLInput,
+			importGraph: func(file *os.File) (*Graph, error) { return ReadGraphML(file, 0) },
+			write:       func(g *Graph, file *os.File) error { return g.WriteGraphML(file, false) },
+			read:        func(file *os.File) (*Graph, error) { return ReadGraphML(file, 0) },
+		},
+		{
+			name:        "GML",
+			input:       gmlInput,
+			importGraph: ReadGML,
+			write:       func(g *Graph, file *os.File) error { return g.WriteGML(file, GMLWriteOptions{}) },
+			read:        ReadGML,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			source := graphReaderFile(t, test.input)
+			g, err := test.importGraph(source)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer g.Close()
+			want := []float64{1.25, math.NaN(), -2.5}
+			imported, err := g.VertexNumericAttributes("score")
+			if err != nil || len(imported) != len(want) || !math.IsNaN(imported[1]) {
+				t.Fatalf("imported score = %v, %v", imported, err)
+			}
+
+			file := graphWriterTempFile(t)
+			if err := test.write(g, file); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := file.Seek(0, 0); err != nil {
+				t.Fatal(err)
+			}
+			readBack, err := test.read(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer readBack.Close()
+
+			got, err := readBack.VertexNumericAttributes("score")
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(got) != len(want) || got[0] != want[0] || !math.IsNaN(got[1]) || got[2] != want[2] {
+				t.Fatalf("score = %v, want finite values with NaN at index 1", got)
+			}
+		})
+	}
+}
+
+func TestWriteGMLAllowsNamesOutsideReservedScope(t *testing.T) {
+	g, err := NewGraphFromEdges(2, []Edge{{0, 1}}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+
+	if err := g.SetGraphNumericAttribute("id", 1); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetVertexNumericAttributes("source", []float64{2, 3}); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetEdgeNumericAttributes("id", []float64{4}); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetGraphNumericAttribute("label", 5); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetVertexNumericAttributes("label", []float64{6, 7}); err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetEdgeNumericAttributes("label", []float64{8}); err != nil {
+		t.Fatal(err)
+	}
+
+	file := graphWriterTempFile(t)
+	if err := g.WriteGML(file, GMLWriteOptions{}); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := file.Seek(0, 0); err != nil {
+		t.Fatal(err)
+	}
+	readBack, err := ReadGML(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer readBack.Close()
+
+	if value, err := readBack.GraphNumericAttribute("id"); err != nil || value != 1 {
+		t.Fatalf("graph id = %v, %v", value, err)
+	}
+	if value, err := readBack.VertexNumericAttributes("source"); err != nil || !reflect.DeepEqual(value, []float64{2, 3}) {
+		t.Fatalf("vertex source = %v, %v", value, err)
+	}
+	if value, err := readBack.EdgeNumericAttributes("id"); err != nil || !reflect.DeepEqual(value, []float64{4}) {
+		t.Fatalf("edge id = %v, %v", value, err)
+	}
+	if value, err := readBack.GraphNumericAttribute("label"); err != nil || value != 5 {
+		t.Fatalf("graph label = %v, %v", value, err)
+	}
+	if value, err := readBack.VertexNumericAttributes("label"); err != nil || !reflect.DeepEqual(value, []float64{6, 7}) {
+		t.Fatalf("vertex label = %v, %v", value, err)
+	}
+	if value, err := readBack.EdgeNumericAttributes("label"); err != nil || !reflect.DeepEqual(value, []float64{8}) {
+		t.Fatalf("edge label = %v, %v", value, err)
+	}
+}
+
 func TestWritersRejectInvalidInputsAndOptions(t *testing.T) {
 	g, err := NewGraph()
 	if err != nil {
@@ -326,20 +464,34 @@ func TestWritersRejectInvalidInputsAndOptions(t *testing.T) {
 		}
 	}
 
-	// GML attribute names starting with digits, containing symbols, or reserved keywords are rejected
-	invalidNames := []string{"g_num", "1stAttr", "id", "directed", "source", "target", "Creator"}
-	for _, name := range invalidNames {
-		gInv, err := NewGraph()
+	// GML attribute names starting with digits, containing symbols, or reserved
+	// in their specific scope are rejected.
+	invalidAttributes := []struct {
+		name string
+		set  func(*Graph) error
+	}{
+		{name: "g_num", set: func(g *Graph) error { return g.SetGraphNumericAttribute("g_num", 1) }},
+		{name: "1stAttr", set: func(g *Graph) error { return g.SetGraphNumericAttribute("1stAttr", 1) }},
+		{name: "graph directed", set: func(g *Graph) error { return g.SetGraphNumericAttribute("directed", 1) }},
+		{name: "graph node", set: func(g *Graph) error { return g.SetGraphNumericAttribute("node", 1) }},
+		{name: "graph edge", set: func(g *Graph) error { return g.SetGraphNumericAttribute("edge", 1) }},
+		{name: "duplicate vertex id", set: func(g *Graph) error { return g.SetVertexNumericAttributes("id", []float64{1, 1}) }},
+		{name: "string vertex id", set: func(g *Graph) error { return g.SetVertexStringAttributes("id", []string{"a", "b"}) }},
+		{name: "edge source", set: func(g *Graph) error { return g.SetEdgeNumericAttributes("source", []float64{1}) }},
+		{name: "edge target", set: func(g *Graph) error { return g.SetEdgeNumericAttributes("target", []float64{1}) }},
+	}
+	for _, invalid := range invalidAttributes {
+		gInv, err := NewGraphFromEdges(2, []Edge{{0, 1}}, true)
 		if err != nil {
 			t.Fatal(err)
 		}
-		if err := gInv.SetGraphNumericAttribute(name, 1.0); err != nil {
+		if err := invalid.set(gInv); err != nil {
 			gInv.Close()
 			t.Fatal(err)
 		}
 		if err := gInv.WriteGML(file, GMLWriteOptions{}); err == nil {
 			gInv.Close()
-			t.Fatalf("expected error for invalid GML attribute name %q", name)
+			t.Fatalf("expected error for invalid GML attribute %q", invalid.name)
 		}
 		gInv.Close()
 	}

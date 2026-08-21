@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"math"
 	"os"
 	"unsafe"
 )
@@ -72,8 +73,11 @@ func (g *Graph) WriteEdgeList(file *os.File) error {
 // WriteGraphML serializes the graph to GraphML format. The file is borrowed
 // synchronously and never closed. Directedness, vertex count, edge topology,
 // and all typed graph, vertex, and edge attributes (numeric, boolean, string)
-// are serialized. When prefixattr is true, attribute IDs are prefixed with
-// 'g_', 'v_', or 'e_' to prevent attribute ID collisions across scopes.
+// are serialized, except that individual numeric NaN values are omitted.
+// Reading the file back restores omitted numeric values as NaN when the
+// attribute has at least one serialized value. When prefixattr is true,
+// attribute IDs are prefixed with 'g_', 'v_', or 'e_' to prevent attribute ID
+// collisions across scopes.
 //
 //igraph:bind igraph_write_graph_graphml
 func (g *Graph) WriteGraphML(file *os.File, prefixattr bool) error {
@@ -92,13 +96,17 @@ type GMLWriteOptions struct {
 // synchronously and never closed. Directedness, vertex count, edge topology,
 // and numeric and string graph, vertex, and edge attributes are preserved.
 // Boolean attributes are deterministically converted to numeric values (0 and 1).
+// Numeric NaN values are omitted and read back as NaN when the attribute has at
+// least one serialized value. Infinite values are retained, but produce GML
+// that may not be accepted by other software.
 //
-// Attribute names across graph, vertex, and edge scopes must start with an ASCII
-// letter ([a-zA-Z]) and consist solely of ASCII alphanumeric characters ([a-zA-Z0-9]).
-// Attribute names that start with a digit, contain non-alphanumeric characters, or
-// match reserved GML keywords ('Creator', 'directed', 'id', 'source', 'target',
-// 'node', 'edge', 'graph', 'label') are rejected to prevent upstream key mangling
-// and silent attribute omission.
+// Attribute names must start with an ASCII letter ([a-zA-Z]) and consist solely
+// of ASCII alphanumeric characters ([a-zA-Z0-9]). Graph attributes named
+// 'directed', 'node', or 'edge' and edge attributes named 'source' or 'target'
+// are rejected because GML reserves them in those scopes. A numeric vertex
+// 'id' attribute is used as the structural vertex ID and must contain unique,
+// finite integers; other vertex 'id' types are rejected. Other names,
+// including 'label', are preserved.
 //
 //igraph:bind igraph_write_graph_gml
 func (g *Graph) WriteGML(file *os.File, options GMLWriteOptions) error {
@@ -114,8 +122,13 @@ func (g *Graph) WriteGML(file *os.File, options GMLWriteOptions) error {
 				return err
 			}
 			for _, m := range meta {
-				if err := validateGMLAttributeName(m.Name); err != nil {
+				if err := validateGMLAttributeName(scope, m.Name); err != nil {
 					return err
+				}
+				if scope == AttributeVertex && m.Name == "id" {
+					if err := validateGMLVertexIDs(graph, m.Type); err != nil {
+						return err
+					}
 				}
 			}
 		}
@@ -144,19 +157,20 @@ func validateGMLCreator(creator string) error {
 	return nil
 }
 
-var reservedGMLKeywords = map[string]struct{}{
-	"creator":  {},
-	"directed": {},
-	"id":       {},
-	"source":   {},
-	"target":   {},
-	"node":     {},
-	"edge":     {},
-	"graph":    {},
-	"label":    {},
+var reservedGMLAttributeNames = map[AttributeScope]map[string]struct{}{
+	AttributeGraph: {
+		"directed": {},
+		"node":     {},
+		"edge":     {},
+	},
+	AttributeVertex: {},
+	AttributeEdge: {
+		"source": {},
+		"target": {},
+	},
 }
 
-func validateGMLAttributeName(name string) error {
+func validateGMLAttributeName(scope AttributeScope, name string) error {
 	if name == "" {
 		return errors.New("igraph: GML attribute name must not be empty")
 	}
@@ -170,18 +184,39 @@ func validateGMLAttributeName(name string) error {
 			return fmt.Errorf("igraph: GML attribute name %q contains non-alphanumeric character %q", name, c)
 		}
 	}
-	// Case-insensitive check for reserved keywords
-	lower := make([]byte, len(name))
-	for i := 0; i < len(name); i++ {
-		c := name[i]
-		if c >= 'A' && c <= 'Z' {
-			lower[i] = c + ('a' - 'A')
-		} else {
-			lower[i] = c
-		}
+	reserved, ok := reservedGMLAttributeNames[scope]
+	if !ok {
+		return fmt.Errorf("igraph: invalid attribute scope: %d", scope)
 	}
-	if _, reserved := reservedGMLKeywords[string(lower)]; reserved {
-		return fmt.Errorf("igraph: GML attribute name %q is a reserved GML keyword", name)
+	if _, found := reserved[name]; found {
+		return fmt.Errorf("igraph: GML attribute name %q is reserved in scope %d", name, scope)
+	}
+	return nil
+}
+
+func validateGMLVertexIDs(graph *C.igraph_t, attributeType AttributeType) error {
+	if attributeType != AttributeNumeric {
+		return errors.New("igraph: GML vertex attribute \"id\" must be numeric")
+	}
+	values, err := numericElementAttributesLocked(
+		graph,
+		AttributeVertex,
+		"id",
+		numericElementReadHooks{},
+	)
+	if err != nil {
+		return err
+	}
+	seen := make(map[float64]struct{}, len(values))
+	for index, value := range values {
+		if math.IsNaN(value) || math.IsInf(value, 0) || math.Trunc(value) != value ||
+			value < -9223372036854775808.0 || value >= 9223372036854775808.0 {
+			return fmt.Errorf("igraph: GML vertex id at index %d must be a finite 64-bit integer: %v", index, value)
+		}
+		if _, exists := seen[value]; exists {
+			return fmt.Errorf("igraph: GML vertex id at index %d is not unique: %v", index, value)
+		}
+		seen[value] = struct{}{}
 	}
 	return nil
 }

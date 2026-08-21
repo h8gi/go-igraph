@@ -487,27 +487,27 @@
       },
       "igraph_write_graph_dimacs_flow": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because DIMACS flow export requires explicit source, target, and capacity alignment; it belongs in a dedicated flow-interchange API with validation rather than the general graph writer surface."
       },
       "igraph_write_graph_dot": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because DOT is a visualization-oriented, write-only upstream format without a package round-trip path; exposing it requires an explicit typed-attribute loss and escaping contract."
       },
       "igraph_write_graph_leda": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because LEDA export selects at most one vertex and one edge attribute by caller-supplied name; a future options API must validate types and document the loss of all unselected attributes."
       },
       "igraph_write_graph_lgl": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because LGL cannot faithfully represent directed graphs, loops, multiple edges, or attributes beyond selected names and weights, and isolate emission requires an explicit caller policy."
       },
       "igraph_write_graph_ncol": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because NCOL cannot represent isolated vertices and exports only selected vertex names and edge weights; a future API must make those topology and attribute losses explicit."
       },
       "igraph_write_graph_pajek": {
         "domain": "graph_interchange",
-        "rationale": "Planned for Milestone 17 graph interchange review and final disposition in #258–#260."
+        "rationale": "Deferred after Milestone 17 review because Pajek applies format-specific attribute selection and naming and has no lossless typed round-trip contract; it needs a dedicated policy API rather than an implicit core export."
       }
     },
     "intentionally_unsupported": {
