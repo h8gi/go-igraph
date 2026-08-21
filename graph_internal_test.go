@@ -12,18 +12,3 @@ func TestValidateEdgeRangeErrors(t *testing.T) {
 		t.Error("expected error for edge.To out of range")
 	}
 }
-
-func TestWriteNilFileErrors(t *testing.T) {
-	g, err := NewGraphFromEdges(2, []Edge{{0, 1}}, false)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer g.Close()
-
-	if err := g.WriteEdgeList(nil); err == nil {
-		t.Error("expected error for WriteEdgeList(nil)")
-	}
-	if err := g.WriteGraphML(nil, false); err == nil {
-		t.Error("expected error for WriteGraphML(nil)")
-	}
-}

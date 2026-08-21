@@ -80,8 +80,8 @@ func ReadGML(file *os.File) (*Graph, error) {
 type graphFileReader func(*C.igraph_t, *C.FILE) C.igraph_error_t
 
 // C-igraph's error/warning handlers and safe-locale state are process-global.
-// Serialize the narrow reader call while leaving file snapshotting concurrent.
-var graphFileReaderMutex sync.Mutex
+// Serialize the narrow reader and writer calls while leaving file operations concurrent.
+var graphFileIOMutex sync.Mutex
 
 //igraph:internal igraph_enter_safelocale
 //igraph:internal igraph_exit_safelocale
@@ -102,8 +102,8 @@ func readGraphFileWithSnapshot(file *os.File, format string, snapshot func(*os.F
 	}
 	defer C.fclose(stream)
 	var value C.igraph_t
-	graphFileReaderMutex.Lock()
-	defer graphFileReaderMutex.Unlock()
+	graphFileIOMutex.Lock()
+	defer graphFileIOMutex.Unlock()
 	if code := reader(&value, stream); code != C.IGRAPH_SUCCESS {
 		return nil, igraphError("read "+format, int(code))
 	}
