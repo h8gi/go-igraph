@@ -75,6 +75,14 @@ returned slices, matrices, and selectors are Go-owned. See the
 [shared data ownership contract](docs/shared-data-ownership.md) for complete
 lifetime, copying, nil, empty, and failure-path behavior.
 
+## Typed attributes and interchange
+
+Graphs expose typed Boolean, numeric, and string metadata at graph, vertex,
+and edge scope. Vertex and edge value slices are aligned with their current
+IDs, transformations use explicit attribute-combination policies where values
+merge, and GraphML supports attributed export and reimport. See the
+[attributes example](examples/attributes/main.go) for a complete workflow.
+
 ## Documentation
 
 - [Package reference](https://pkg.go.dev/github.com/h8gi/go-igraph)

@@ -83,6 +83,20 @@ def configured_dispositions(config: dict) -> dict[str, ConfiguredDisposition]:
             ):
                 dispositions[name] = ConfiguredDisposition(status, domain, rationale, go_api)
 
+    completed = config.get("completed_domains", [])
+    if not isinstance(completed, list) or any(
+        not isinstance(domain, str) or not domain.strip() for domain in completed
+    ):
+        errors.append("completed_domains must be an array of non-empty strings")
+    elif len(completed) != len(set(completed)):
+        errors.append("completed_domains must not contain duplicates")
+    else:
+        errors.extend(
+            f"completed domain {item.domain} still defers {name}"
+            for name, item in sorted(dispositions.items())
+            if item.status == "deferred" and item.domain in completed
+        )
+
     if errors:
         raise ValueError("invalid binding inventory:\n- " + "\n- ".join(errors))
     return dispositions
@@ -138,11 +152,12 @@ def render(config: dict, declarations: dict[str, str], annotations: list[Annotat
         f"- Internal dependencies: **{len(internal)}**",
         f"- Composed APIs: **{len(composed)}**",
         f"- Intentionally unsupported: **{len(unsupported)}**",
-        f"- Deferred declarations: **{len(deferred)}**", "",
+        f"- Deferred declarations: **{len(deferred)}**",
+        f"- Completed domains: **{', '.join(config.get('completed_domains', [])) or '—'}**", "",
         "User-facing and internal coverage is based on explicit source annotations. Composed,",
         "deferred, and intentionally unsupported declarations are configured with a domain and",
         "rationale in `tools/api_coverage_config.json`. `Missing` therefore means unreviewed, not",
-        "merely unbound.", "",
+        "merely unbound. Completed domains reject deferred declarations during validation.", "",
         "Headers marked `(generated)` are declaration-discovery locations. PMT-generated",
         "APIs can appear through several public headers, so the report records the first",
         "preprocessed header where each declaration is found rather than a canonical owner.", "",
