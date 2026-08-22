@@ -113,7 +113,144 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 dense adjacency constructor API and final reviewed disposition in #286 and #292."
+      },
+      "igraph_weighted_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 dense weighted-adjacency constructor with edge-ID-aligned Go-owned weights and final reviewed disposition in #286 and #292."
+      },
+      "igraph_sparse_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for review in #286 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
+      },
+      "igraph_sparse_weighted_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for review in #286 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
+      },
+      "igraph_get_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 dense adjacency matrix conversion API and final reviewed disposition in #287 and #292."
+      },
+      "igraph_get_stochastic": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 dense stochastic matrix conversion API and final reviewed disposition in #287 and #292."
+      },
+      "igraph_get_adjacency_sparse": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for review in #287 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
+      },
+      "igraph_get_stochastic_sparse": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for review in #287 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
+      },
+      "igraph_realize_degree_sequence": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 ordinary degree-sequence realization API and final reviewed disposition in #288 and #292."
+      },
+      "igraph_realize_bipartite_degree_sequence": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 bipartite degree-sequence realization API and final reviewed disposition in #288 and #292."
+      },
+      "igraph_from_prufer": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 Go-owned Prüfer tree decoding API and final reviewed disposition in #289 and #292."
+      },
+      "igraph_to_prufer": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 Go-owned Prüfer tree encoding API and final reviewed disposition in #289 and #292."
+      },
+      "igraph_tree_from_parent_vector": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 parent-vector tree constructor and final reviewed disposition in #289 and #292."
+      },
+      "igraph_regular_tree": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 tree-construction slice and final reviewed disposition in #289 and #292."
+      },
+      "igraph_symmetric_tree": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 tree-construction slice and final reviewed disposition in #289 and #292."
+      },
+      "igraph_circulant": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
+      },
+      "igraph_wheel": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
+      },
+      "igraph_generalized_petersen": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
+      },
+      "igraph_full_multipartite": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 multipartite constructor with a Go-owned partition result and final reviewed disposition in #290 and #292."
+      },
+      "igraph_turan": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 multipartite constructor slice and final reviewed disposition in #290 and #292."
+      },
+      "igraph_full_citation": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
+      },
+      "igraph_linegraph": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 graph-derived constructor API and final reviewed disposition in #290 and #292."
+      },
+      "igraph_cycle_graph": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for review as a composed or duplicate cycle-construction surface in #290 and #292."
+      },
+      "igraph_hexagonal_lattice": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 lattice constructor slice and final reviewed disposition in #291 and #292."
+      },
+      "igraph_triangular_lattice": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 lattice constructor slice and final reviewed disposition in #291 and #292."
+      },
+      "igraph_de_bruijn": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 checked sequence-defined constructor API and final reviewed disposition in #291 and #292."
+      },
+      "igraph_kautz": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 checked sequence-defined constructor API and final reviewed disposition in #291 and #292."
+      },
+      "igraph_lcf": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 typed-slice LCF constructor API and final reviewed disposition in #291 and #292."
+      },
+      "igraph_extended_chordal_ring": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "Planned for the Milestone 19 typed sequence-defined constructor API and final reviewed disposition in #291 and #292."
+      },
+      "igraph_lcf_small": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The variadic sentinel entry point is planned for review behind the typed-slice LCF API in #291 and #292."
+      },
+      "igraph_small": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The raw variadic edge-list entry point is planned for review against NewGraphFromEdges in #291 and #292."
+      },
+      "igraph_atlas": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The catalog-index constructor is planned for a user-value and stable-contract review in #291 and #292."
+      },
+      "igraph_famous": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The string-selected graph catalog is planned for a typed-contract and error-semantics review in #291 and #292."
+      },
+      "igraph_mycielski_graph": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The specialized Mycielski constructor is planned for a coherent-scope review in #291 and #292."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_read_graph_ncol": {
         "domain": "graph_interchange",

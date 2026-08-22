@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 15 are complete. The later domain milestones
+Status: Milestones 5 through 18 are complete. The later domain milestones
 below remain candidates. Later milestone numbers express dependency order, not
 a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
@@ -1489,6 +1489,116 @@ Completion criteria:
 - every scoped declaration has a final reviewed disposition, examples cover
   both workflows, statement coverage remains at least 90.0%, and `make verify`
   passes.
+
+## Milestone 19: Graph construction and matrix conversion
+
+Goal: turn dense matrices, degree sequences, tree encodings, and standard
+deterministic graph-family parameters into independently owned graphs, and
+convert graphs back to Go-owned dense matrix representations, without exposing
+C matrices, vectors, sparse storage, variadic sentinels, or ownership rules.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#285](https://github.com/h8gi/go-igraph/issues/285). Implementation is split
+across [#286](https://github.com/h8gi/go-igraph/issues/286)–
+[#291](https://github.com/h8gi/go-igraph/issues/291), followed by the final
+integration and inventory audit in
+[#292](https://github.com/h8gi/go-igraph/issues/292).
+
+Reference workflows:
+
+- matrix interchange constructs an ordinary or weighted graph from a borrowed
+  dense `Matrix`, analyzes or transforms it, and converts it back to a
+  Go-owned adjacency or stochastic matrix with explicit loop, parallel-edge,
+  direction, normalization, and edge-weight semantics;
+- structural construction realizes a graphical ordinary or bipartite degree
+  sequence, or decodes a Prüfer or parent-vector tree representation, then
+  verifies the resulting topology through the existing degree, bipartite, and
+  traversal APIs; and
+- deterministic generation constructs common named, multipartite, lattice, or
+  sequence-defined graph families with checked sizes and stable documented
+  vertex ordering instead of assembling their edge lists manually.
+
+Planned areas:
+
+- dense adjacency and weighted-adjacency graph construction, with one Go-owned
+  returned weight per edge ID ([#286](https://github.com/h8gi/go-igraph/issues/286));
+- dense adjacency and stochastic matrix extraction, plus reviewed sparse
+  entry-point dispositions ([#287](https://github.com/h8gi/go-igraph/issues/287));
+- ordinary and bipartite degree-sequence realization using the existing
+  graphicality and partition vocabulary
+  ([#288](https://github.com/h8gi/go-igraph/issues/288));
+- Prüfer, parent-vector, regular-tree, and symmetric-tree construction and
+  round trips ([#289](https://github.com/h8gi/go-igraph/issues/289));
+- broadly useful circulant, wheel, generalized-Petersen, multipartite, Turán,
+  citation, and line-graph families, with duplicate surfaces reviewed as
+  composed or unsupported ([#290](https://github.com/h8gi/go-igraph/issues/290));
+- lattice, sequence-defined, and symbolic families behind typed slice and
+  option inputs rather than C variadic contracts, with catalog and compatibility
+  entry points receiving explicit dispositions
+  ([#291](https://github.com/h8gi/go-igraph/issues/291)); and
+- final integration, examples, documentation, race/ownership coverage, and
+  inventory audit ([#292](https://github.com/h8gi/go-igraph/issues/292)).
+
+Execution order: #285 establishes the milestone-wide vocabulary and initial
+dispositions. #286, #288, #289, #290, and #291 may then proceed independently.
+#287 follows #286 so construction and extraction share adjacency mode, loop,
+parallel-edge, and weight semantics. #292 follows every implementation slice
+and removes every stale deferred disposition.
+
+Shared ownership and concurrency contract: input matrices, degree sequences,
+tree encodings, dimensions, and weights are borrowed only for the duration of a
+call and copied into temporary C-owned storage as needed. Every returned graph
+is independently owned and must be closed. Returned matrices, weights,
+partitions, encodings, and mappings are non-nil Go-owned values that remain
+valid after source or result graphs are closed. Read-only graph conversions hold
+the graph read lock through C execution and result copying; constructors retain
+no caller storage and require no package-global coordination.
+
+Matrix contract: the existing immutable dense `Matrix` remains the only public
+matrix boundary in this milestone. Adjacency construction requires square
+dimensions and defines direction, symmetry, loop handling, multiplicity, zero,
+negative, and non-finite entry behavior before implementation. Weighted
+construction returns edge-ID-aligned weights rather than silently choosing an
+attribute name. Adjacency extraction defines how loops and parallel edges are
+represented and how optional borrowed edge weights aggregate. Stochastic
+normalization defines zero-sum rows or columns explicitly. Sparse entry points
+remain non-public until a coherent Go sparse-matrix representation can satisfy
+the same ownership and error contracts.
+
+Construction contract: size, dimension, vertex ID, sequence, and checked
+conversion failures are rejected before entering C where practical. Directed
+degree sequences keep in/out alignment explicit; bipartite sequences reuse the
+existing partition vocabulary. Tree encodings define root and parent sentinels,
+direction, vertex ordering, and empty and singleton behavior. Exponentially
+growing families receive checked size or allocation bounds. Raw variadic,
+sentinel-terminated, catalog, compatibility, and duplicate upstream entry
+points are not exposed mechanically; each receives a reviewed composed,
+unsupported, or user-facing disposition.
+
+Completion criteria:
+
+- dense adjacency and weighted-adjacency APIs round-trip known graphs with
+  documented edge/weight alignment, loop, direction, and parallel-edge
+  behavior;
+- adjacency and stochastic results are independently Go-owned and cover empty,
+  weighted, degenerate, and zero-normalization cases;
+- realized ordinary and bipartite graphs satisfy independently computed degree
+  invariants, and impossible sequences return errors without leaking partial
+  graphs;
+- Prüfer and parent-vector encodings round-trip trees with stable documented
+  vertex ordering;
+- deterministic families have known-answer or invariant tests and reject size
+  overflow before unsafe allocation;
+- initialization failure, upstream error, early return, checked conversion, and
+  partial graph, matrix, or vector construction release every temporary C
+  resource;
+- concurrent construction and read-only conversion, source closure, and calls
+  after `Close` satisfy the package locking and ownership contracts; and
+- every scoped declaration in `igraph_constructors.h` and
+  `igraph_conversion.h` has a final reviewed disposition, examples cover the
+  reference workflows, statement coverage remains at least 90.0%, and
+  `make verify` passes.
 
 ## Later domain milestones
 
