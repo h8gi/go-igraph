@@ -109,18 +109,6 @@
       }
     },
     "deferred": {
-      "igraph_assortativity_nominal": {
-        "domain": "mixing",
-        "rationale": "Planned for the Milestone 18 categorical assortativity API and final reviewed disposition in #272 and #276."
-      },
-      "igraph_assortativity": {
-        "domain": "mixing",
-        "rationale": "Planned for the Milestone 18 numeric assortativity API and final reviewed disposition in #272 and #276."
-      },
-      "igraph_assortativity_degree": {
-        "domain": "mixing",
-        "rationale": "Planned for the Milestone 18 degree assortativity API and final reviewed disposition in #272 and #276."
-      },
       "igraph_joint_type_distribution": {
         "domain": "mixing",
         "rationale": "Planned for the Milestone 18 compact category-axis distribution API and final reviewed disposition in #273 and #276."
