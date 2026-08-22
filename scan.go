@@ -35,6 +35,89 @@ type localScanHooks struct {
 	run       func() error
 }
 
+// CrossGraphLocalScan returns one Go-owned value per shared vertex ID. The
+// receiver supplies neighborhoods; comparison supplies counted edges, and
+// options.Weights aligns with comparison edge IDs. Both graphs, options, and
+// weights are borrowed only for the synchronous call. The graphs must have
+// equal vertex counts and directedness.
+//
+//igraph:bind igraph_local_scan_0_them
+//igraph:bind igraph_local_scan_1_ecount_them
+//igraph:bind igraph_local_scan_k_ecount_them
+func (g *Graph) CrossGraphLocalScan(comparison *Graph, options LocalScanOptions) ([]float64, error) {
+	return g.crossGraphLocalScan(comparison, options, localScanHooks{})
+}
+
+func (g *Graph) crossGraphLocalScan(comparison *Graph, options LocalScanOptions, hooks localScanHooks) ([]float64, error) {
+	if g == nil || comparison == nil {
+		return nil, ErrClosed
+	}
+	if options.Radius < 0 {
+		return nil, fmt.Errorf("igraph: cross-graph local scan radius must be non-negative: %d", options.Radius)
+	}
+	radius, err := intToIgraphInt(options.Radius, "cross-graph local scan radius")
+	if err != nil {
+		return nil, err
+	}
+	mode, err := options.Direction.cValue()
+	if err != nil {
+		return nil, err
+	}
+	var resultValues []float64
+	err = withLockedGraphs([]*Graph{g, comparison}, func(graphs []*C.igraph_t) error {
+		neighborhoodGraph, comparisonGraph := graphs[0], graphs[1]
+		if C.igraph_vcount(neighborhoodGraph) != C.igraph_vcount(comparisonGraph) {
+			return fmt.Errorf("igraph: cross-graph local scan vertex counts do not match")
+		}
+		if C.igraph_is_directed(neighborhoodGraph) != C.igraph_is_directed(comparisonGraph) {
+			return fmt.Errorf("igraph: cross-graph local scan directedness does not match")
+		}
+		weights, err := newOptionalEdgeWeights(options.Weights, int(C.igraph_ecount(comparisonGraph)))
+		if err != nil {
+			return err
+		}
+		if weights != nil {
+			defer weights.close()
+		}
+		newResult := hooks.newResult
+		if newResult == nil {
+			newResult = newRealVector
+		}
+		result, err := newResult(nil)
+		if err != nil {
+			return err
+		}
+		defer result.close()
+		run := func() error {
+			var code C.igraph_error_t
+			switch options.Radius {
+			case 0:
+				code = C.go_igraph_local_scan_0_them(neighborhoodGraph, comparisonGraph, &result.value, edgeWeightPointer(weights), mode)
+			case 1:
+				code = C.go_igraph_local_scan_1_ecount_them(neighborhoodGraph, comparisonGraph, &result.value, edgeWeightPointer(weights), mode)
+			default:
+				code = C.go_igraph_local_scan_k_ecount_them(neighborhoodGraph, comparisonGraph, radius, &result.value, edgeWeightPointer(weights), mode)
+			}
+			if code != C.IGRAPH_SUCCESS {
+				return igraphError("calculate cross-graph local scan", int(code))
+			}
+			return nil
+		}
+		if hooks.run != nil {
+			run = hooks.run
+		}
+		if err := run(); err != nil {
+			return err
+		}
+		resultValues, err = result.slice()
+		return err
+	})
+	if err != nil {
+		return nil, err
+	}
+	return resultValues, nil
+}
+
 // LocalScan returns one Go-owned value per vertex in vertex-ID order.
 // Options and weights are borrowed only for the call.
 //
