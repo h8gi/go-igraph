@@ -114,14 +114,6 @@
       }
     },
     "deferred": {
-      "igraph_adjacency": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 dense adjacency constructor API and final reviewed disposition in #286 and #292."
-      },
-      "igraph_weighted_adjacency": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 dense weighted-adjacency constructor with edge-ID-aligned Go-owned weights and final reviewed disposition in #286 and #292."
-      },
       "igraph_sparse_adjacency": {
         "domain": "graph_construction_and_conversion",
         "rationale": "Planned for review in #286 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
