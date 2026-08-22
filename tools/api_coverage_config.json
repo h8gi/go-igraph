@@ -109,22 +109,6 @@
       }
     },
     "deferred": {
-      "igraph_similarity_jaccard_pairs": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 allocation-conscious pair similarity API and final reviewed disposition in #271 and #276."
-      },
-      "igraph_similarity_jaccard_es": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 materialized edge-selector similarity API and final reviewed disposition in #271 and #276."
-      },
-      "igraph_similarity_dice_pairs": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 allocation-conscious pair similarity API and final reviewed disposition in #271 and #276."
-      },
-      "igraph_similarity_dice_es": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 materialized edge-selector similarity API and final reviewed disposition in #271 and #276."
-      },
       "igraph_assortativity_nominal": {
         "domain": "mixing",
         "rationale": "Planned for the Milestone 18 categorical assortativity API and final reviewed disposition in #272 and #276."
