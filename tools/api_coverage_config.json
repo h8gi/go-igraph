@@ -109,26 +109,6 @@
       }
     },
     "deferred": {
-      "igraph_similarity_jaccard": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
-      },
-      "igraph_similarity_dice": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
-      },
-      "igraph_similarity_inverse_log_weighted": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
-      },
-      "igraph_cocitation": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 citation-coupling matrix API and final reviewed disposition in #270 and #276."
-      },
-      "igraph_bibcoupling": {
-        "domain": "neighborhood_similarity",
-        "rationale": "Planned for the Milestone 18 citation-coupling matrix API and final reviewed disposition in #270 and #276."
-      },
       "igraph_similarity_jaccard_pairs": {
         "domain": "neighborhood_similarity",
         "rationale": "Planned for the Milestone 18 allocation-conscious pair similarity API and final reviewed disposition in #271 and #276."

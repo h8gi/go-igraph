@@ -1374,13 +1374,17 @@ argument order inside the operation, and reject nil or closed operands with
 Similarity alignment contract: Jaccard and Dice matrix rows follow the exact
 materialized order of the row `VertexSelector`, and columns follow the exact
 materialized order of the column selector. Explicit selector duplicates
-produce duplicate rows or columns rather than being deduplicated. Square
-inverse-log-weighted, cocitation, and bibliographic-coupling results use one
-selector on both axes in its materialized order. Pair results follow pair input
-order, including repetitions. Edge-selected results follow the materialized
-edge-ID order, including repeated edge IDs, with endpoint orientation taken
-from the graph. Empty selections return dimensionally aligned non-nil Go
-results. Matrix dimensions and products are checked before C allocation.
+produce duplicate rows or columns rather than being deduplicated. Jaccard and
+Dice are safely computed on the selectors' unique union and projected to the
+requested rectangle because pinned igraph 1.0.1 internally assumes a symmetric
+square result despite accepting separate selectors.
+Inverse-log-weighted, cocitation, and bibliographic-coupling result rows follow
+one selector in materialized order, while columns contain every graph vertex
+in vertex-ID order. Pair results follow pair input order, including
+repetitions. Edge-selected results follow the materialized edge-ID order,
+including repeated edge IDs, with endpoint orientation taken from the graph.
+Empty selections return dimensionally aligned non-nil Go results. Matrix
+dimensions and products are checked before C allocation.
 
 Similarity direction and loop contract: public APIs reuse the package's
 Go-native incoming, outgoing, and all-neighbor direction modes. Jaccard and
