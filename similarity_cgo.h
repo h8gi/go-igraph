@@ -15,5 +15,17 @@ igraph_error_t go_igraph_cocitation(
     const igraph_t *, igraph_matrix_t *, igraph_vs_t);
 igraph_error_t go_igraph_bibcoupling(
     const igraph_t *, igraph_matrix_t *, igraph_vs_t);
+igraph_error_t go_igraph_similarity_jaccard_pairs(
+    const igraph_t *, igraph_vector_t *, const igraph_vector_int_t *,
+    igraph_neimode_t, igraph_bool_t);
+igraph_error_t go_igraph_similarity_dice_pairs(
+    const igraph_t *, igraph_vector_t *, const igraph_vector_int_t *,
+    igraph_neimode_t, igraph_bool_t);
+igraph_error_t go_igraph_similarity_jaccard_es(
+    const igraph_t *, igraph_vector_t *, igraph_es_t,
+    igraph_neimode_t, igraph_bool_t);
+igraph_error_t go_igraph_similarity_dice_es(
+    const igraph_t *, igraph_vector_t *, igraph_es_t,
+    igraph_neimode_t, igraph_bool_t);
 
 #endif

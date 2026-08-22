@@ -33,6 +33,11 @@ type similarityHooks struct {
 	run       func() error
 }
 
+type similarityVectorHooks struct {
+	newResult func() (*realVector, error)
+	run       func() error
+}
+
 // CitationCouplingKind identifies which directed citation relationship is
 // counted. The two kinds are identical on undirected graphs.
 type CitationCouplingKind uint8
@@ -211,6 +216,188 @@ func (g *Graph) CitationCoupling(vertices VertexSelector, kind CitationCouplingK
 		},
 		similarityHooks{},
 	)
+}
+
+// NeighborhoodSimilarityPairs returns one score per vertex pair in input
+// order, including repeated pairs. Pair orientation does not change these
+// symmetric scores, while Direction controls which directed neighborhoods are
+// compared. Pairs and options are borrowed only for this synchronous call; the
+// returned non-nil slice is Go-owned.
+//
+//igraph:bind igraph_similarity_jaccard_pairs
+//igraph:bind igraph_similarity_dice_pairs
+func (g *Graph) NeighborhoodSimilarityPairs(pairs []Edge, options NeighborhoodSimilarityOptions) ([]float64, error) {
+	return g.neighborhoodSimilarityPairs(pairs, options, similarityVectorHooks{})
+}
+
+func (g *Graph) neighborhoodSimilarityPairs(
+	pairs []Edge,
+	options NeighborhoodSimilarityOptions,
+	hooks similarityVectorHooks,
+) ([]float64, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	mode, err := similarityOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	if len(pairs) > int(^uint(0)>>1)/2 {
+		return nil, fmt.Errorf("igraph: vertex pair collection is too large")
+	}
+	endpoints := make([]int, 0, 2*len(pairs))
+	for index, pair := range pairs {
+		if err := validateEdge(pair, vertexCount, index); err != nil {
+			return nil, err
+		}
+		endpoints = append(endpoints, pair.From, pair.To)
+	}
+	cPairs, err := newIntVector(endpoints)
+	if err != nil {
+		return nil, err
+	}
+	defer cPairs.close()
+	result, err := newSimilarityVectorResult(hooks)
+	if err != nil {
+		return nil, err
+	}
+	defer result.close()
+	run := func() error {
+		var code C.igraph_error_t
+		if options.Metric == SimilarityJaccard {
+			code = C.go_igraph_similarity_jaccard_pairs(
+				&g.graph, &result.value, &cPairs.value,
+				mode, booltoint(options.IncludeLoops),
+			)
+		} else {
+			code = C.go_igraph_similarity_dice_pairs(
+				&g.graph, &result.value, &cPairs.value,
+				mode, booltoint(options.IncludeLoops),
+			)
+		}
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate pair neighborhood similarity", int(code))
+		}
+		return nil
+	}
+	if hooks.run != nil {
+		run = hooks.run
+	}
+	if err := run(); err != nil {
+		return nil, err
+	}
+	return checkedSimilarityValues(result, len(pairs))
+}
+
+// NeighborhoodSimilarityEdges returns one score for the endpoints of each
+// selected edge. Results follow the selector's materialized edge-ID order,
+// including duplicates. The selector and options are borrowed only for this
+// synchronous call; the returned non-nil slice is Go-owned.
+//
+//igraph:bind igraph_similarity_jaccard_es
+//igraph:bind igraph_similarity_dice_es
+func (g *Graph) NeighborhoodSimilarityEdges(edges EdgeSelector, options NeighborhoodSimilarityOptions) ([]float64, error) {
+	return g.neighborhoodSimilarityEdges(edges, options, similarityVectorHooks{})
+}
+
+func (g *Graph) neighborhoodSimilarityEdges(
+	edges EdgeSelector,
+	options NeighborhoodSimilarityOptions,
+	hooks similarityVectorHooks,
+) ([]float64, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	mode, err := similarityOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	edgeIDs, err := materializeSelectedEdgeIDs(&g.graph, edges)
+	if err != nil {
+		return nil, err
+	}
+	materialized, err := EdgeIDs(edgeIDs...)
+	if err != nil {
+		return nil, err
+	}
+	cEdges, err := newCEdgeSelector(materialized)
+	if err != nil {
+		return nil, err
+	}
+	defer cEdges.close()
+	result, err := newSimilarityVectorResult(hooks)
+	if err != nil {
+		return nil, err
+	}
+	defer result.close()
+	run := func() error {
+		var code C.igraph_error_t
+		if options.Metric == SimilarityJaccard {
+			code = C.go_igraph_similarity_jaccard_es(
+				&g.graph, &result.value, cEdges.value,
+				mode, booltoint(options.IncludeLoops),
+			)
+		} else {
+			code = C.go_igraph_similarity_dice_es(
+				&g.graph, &result.value, cEdges.value,
+				mode, booltoint(options.IncludeLoops),
+			)
+		}
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate edge neighborhood similarity", int(code))
+		}
+		return nil
+	}
+	if hooks.run != nil {
+		run = hooks.run
+	}
+	if err := run(); err != nil {
+		return nil, err
+	}
+	return checkedSimilarityValues(result, len(edgeIDs))
+}
+
+func similarityOptions(options NeighborhoodSimilarityOptions) (C.igraph_neimode_t, error) {
+	mode, err := options.Direction.cValue()
+	if err != nil {
+		return 0, err
+	}
+	if options.Metric != SimilarityJaccard && options.Metric != SimilarityDice {
+		return 0, fmt.Errorf("igraph: invalid neighborhood similarity metric: %d", options.Metric)
+	}
+	return mode, nil
+}
+
+func newSimilarityVectorResult(hooks similarityVectorHooks) (*realVector, error) {
+	if hooks.newResult != nil {
+		return hooks.newResult()
+	}
+	return newRealVectorSize(0)
+}
+
+func checkedSimilarityValues(value *realVector, size int) ([]float64, error) {
+	result, err := value.slice()
+	if err != nil {
+		return nil, err
+	}
+	if len(result) != size {
+		return nil, fmt.Errorf(
+			"igraph: similarity result length is %d, want %d",
+			len(result), size,
+		)
+	}
+	return result, nil
 }
 
 type selectedToAllOperation func(
