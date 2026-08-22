@@ -7,7 +7,7 @@
 - Internal dependencies: **66**
 - Composed APIs: **20**
 - Intentionally unsupported: **117**
-- Deferred declarations: **0**
+- Deferred declarations: **23**
 - Completed domains: **attributes, graph_interchange**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -140,9 +140,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_arpack_storage_init` | `igraph_arpack.h` | Missing | — |
 | `igraph_arpack_unpack_complex` | `igraph_arpack.h` | Missing | — |
 | `igraph_articulation_points` | `igraph_components.h` | User-facing | `ArticulationPoints` |
-| `igraph_assortativity` | `igraph_mixing.h` | Missing | — |
-| `igraph_assortativity_degree` | `igraph_mixing.h` | Missing | — |
-| `igraph_assortativity_nominal` | `igraph_mixing.h` | Missing | — |
+| `igraph_assortativity` | `igraph_mixing.h` | Deferred | — |
+| `igraph_assortativity_degree` | `igraph_mixing.h` | Deferred | — |
+| `igraph_assortativity_nominal` | `igraph_mixing.h` | Deferred | — |
 | `igraph_asymmetric_preference_game` | `igraph_games.h` | Missing | — |
 | `igraph_atlas` | `igraph_constructors.h` | Missing | — |
 | `igraph_attribute_combination` | `igraph_attributes.h` | Composed | `AttributeCombinationPolicy` |
@@ -208,7 +208,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_bfs` | `igraph_visitor.h` | User-facing | `BreadthFirstSearch` |
 | `igraph_bfs_simple` | `igraph_visitor.h` | Missing | — |
 | `igraph_biadjacency` | `igraph_bipartite.h` | User-facing | `NewBiadjacency` |
-| `igraph_bibcoupling` | `igraph_cocitation.h` | Missing | — |
+| `igraph_bibcoupling` | `igraph_cocitation.h` | Deferred | — |
 | `igraph_biconnected_components` | `igraph_components.h` | User-facing | `BiconnectedComponents` |
 | `igraph_bipartite_game_gnm` | `igraph_bipartite.h` | User-facing | `NewBipartiteGNM` |
 | `igraph_bipartite_game_gnp` | `igraph_bipartite.h` | User-facing | `NewBipartiteGNP` |
@@ -341,7 +341,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_closeness` | `igraph_centrality.h` | User-facing | `Closeness` |
 | `igraph_closeness_cutoff` | `igraph_centrality.h` | User-facing | `Closeness` |
 | `igraph_cmp_epsilon` | `igraph_nongraph.h` | Missing | — |
-| `igraph_cocitation` | `igraph_cocitation.h` | Missing | — |
+| `igraph_cocitation` | `igraph_cocitation.h` | Deferred | — |
 | `igraph_cohesion` | `igraph_flow.h` | User-facing | `Cohesion` |
 | `igraph_cohesive_blocks` | `igraph_cohesive_blocks.h` | Missing | — |
 | `igraph_community_eb_get_merges` | `igraph_community.h` | User-facing | `CommunityEBGetMerges` |
@@ -800,9 +800,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_isomorphic_bliss` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_isomorphic_vf2` | `igraph_isomorphism.h` | User-facing | `IsomorphicVF2` |
 | `igraph_join` | `igraph_operators.h` | Missing | — |
-| `igraph_joint_degree_distribution` | `igraph_mixing.h` | Missing | — |
-| `igraph_joint_degree_matrix` | `igraph_mixing.h` | Missing | — |
-| `igraph_joint_type_distribution` | `igraph_mixing.h` | Missing | — |
+| `igraph_joint_degree_distribution` | `igraph_mixing.h` | Deferred | — |
+| `igraph_joint_degree_matrix` | `igraph_mixing.h` | Deferred | — |
+| `igraph_joint_type_distribution` | `igraph_mixing.h` | Deferred | — |
 | `igraph_k_regular_game` | `igraph_games.h` | User-facing | `KRegularGame` |
 | `igraph_kary_tree` | `igraph_constructors.h` | User-facing | `NewKaryTree` |
 | `igraph_kautz` | `igraph_constructors.h` | Missing | — |
@@ -860,14 +860,14 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_linegraph` | `igraph_constructors.h` | Missing | — |
 | `igraph_list_triangles` | `igraph_motifs.h` | User-facing | `TrianglesList` |
 | `igraph_local_efficiency` | `igraph_paths.h` | User-facing | `LocalEfficiencies` |
-| `igraph_local_scan_0` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_0_them` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_1_ecount` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_1_ecount_them` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_k_ecount` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_k_ecount_them` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_neighborhood_ecount` | `igraph_scan.h` | Missing | — |
-| `igraph_local_scan_subset_ecount` | `igraph_scan.h` | Missing | — |
+| `igraph_local_scan_0` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_0_them` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_1_ecount` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_1_ecount_them` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_k_ecount` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_k_ecount_them` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_neighborhood_ecount` | `igraph_scan.h` | Deferred | — |
+| `igraph_local_scan_subset_ecount` | `igraph_scan.h` | Deferred | — |
 | `igraph_lune_beta_skeleton` | `igraph_spatial.h` | User-facing | `NewLuneBetaSkeleton` |
 | `igraph_malloc` | `igraph_memory.h` | Missing | — |
 | `igraph_matrix_add` | `igraph_arpack.h (generated)` | Missing | — |
@@ -1360,13 +1360,13 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_set_status_handler` | `igraph_statusbar.h` | Missing | — |
 | `igraph_set_warning_handler` | `igraph_error.h` | Internal | `igraphError` |
 | `igraph_setup` | `igraph_setup.h` | Missing | — |
-| `igraph_similarity_dice` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_dice_es` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_dice_pairs` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_inverse_log_weighted` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_jaccard` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_jaccard_es` | `igraph_cocitation.h` | Missing | — |
-| `igraph_similarity_jaccard_pairs` | `igraph_cocitation.h` | Missing | — |
+| `igraph_similarity_dice` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_dice_es` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_dice_pairs` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_inverse_log_weighted` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_jaccard` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_jaccard_es` | `igraph_cocitation.h` | Deferred | — |
+| `igraph_similarity_jaccard_pairs` | `igraph_cocitation.h` | Deferred | — |
 | `igraph_simple_cycles` | `igraph_cycles.h` | User-facing | `SimpleCycles` |
 | `igraph_simple_cycles_callback` | `igraph_cycles.h` | Intentionally unsupported | — |
 | `igraph_simple_interconnected_islands_game` | `igraph_games.h` | Missing | — |

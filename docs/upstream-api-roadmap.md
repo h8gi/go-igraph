@@ -1315,6 +1315,170 @@ access, imports, exports, stable multi-graph locking, and close races.
 `example_attributes_test.go` is output checked and
 `examples/attributes/main.go` is a standalone attributed round-trip program.
 
+## Milestone 18: Mixing, similarity, and local statistics
+
+Goal: turn attributed graphs and aligned graph snapshots into coherent mixing,
+neighborhood-similarity, citation-coupling, and weighted local-statistics
+workflows without exposing C selectors, vectors, matrices, or ownership rules.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#269](https://github.com/h8gi/go-igraph/issues/269).
+
+Reference workflows:
+
+- attributed mixing analysis imports a GraphML graph, reads typed vertex
+  categories or numeric values and optional edge weights, then computes scalar
+  assortativity and category- or degree-aligned joint distributions; and
+- local structural comparison computes neighborhood similarity for selected
+  vertices, vertex pairs, or graph edges, then evaluates weighted local scans
+  within one graph or across two snapshots sharing a vertex-ID space.
+
+Planned areas:
+
+- selector-aligned neighborhood similarity plus cocitation and bibliographic
+  coupling matrices ([#270](https://github.com/h8gi/go-igraph/issues/270));
+- allocation-conscious pair- and edge-selected Jaccard and Dice similarity
+  ([#271](https://github.com/h8gi/go-igraph/issues/271));
+- categorical, numeric, and degree assortativity
+  ([#272](https://github.com/h8gi/go-igraph/issues/272));
+- category- and degree-aligned joint distributions
+  ([#273](https://github.com/h8gi/go-igraph/issues/273));
+- weighted same-graph radius and caller-supplied subset scans
+  ([#274](https://github.com/h8gi/go-igraph/issues/274));
+- weighted cross-graph scans over aligned snapshots with stable multi-graph
+  locking ([#275](https://github.com/h8gi/go-igraph/issues/275)); and
+- final integration, examples, documentation, race/ownership coverage, and
+  inventory audit ([#276](https://github.com/h8gi/go-igraph/issues/276)).
+
+Execution order: #269 establishes the milestone-wide contract and initial
+dispositions. #270 and #272 may then proceed independently. #271 follows #270
+and reuses its metric, direction, loop, and alignment vocabulary. #273 follows
+#272 and reuses its category, weighting, normalization, and undefined-result
+contracts. #274 depends only on #269 and establishes radius and nested-subset
+conversion; #275 follows #274 and adds aligned graph identity and stable
+multi-graph locking. #276 follows every implementation slice and removes every
+stale deferred disposition.
+
+Shared ownership and concurrency contract: graphs, selectors, pair and subset
+collections, category and numeric values, weights, and option values are
+borrowed only for a synchronous call. Go slices are copied into temporary
+C-owned storage when C must retain them during the call. Every returned scalar,
+slice, matrix, and axis value is Go-owned, remains valid after graph closure,
+and shares no mutable result storage with another call. A receiver lock covers
+validation, C execution, and result copying. Operations on two graphs use the
+existing stable-address lock order, acquire each distinct graph once, preserve
+argument order inside the operation, and reject nil or closed operands with
+`ErrClosed`.
+
+Similarity alignment contract: Jaccard and Dice matrix rows follow the exact
+materialized order of the row `VertexSelector`, and columns follow the exact
+materialized order of the column selector. Explicit selector duplicates
+produce duplicate rows or columns rather than being deduplicated. Square
+inverse-log-weighted, cocitation, and bibliographic-coupling results use one
+selector on both axes in its materialized order. Pair results follow pair input
+order, including repetitions. Edge-selected results follow the materialized
+edge-ID order, including repeated edge IDs, with endpoint orientation taken
+from the graph. Empty selections return dimensionally aligned non-nil Go
+results. Matrix dimensions and products are checked before C allocation.
+
+Similarity direction and loop contract: public APIs reuse the package's
+Go-native incoming, outgoing, and all-neighbor direction modes. Jaccard and
+Dice expose loop inclusion explicitly; enabling it adds each compared vertex
+to its own neighborhood as defined upstream. Inverse-log-weighted similarity
+has no loop option because the upstream measure does not define one. Cocitation
+on a directed graph compares incoming citation neighborhoods, while
+bibliographic coupling compares outgoing reference neighborhoods; their public
+documentation states this interpretation instead of accepting an inapplicable
+direction option. Pair orientation does not change a symmetric similarity
+value, though direction mode changes the neighborhoods being compared.
+
+Mixing input and axis contract: categorical APIs use an immutable Go category
+value constructed from either integer or string labels. Construction copies
+the labels. Each source and target category set is compacted independently to
+dense zero-based indices in stable first-occurrence order, preventing sparse
+or hostile labels from controlling matrix allocation. Joint type results
+return Go-owned row and column label axes alongside the matrix; row `i`
+describes an edge source category and column `j` an edge target category when
+direction is honored. An undirected result uses the same endpoint category
+semantics symmetrically. Numeric assortativity uses one vertex-aligned value
+slice for both endpoints by default and permits an explicit second
+vertex-aligned target slice only when directed mixing is requested. Degree
+distribution row and column indices denote exact source and target degrees for
+the selected direction modes, starting at degree zero; explicit checked maxima
+bound both axes and prevent implicit unbounded matrix allocation.
+
+Mixing weighting and scalar contract: every supplied value slice has exactly
+one entry per vertex and every supplied weight slice exactly one finite entry
+per edge. Raw weighted sums may use finite signed weights, while probability
+normalization rejects negative weights or a non-positive total. Pinned igraph
+1.0.1 does not implement weighted nominal assortativity, so that API does not
+silently accept and ignore weights. Directedness and normalization are explicit
+Go options and are ignored only where graph structure makes them inapplicable,
+as documented. Mathematically undefined scalar results, including empty or
+constant-value cases, remain `NaN`; the binding does not invent a zero result.
+
+Local scan contract: a non-negative integer radius selects one value per
+vertex in vertex-ID order. Radius zero is degree for unit weights and strength
+for supplied weights. Larger radii count edges, or sum edge weights, in the
+direction-selected neighborhood induced for each vertex. Caller-supplied
+subsets are borrowed nested Go slices and return one value per subset in input
+order. Repeated whole subsets are valid and produce repeated result entries;
+duplicate vertex IDs within one subset are rejected so accidental repetition
+cannot multiply counts. Invalid IDs are rejected before C execution. Nested
+sizes, integer conversions, vector-list initialization, and partial cleanup
+are checked explicitly. `igraph_local_scan_neighborhood_ecount` is deprecated
+in pinned igraph 1.0.1 and will be composed through the subset contract or
+marked intentionally unsupported rather than exposed as a duplicate public
+API.
+
+Cross-graph scan contract: the first graph supplies neighborhoods and the
+second supplies counted edges and optional edge-ID-aligned weights. Both graphs
+must have the same vertex count, and vertex ID `i` must identify the same entity
+in both snapshots; topology and edge IDs need not match. Results align with
+that shared vertex-ID space. Equal operands are valid, reversed concurrent
+calls cannot deadlock, and closing either graph races safely by waiting for the
+operation or causing it to return `ErrClosed`. Comparison weights are aligned
+only to the second graph and are borrowed for the call.
+
+Validation and failure contract: invalid selector kinds or IDs, malformed
+pairs, invalid direction modes, negative radii or bounds, value-length and
+weight-length mismatches, non-finite inputs, incompatible graph snapshots,
+checked-conversion overflow, and impossible matrix or nested-result dimensions
+fail before unsafe allocation or C execution where possible. Initialization
+failure, upstream error, early return, and partial nested-result construction
+destroy every initialized C resource exactly once. Focused tests cover empty
+and degenerate graphs, isolates, loops, parallel edges, duplicates, directed
+and undirected modes, weighted and unweighted calls, use after `Close`, result
+independence, concurrent reads, reversed operands, repeated operands, and close
+races.
+
+Initial disposition: all 23 declarations in pinned igraph 1.0.1 from
+`igraph_cocitation.h`, `igraph_mixing.h`, and `igraph_scan.h` are deferred to
+#270–#275. The final audit in #276 must resolve each declaration as
+user-facing, composed, internal, or intentionally unsupported, with no stale
+deferred or accidentally missing declaration in the three audited domains.
+
+Completion criteria:
+
+- both reference workflows are expressible without C types, caller-inferred
+  ownership, ambiguous alignment, sparse-label allocation, or hidden graph
+  identity assumptions;
+- direction, loops, weighting, normalization, undefined values, category and
+  degree axes, selector ordering, radius behavior, and snapshot compatibility
+  are documented and tested;
+- initialization failure, upstream error, early return, checked conversion,
+  and partial matrix, vector, or nested-list construction release every
+  temporary C resource;
+- all returned values are independently Go-owned, and race tests cover
+  concurrent reads, repeated and reversed graph operands, use after `Close`,
+  and graph-close races;
+- matrix/pair similarity, scalar/distribution mixing, and same-/cross-graph
+  scan results satisfy independently computed known-answer invariants; and
+- every scoped declaration has a final reviewed disposition, examples cover
+  both workflows, statement coverage remains at least 90.0%, and `make verify`
+  passes.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
