@@ -113,20 +113,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_local_scan_0_them": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
-      },
-      "igraph_local_scan_1_ecount_them": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
-      },
-      "igraph_local_scan_k_ecount_them": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_read_graph_ncol": {
         "domain": "graph_interchange",
