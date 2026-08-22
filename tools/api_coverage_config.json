@@ -114,30 +114,6 @@
       }
     },
     "deferred": {
-      "igraph_sparse_adjacency": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for review in #286 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      },
-      "igraph_sparse_weighted_adjacency": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for review in #286 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      },
-      "igraph_get_adjacency": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 dense adjacency matrix conversion API and final reviewed disposition in #287 and #292."
-      },
-      "igraph_get_stochastic": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 dense stochastic matrix conversion API and final reviewed disposition in #287 and #292."
-      },
-      "igraph_get_adjacency_sparse": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for review in #287 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      },
-      "igraph_get_stochastic_sparse": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for review in #287 and #292; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      },
       "igraph_realize_degree_sequence": {
         "domain": "graph_construction_and_conversion",
         "rationale": "Planned for the Milestone 19 ordinary degree-sequence realization API and final reviewed disposition in #288 and #292."
@@ -244,6 +220,22 @@
       }
     },
     "intentionally_unsupported": {
+      "igraph_sparse_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The dense Matrix constructor provides the coherent Go-owned boundary; exposing this entry point would require a public sparse storage type and separate ownership contract."
+      },
+      "igraph_sparse_weighted_adjacency": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "The dense weighted Matrix constructor returns edge-ID-aligned Go-owned weights; exposing this entry point would require a public sparse storage type and separate ownership contract."
+      },
+      "igraph_get_adjacency_sparse": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "AdjacencyMatrix returns an independently Go-owned dense Matrix; no coherent public sparse storage and ownership boundary exists."
+      },
+      "igraph_get_stochastic_sparse": {
+        "domain": "graph_construction_and_conversion",
+        "rationale": "StochasticMatrix returns an independently Go-owned dense Matrix; no coherent public sparse storage and ownership boundary exists."
+      },
       "igraph_read_graph_ncol": {
         "domain": "graph_interchange",
         "rationale": "NCOL requires caller-selected symbolic-name and weight policies and cannot represent isolated vertices; the core reader contract avoids this silent identity and topology loss."
