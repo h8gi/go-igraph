@@ -108,7 +108,100 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_similarity_jaccard": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
+      },
+      "igraph_similarity_dice": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
+      },
+      "igraph_similarity_inverse_log_weighted": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 selector-aligned similarity matrix API and final reviewed disposition in #270 and #276."
+      },
+      "igraph_cocitation": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 citation-coupling matrix API and final reviewed disposition in #270 and #276."
+      },
+      "igraph_bibcoupling": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 citation-coupling matrix API and final reviewed disposition in #270 and #276."
+      },
+      "igraph_similarity_jaccard_pairs": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 allocation-conscious pair similarity API and final reviewed disposition in #271 and #276."
+      },
+      "igraph_similarity_jaccard_es": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 materialized edge-selector similarity API and final reviewed disposition in #271 and #276."
+      },
+      "igraph_similarity_dice_pairs": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 allocation-conscious pair similarity API and final reviewed disposition in #271 and #276."
+      },
+      "igraph_similarity_dice_es": {
+        "domain": "neighborhood_similarity",
+        "rationale": "Planned for the Milestone 18 materialized edge-selector similarity API and final reviewed disposition in #271 and #276."
+      },
+      "igraph_assortativity_nominal": {
+        "domain": "mixing",
+        "rationale": "Planned for the Milestone 18 categorical assortativity API and final reviewed disposition in #272 and #276."
+      },
+      "igraph_assortativity": {
+        "domain": "mixing",
+        "rationale": "Planned for the Milestone 18 numeric assortativity API and final reviewed disposition in #272 and #276."
+      },
+      "igraph_assortativity_degree": {
+        "domain": "mixing",
+        "rationale": "Planned for the Milestone 18 degree assortativity API and final reviewed disposition in #272 and #276."
+      },
+      "igraph_joint_type_distribution": {
+        "domain": "mixing",
+        "rationale": "Planned for the Milestone 18 compact category-axis distribution API and final reviewed disposition in #273 and #276."
+      },
+      "igraph_joint_degree_distribution": {
+        "domain": "mixing",
+        "rationale": "Planned for the Milestone 18 bounded degree-distribution API and final reviewed disposition in #273 and #276."
+      },
+      "igraph_joint_degree_matrix": {
+        "domain": "mixing",
+        "rationale": "Planned for review behind the coherent Milestone 18 degree-distribution API and final disposition in #273 and #276."
+      },
+      "igraph_local_scan_0": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
+      },
+      "igraph_local_scan_1_ecount": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
+      },
+      "igraph_local_scan_k_ecount": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
+      },
+      "igraph_local_scan_subset_ecount": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 caller-supplied subset scan API and final reviewed disposition in #274 and #276."
+      },
+      "igraph_local_scan_neighborhood_ecount": {
+        "domain": "local_scan_statistics",
+        "rationale": "Deprecated upstream entry point to review as composed or intentionally unsupported through the subset scan API in #274 and #276."
+      },
+      "igraph_local_scan_0_them": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
+      },
+      "igraph_local_scan_1_ecount_them": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
+      },
+      "igraph_local_scan_k_ecount_them": {
+        "domain": "local_scan_statistics",
+        "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_read_graph_ncol": {
         "domain": "graph_interchange",
