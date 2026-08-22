@@ -7,6 +7,11 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_local_scan_neighborhood_ecount": {
+        "go_api": "LocalScanSubsets",
+        "domain": "local_scan_statistics",
+        "rationale": "The deprecated neighborhood entry point delegates to igraph_local_scan_subset_ecount; LocalScanSubsets exposes the maintained general subset contract."
+      },
       "igraph_get_widest_path": {
         "go_api": "WidestPath",
         "domain": "paths_and_reachability",
@@ -109,26 +114,6 @@
       }
     },
     "deferred": {
-      "igraph_local_scan_0": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
-      },
-      "igraph_local_scan_1_ecount": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
-      },
-      "igraph_local_scan_k_ecount": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
-      },
-      "igraph_local_scan_subset_ecount": {
-        "domain": "local_scan_statistics",
-        "rationale": "Planned for the Milestone 18 caller-supplied subset scan API and final reviewed disposition in #274 and #276."
-      },
-      "igraph_local_scan_neighborhood_ecount": {
-        "domain": "local_scan_statistics",
-        "rationale": "Deprecated upstream entry point to review as composed or intentionally unsupported through the subset scan API in #274 and #276."
-      },
       "igraph_local_scan_0_them": {
         "domain": "local_scan_statistics",
         "rationale": "Planned for the Milestone 18 aligned cross-graph scan API and final reviewed disposition in #275 and #276."
