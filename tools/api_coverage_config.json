@@ -109,18 +109,6 @@
       }
     },
     "deferred": {
-      "igraph_joint_type_distribution": {
-        "domain": "mixing",
-        "rationale": "Planned for the Milestone 18 compact category-axis distribution API and final reviewed disposition in #273 and #276."
-      },
-      "igraph_joint_degree_distribution": {
-        "domain": "mixing",
-        "rationale": "Planned for the Milestone 18 bounded degree-distribution API and final reviewed disposition in #273 and #276."
-      },
-      "igraph_joint_degree_matrix": {
-        "domain": "mixing",
-        "rationale": "Planned for review behind the coherent Milestone 18 degree-distribution API and final disposition in #273 and #276."
-      },
       "igraph_local_scan_0": {
         "domain": "local_scan_statistics",
         "rationale": "Planned for the Milestone 18 radius-based same-graph scan API and final reviewed disposition in #274 and #276."
