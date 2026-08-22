@@ -1321,9 +1321,11 @@ Goal: turn attributed graphs and aligned graph snapshots into coherent mixing,
 neighborhood-similarity, citation-coupling, and weighted local-statistics
 workflows without exposing C selectors, vectors, matrices, or ownership rules.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#269](https://github.com/h8gi/go-igraph/issues/269).
+Status: completed. The reference workflows and contracts were established in
+[#269](https://github.com/h8gi/go-igraph/issues/269), implemented through
+[#270](https://github.com/h8gi/go-igraph/issues/270)–
+[#275](https://github.com/h8gi/go-igraph/issues/275), and integration- and
+inventory-audited in [#276](https://github.com/h8gi/go-igraph/issues/276).
 
 Reference workflows:
 
@@ -1457,11 +1459,16 @@ and undirected modes, weighted and unweighted calls, use after `Close`, result
 independence, concurrent reads, reversed operands, repeated operands, and close
 races.
 
-Initial disposition: all 23 declarations in pinned igraph 1.0.1 from
-`igraph_cocitation.h`, `igraph_mixing.h`, and `igraph_scan.h` are deferred to
-#270–#275. The final audit in #276 must resolve each declaration as
-user-facing, composed, internal, or intentionally unsupported, with no stale
-deferred or accidentally missing declaration in the three audited domains.
+Final disposition: all 23 declarations in pinned igraph 1.0.1 from
+`igraph_cocitation.h`, `igraph_mixing.h`, and `igraph_scan.h` are resolved:
+22 are user-facing and the deprecated
+`igraph_local_scan_neighborhood_ecount` is composed through
+`LocalScanSubsets`. None remain deferred or missing. The milestone integration
+tests exercise attributed GraphML mixing, matrix/pair similarity invariants,
+weighted same-graph scans, and aligned two-snapshot scans. Output-checked
+package examples and `examples/mixing_scan` cover both reference workflows;
+`make verify`, the 90% statement-coverage gate, and race tests provide the
+completion evidence for #276.
 
 Completion criteria:
 
