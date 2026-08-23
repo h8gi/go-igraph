@@ -1497,13 +1497,25 @@ deterministic graph-family parameters into independently owned graphs, and
 convert graphs back to Go-owned dense matrix representations, without exposing
 C matrices, vectors, sparse storage, variadic sentinels, or ownership rules.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#285](https://github.com/h8gi/go-igraph/issues/285). Implementation is split
-across [#286](https://github.com/h8gi/go-igraph/issues/286)–
-[#291](https://github.com/h8gi/go-igraph/issues/291), followed by the final
-integration and inventory audit in
-[#292](https://github.com/h8gi/go-igraph/issues/292).
+Status: completed. The reference contracts and inventory plan were established
+in [#285](https://github.com/h8gi/go-igraph/issues/285), implemented across
+[#286](https://github.com/h8gi/go-igraph/issues/286)–
+[#291](https://github.com/h8gi/go-igraph/issues/291), and closed with the
+integration, ownership, concurrency, documentation, and final inventory audit
+in [#292](https://github.com/h8gi/go-igraph/issues/292).
+
+Completion evidence:
+
+- dense weighted adjacency, extraction, realization, tree encoding, and
+  deterministic-family workflows have cross-feature integration coverage;
+- returned matrices, weights, partitions, and encodings are copied into
+  Go-owned storage, with graph closure and concurrent read coverage;
+- all declarations from `igraph_constructors.h` and `igraph_conversion.h` have
+  a user-facing, composed, internal, or intentionally unsupported disposition;
+- `examples/construction` demonstrates matrix interchange, Prüfer round trips,
+  and deterministic construction composed with degree analysis; and
+- the race-enabled `make verify` workflow preserves the 90% statement coverage
+  floor.
 
 Reference workflows:
 
