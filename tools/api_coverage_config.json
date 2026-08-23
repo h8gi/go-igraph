@@ -114,14 +114,6 @@
       }
     },
     "deferred": {
-      "igraph_realize_degree_sequence": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 ordinary degree-sequence realization API and final reviewed disposition in #288 and #292."
-      },
-      "igraph_realize_bipartite_degree_sequence": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 bipartite degree-sequence realization API and final reviewed disposition in #288 and #292."
-      },
       "igraph_from_prufer": {
         "domain": "graph_construction_and_conversion",
         "rationale": "Planned for the Milestone 19 Go-owned Prüfer tree decoding API and final reviewed disposition in #289 and #292."
