@@ -7,6 +7,16 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_lcf_small": {
+        "go_api": "NewLCF",
+        "domain": "graph_construction_and_conversion",
+        "rationale": "NewLCF exposes the maintained typed-slice LCF contract without the variadic sentinel surface."
+      },
+      "igraph_small": {
+        "go_api": "NewGraphFromEdges",
+        "domain": "graph_construction_and_conversion",
+        "rationale": "NewGraphFromEdges provides an explicit typed edge slice and vertex count instead of a sentinel-terminated variadic list."
+      },
       "igraph_cycle_graph": {
         "go_api": "NewRing",
         "domain": "graph_construction_and_conversion",
@@ -118,53 +128,24 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_hexagonal_lattice": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 lattice constructor slice and final reviewed disposition in #291 and #292."
-      },
-      "igraph_triangular_lattice": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 lattice constructor slice and final reviewed disposition in #291 and #292."
-      },
-      "igraph_de_bruijn": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 checked sequence-defined constructor API and final reviewed disposition in #291 and #292."
-      },
-      "igraph_kautz": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 checked sequence-defined constructor API and final reviewed disposition in #291 and #292."
-      },
-      "igraph_lcf": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 typed-slice LCF constructor API and final reviewed disposition in #291 and #292."
-      },
+    "deferred": {},
+    "intentionally_unsupported": {
       "igraph_extended_chordal_ring": {
         "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 typed sequence-defined constructor API and final reviewed disposition in #291 and #292."
-      },
-      "igraph_lcf_small": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "The variadic sentinel entry point is planned for review behind the typed-slice LCF API in #291 and #292."
-      },
-      "igraph_small": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "The raw variadic edge-list entry point is planned for review against NewGraphFromEdges in #291 and #292."
+        "rationale": "This specialized constructor requires a public integer-matrix contract that the package does not otherwise expose; NewCirculant and NewLCF cover typed chorded-ring construction."
       },
       "igraph_atlas": {
         "domain": "graph_construction_and_conversion",
-        "rationale": "The catalog-index constructor is planned for a user-value and stable-contract review in #291 and #292."
+        "rationale": "Numeric catalog indexes are opaque, upstream-version-dependent identifiers and do not provide a stable typed Go contract."
       },
       "igraph_famous": {
         "domain": "graph_construction_and_conversion",
-        "rationale": "The string-selected graph catalog is planned for a typed-contract and error-semantics review in #291 and #292."
+        "rationale": "The string-selected built-in catalog is upstream-version-dependent; explicit constructors provide stable discoverable APIs."
       },
       "igraph_mycielski_graph": {
         "domain": "graph_construction_and_conversion",
-        "rationale": "The specialized Mycielski constructor is planned for a coherent-scope review in #291 and #292."
-      }
-    },
-    "intentionally_unsupported": {
+        "rationale": "The upstream API is experimental and too specialized to establish a stable public binding in this construction milestone."
+      },
       "igraph_sparse_adjacency": {
         "domain": "graph_construction_and_conversion",
         "rationale": "The dense Matrix constructor provides the coherent Go-owned boundary; exposing this entry point would require a public sparse storage type and separate ownership contract."
