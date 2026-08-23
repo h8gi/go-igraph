@@ -136,18 +136,6 @@
       "igraph_get_laplacian_sparse": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for review in #313 and #314; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      },
-      "igraph_is_chordal": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 chordality and independently owned completion result API and final reviewed disposition in #312 and #314."
-      },
-      "igraph_is_perfect": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 perfect-graph recognition API and final reviewed disposition in #312 and #314."
-      },
-      "igraph_maximum_cardinality_search": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 maximum-cardinality ordering API and final reviewed disposition in #312 and #314."
       }
     },
     "intentionally_unsupported": {
