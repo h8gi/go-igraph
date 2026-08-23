@@ -646,6 +646,7 @@
   },
   "completed_domains": [
     "attributes",
-    "graph_interchange"
+    "graph_interchange",
+    "structural_diagnostics"
   ]
 }
