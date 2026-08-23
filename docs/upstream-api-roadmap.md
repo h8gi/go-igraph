@@ -1612,6 +1612,118 @@ Completion criteria:
   reference workflows, statement coverage remains at least 90.0%, and
   `make verify` passes.
 
+## Milestone 20: Structural diagnostics and graph structure
+
+Goal: make common structural inspection, classification, spanning, and matrix
+operations available through coherent Go APIs without exposing C selectors,
+vectors, matrices, graph ownership, or low-level duplicate entry points.
+
+Status: planned. The reference workflows, shared contracts, initial deferred
+inventory, and dependency-ordered issue plan are established in
+[#308](https://github.com/h8gi/go-igraph/issues/308). Implementation is split
+across [#309](https://github.com/h8gi/go-igraph/issues/309)–
+[#313](https://github.com/h8gi/go-igraph/issues/313), followed by the final
+integration and inventory audit in
+[#314](https://github.com/h8gi/go-igraph/issues/314).
+
+Reference workflows:
+
+- structural inspection detects loops, parallel edges, and reciprocal directed
+  edges, then computes degree, nearest-neighbor, reciprocity, diversity, and
+  rich-club summaries with explicit selector, direction, loop, and weight
+  semantics;
+- structural classification recognizes trees, forests, chordal graphs, and
+  perfect graphs, computes maximum-cardinality orderings, and optionally
+  returns Go-owned roots, fill-in edges, or independently owned derived graphs;
+  and
+- structural matrices and spanning results compute minimum spanning forests
+  and dense Laplacians that compose with existing adjacency, layout, spectral,
+  and graph-transformation APIs.
+
+Planned areas:
+
+- graph-wide and edge-selected loop, parallel-edge, and mutual-edge diagnostics
+  ([#309](https://github.com/h8gi/go-igraph/issues/309));
+- scalar, selector-ordered, and degree-indexed degree and mixing summaries,
+  including reviewed experimental rich-club semantics
+  ([#310](https://github.com/h8gi/go-igraph/issues/310));
+- tree and forest recognition, minimum spanning forests, independently owned
+  unfolded trees, and reviewed composition for subcomponent lookup
+  ([#311](https://github.com/h8gi/go-igraph/issues/311));
+- maximum-cardinality search, chordality analysis and completion, and
+  perfect-graph recognition ([#312](https://github.com/h8gi/go-igraph/issues/312));
+- dense Laplacian matrices through the existing immutable `Matrix` boundary,
+  with a reviewed sparse-entry-point disposition
+  ([#313](https://github.com/h8gi/go-igraph/issues/313)); and
+- final integration, examples, documentation, ownership/race coverage, and
+  inventory audit ([#314](https://github.com/h8gi/go-igraph/issues/314)).
+
+Execution order: #308 establishes milestone-wide vocabulary and initial
+dispositions. #309 through #313 may then proceed independently because they
+reuse existing selector, weight, matrix, graph-result, error, and locking
+contracts. #314 follows every implementation slice and removes every stale
+deferred disposition in `igraph_structural.h`.
+
+Shared ownership and concurrency contract: vertex and edge selectors, weights,
+custom vertex orderings, and root lists are borrowed only for the duration of a
+call and copied into temporary C-owned storage as needed. Returned slices and
+matrices are non-nil Go-owned values that remain valid after the source graph
+is closed. Every returned graph is independently owned and must be closed.
+Read-only operations hold the graph lock through C execution and result copying;
+graph-producing calls adopt C resources only after complete checked conversion,
+and every failure path destroys partial vectors, matrices, and graphs.
+
+Edge and degree contract: per-edge and per-vertex results preserve materialized
+selector order, including duplicates. Multiplicity counts define whether the
+selected edge itself is included, mutual-edge tests define how loops are
+treated, and directed degree modes reuse the package's existing `DirectionMode`
+vocabulary. Degree-indexed outputs document the meaning of every index and use
+non-nil empty slices when no degree class contributes. Undefined isolate,
+zero-strength, empty-graph, and absent-class values follow explicit NaN or zero
+rules instead of exposing upstream sentinels implicitly. The experimental
+rich-club surface remains clearly marked and validates any caller-supplied
+vertex ordering before entering C.
+
+Classification and spanning contract: tree and forest results define direction,
+root, component-root ordering, empty, and singleton semantics. Minimum spanning
+results are Go-owned source edge IDs; disconnected input yields a minimum
+spanning forest, and optional weights remain aligned with source edge IDs.
+Unfolded and chordal-completion graphs are independently owned and include
+Go-owned provenance data where result vertex or edge identity differs from the
+source. Maximum-cardinality orderings expose both ordering directions with
+validated indexing. Directed input, loops, parallel edges, allocation growth,
+and graph-class preconditions are documented and checked where practical.
+
+Matrix contract: the existing immutable dense `Matrix` is the only public
+Laplacian representation in this milestone. Rows and columns align with vertex
+IDs, direction and normalization use checked Go options, and optional borrowed
+weights align with edge IDs. Empty graphs, zero-degree vertices, loops, parallel
+edges, and non-finite inputs have explicit behavior. The sparse entry point
+remains non-public until a coherent Go sparse-storage and ownership boundary
+exists.
+
+Completion criteria:
+
+- edge diagnostics preserve selector order and correctly distinguish loops,
+  multiplicity, and directed mutuality on known graphs;
+- degree and mixing summaries have documented scalar, selector, degree-index,
+  weight, undefined-value, and experimental behavior;
+- tree, forest, and minimum-spanning results satisfy independently checked
+  topology, root, edge-provenance, and weight-minimality invariants;
+- maximum-cardinality orderings round-trip, chordal completion produces a
+  chordal independently owned graph, and known perfect and non-perfect graphs
+  are classified correctly;
+- dense Laplacians have known-answer coverage for unnormalized, normalized,
+  directed, weighted, empty, and zero-degree cases;
+- initialization failure, upstream error, early return, checked conversion,
+  and partial graph, matrix, vector, or selector construction release every
+  temporary C resource;
+- concurrent read-only analysis, source closure, repeated result closure, and
+  calls after `Close` satisfy package locking and ownership contracts; and
+- every declaration in `igraph_structural.h` has a final reviewed disposition,
+  examples cover the reference workflows, statement coverage remains at least
+  90.0%, and `make verify` passes.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
