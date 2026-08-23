@@ -133,18 +133,6 @@
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 selector-ordered nearest-neighbor degree API and final reviewed disposition in #310 and #314."
       },
-      "igraph_count_loops": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 graph-wide loop diagnostics and final reviewed disposition in #309 and #314."
-      },
-      "igraph_count_multiple": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered edge multiplicity API and final reviewed disposition in #309 and #314."
-      },
-      "igraph_count_multiple_1": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for review as a low-level duplicate of the selector-based multiplicity contract in #309 and #314."
-      },
       "igraph_degree_correlation_vector": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 degree-indexed correlation API and final reviewed disposition in #310 and #314."
@@ -161,14 +149,6 @@
         "domain": "structural_diagnostics",
         "rationale": "Planned for review in #313 and #314; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
       },
-      "igraph_has_loop": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 graph-wide loop diagnostics and final reviewed disposition in #309 and #314."
-      },
-      "igraph_has_mutual": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 graph-wide reciprocal-edge diagnostics and final reviewed disposition in #309 and #314."
-      },
       "igraph_is_chordal": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 chordality and independently owned completion result API and final reviewed disposition in #312 and #314."
@@ -176,18 +156,6 @@
       "igraph_is_forest": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 forest recognition and Go-owned roots API and final reviewed disposition in #311 and #314."
-      },
-      "igraph_is_loop": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered loop diagnostics and final reviewed disposition in #309 and #314."
-      },
-      "igraph_is_multiple": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered parallel-edge diagnostics and final reviewed disposition in #309 and #314."
-      },
-      "igraph_is_mutual": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered reciprocal-edge diagnostics and final reviewed disposition in #309 and #314."
       },
       "igraph_is_perfect": {
         "domain": "structural_diagnostics",
@@ -235,6 +203,10 @@
       }
     },
     "intentionally_unsupported": {
+      "igraph_count_multiple_1": {
+        "domain": "structural_diagnostics",
+        "rationale": "EdgeMultiplicities exposes single- and multi-edge queries through one selector-ordered Go-owned result contract, so the scalar duplicate entry point is not public."
+      },
       "igraph_extended_chordal_ring": {
         "domain": "graph_construction_and_conversion",
         "rationale": "This specialized constructor requires a public integer-matrix contract that the package does not otherwise expose; NewCirculant and NewLCF cover typed chorded-ring construction."
