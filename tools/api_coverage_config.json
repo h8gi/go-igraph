@@ -129,18 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_avg_nearest_neighbor_degree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered nearest-neighbor degree API and final reviewed disposition in #310 and #314."
-      },
-      "igraph_degree_correlation_vector": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 degree-indexed correlation API and final reviewed disposition in #310 and #314."
-      },
-      "igraph_diversity": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-ordered weighted diversity API and final reviewed disposition in #310 and #314."
-      },
       "igraph_get_laplacian": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 dense Go-owned Laplacian Matrix API and final reviewed disposition in #313 and #314."
@@ -165,33 +153,13 @@
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 tree recognition and root result API and final reviewed disposition in #311 and #314."
       },
-      "igraph_maxdegree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 selector-aware maximum-degree API and final reviewed disposition in #310 and #314."
-      },
       "igraph_maximum_cardinality_search": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 maximum-cardinality ordering API and final reviewed disposition in #312 and #314."
       },
-      "igraph_mean_degree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 graph-wide mean-degree API and final reviewed disposition in #310 and #314."
-      },
       "igraph_minimum_spanning_tree": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 Go-owned minimum-spanning-forest edge result and final reviewed disposition in #311 and #314."
-      },
-      "igraph_reciprocity": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 directed reciprocity API and final reviewed disposition in #310 and #314."
-      },
-      "igraph_rich_club_sequence": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 experimental rich-club sequence API and final reviewed disposition in #310 and #314."
-      },
-      "igraph_sort_vertex_ids_by_degree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for review as a composed Go degree-and-sort operation or user-facing binding in #310 and #314."
       },
       "igraph_subcomponent": {
         "domain": "structural_diagnostics",
