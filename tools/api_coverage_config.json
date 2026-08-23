@@ -141,39 +141,23 @@
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 chordality and independently owned completion result API and final reviewed disposition in #312 and #314."
       },
-      "igraph_is_forest": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 forest recognition and Go-owned roots API and final reviewed disposition in #311 and #314."
-      },
       "igraph_is_perfect": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 perfect-graph recognition API and final reviewed disposition in #312 and #314."
       },
-      "igraph_is_tree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 tree recognition and root result API and final reviewed disposition in #311 and #314."
-      },
       "igraph_maximum_cardinality_search": {
         "domain": "structural_diagnostics",
         "rationale": "Planned for the Milestone 20 maximum-cardinality ordering API and final reviewed disposition in #312 and #314."
-      },
-      "igraph_minimum_spanning_tree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 Go-owned minimum-spanning-forest edge result and final reviewed disposition in #311 and #314."
-      },
-      "igraph_subcomponent": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for review as a composed reachability surface over existing traversal APIs in #311 and #314."
-      },
-      "igraph_unfold_tree": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 independently owned unfolded-tree and vertex-provenance result API and final reviewed disposition in #311 and #314."
       }
     },
     "intentionally_unsupported": {
       "igraph_count_multiple_1": {
         "domain": "structural_diagnostics",
         "rationale": "EdgeMultiplicities exposes single- and multi-edge queries through one selector-ordered Go-owned result contract, so the scalar duplicate entry point is not public."
+      },
+      "igraph_subcomponent": {
+        "domain": "structural_diagnostics",
+        "rationale": "Reachability and neighborhood APIs already expose Go-owned vertex sets for directed and undirected traversal, so a second scalar-root surface would duplicate those contracts."
       },
       "igraph_extended_chordal_ring": {
         "domain": "graph_construction_and_conversion",
