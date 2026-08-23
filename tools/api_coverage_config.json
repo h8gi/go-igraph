@@ -114,26 +114,6 @@
       }
     },
     "deferred": {
-      "igraph_from_prufer": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 Go-owned Prüfer tree decoding API and final reviewed disposition in #289 and #292."
-      },
-      "igraph_to_prufer": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 Go-owned Prüfer tree encoding API and final reviewed disposition in #289 and #292."
-      },
-      "igraph_tree_from_parent_vector": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 parent-vector tree constructor and final reviewed disposition in #289 and #292."
-      },
-      "igraph_regular_tree": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 tree-construction slice and final reviewed disposition in #289 and #292."
-      },
-      "igraph_symmetric_tree": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 tree-construction slice and final reviewed disposition in #289 and #292."
-      },
       "igraph_circulant": {
         "domain": "graph_construction_and_conversion",
         "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
