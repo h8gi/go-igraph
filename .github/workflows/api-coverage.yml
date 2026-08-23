@@ -37,3 +37,65 @@ jobs:
 
       - name: Run complete verification
         run: make verify
+
+  igraph-compatibility:
+    name: C/igraph ${{ matrix.igraph-version }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        igraph-version:
+          - "1.0.0"
+          - "1.0.1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Build and test
+        run: make docker-test IGRAPH_VERSION=${{ matrix.igraph-version }}
+
+  macos:
+    name: macOS
+    runs-on: macos-latest
+    timeout-minutes: 15
+    env:
+      HOMEBREW_NO_AUTO_UPDATE: "1"
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Go
+        uses: actions/setup-go@v7
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: Install C/igraph
+        run: brew install igraph pkgconf
+
+      - name: Test Homebrew build
+        run: |
+          pkg-config --modversion igraph
+          go vet ./...
+          go test ./...
+
+  compatibility:
+    name: Compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    if: ${{ always() }}
+    needs:
+      - igraph-compatibility
+      - macos
+
+    steps:
+      - name: Confirm compatibility jobs passed
+        env:
+          IGRAPH_RESULT: ${{ needs.igraph-compatibility.result }}
+          MACOS_RESULT: ${{ needs.macos.result }}
+        run: |
+          test "$IGRAPH_RESULT" = success
+          test "$MACOS_RESULT" = success
