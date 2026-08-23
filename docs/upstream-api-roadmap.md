@@ -1618,12 +1618,11 @@ Goal: make common structural inspection, classification, spanning, and matrix
 operations available through coherent Go APIs without exposing C selectors,
 vectors, matrices, graph ownership, or low-level duplicate entry points.
 
-Status: planned. The reference workflows, shared contracts, initial deferred
-inventory, and dependency-ordered issue plan are established in
-[#308](https://github.com/h8gi/go-igraph/issues/308). Implementation is split
-across [#309](https://github.com/h8gi/go-igraph/issues/309)–
-[#313](https://github.com/h8gi/go-igraph/issues/313), followed by the final
-integration and inventory audit in
+Status: complete. The reference workflows and shared contracts were established
+in [#308](https://github.com/h8gi/go-igraph/issues/308), implemented across
+[#309](https://github.com/h8gi/go-igraph/issues/309)–
+[#313](https://github.com/h8gi/go-igraph/issues/313), and closed with the
+integration, ownership, concurrency, documentation, and inventory audit in
 [#314](https://github.com/h8gi/go-igraph/issues/314).
 
 Reference workflows:
@@ -1723,6 +1722,27 @@ Completion criteria:
 - every declaration in `igraph_structural.h` has a final reviewed disposition,
   examples cover the reference workflows, statement coverage remains at least
   90.0%, and `make verify` passes.
+
+Completion evidence:
+
+- focused APIs and the Milestone 20 integration suite compose diagnostics with
+  simplification and direction conversion, spanning edge IDs with edge
+  subgraphs and forest recognition, chordality with independently owned
+  completion graphs, and dense Laplacians with the existing adjacency matrix;
+- selector-ordered, weighted, directed, looped, parallel-edge, empty,
+  singleton, undefined-value, invalid-input, initialization, upstream-error,
+  checked-conversion, source-closure, and use-after-`Close` paths are covered by
+  focused tests, while the race-enabled integration workflow exercises shared
+  concurrent read-only analysis;
+- returned collections and matrices are Go-owned, unfolded and completion
+  graphs remain independently usable after source closure, and all temporary C
+  resources are scoped behind destructors or graph adoption boundaries;
+- package examples demonstrate chordal completion and dense Laplacian
+  construction; and
+- `igraph_structural.h` has no missing or deferred declarations, sparse
+  Laplacian storage and duplicate low-level entry points have reviewed
+  dispositions, statement coverage remains at least 90.0%, and `make verify`
+  enforces the final inventory and race-enabled behavioral suite.
 
 ## Later domain milestones
 
