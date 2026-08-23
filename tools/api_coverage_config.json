@@ -128,16 +128,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_get_laplacian": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for the Milestone 20 dense Go-owned Laplacian Matrix API and final reviewed disposition in #313 and #314."
-      },
-      "igraph_get_laplacian_sparse": {
-        "domain": "structural_diagnostics",
-        "rationale": "Planned for review in #313 and #314; sparse C storage remains non-public until a coherent Go sparse-matrix boundary exists."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_count_multiple_1": {
         "domain": "structural_diagnostics",
@@ -146,6 +137,10 @@
       "igraph_subcomponent": {
         "domain": "structural_diagnostics",
         "rationale": "Reachability and neighborhood APIs already expose Go-owned vertex sets for directed and undirected traversal, so a second scalar-root surface would duplicate those contracts."
+      },
+      "igraph_get_laplacian_sparse": {
+        "domain": "structural_diagnostics",
+        "rationale": "The package has no coherent immutable Go sparse-matrix representation; Laplacian returns a Go-owned dense Matrix without exposing C sparse storage."
       },
       "igraph_extended_chordal_ring": {
         "domain": "graph_construction_and_conversion",
