@@ -335,7 +335,6 @@ func (g *Graph) Complement(includeLoops bool) (VertexMappedGraphResult, error) {
 	return result, err
 }
 
-//igraph:internal igraph_has_multiple
 func operatorGraphHasMultiple(graph *C.igraph_t) (bool, error) {
 	var result C.igraph_bool_t
 	if code := C.go_igraph_has_multiple(graph, &result); code != C.IGRAPH_SUCCESS {
