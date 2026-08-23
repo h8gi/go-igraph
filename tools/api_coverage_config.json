@@ -7,6 +7,11 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_cycle_graph": {
+        "go_api": "NewRing",
+        "domain": "graph_construction_and_conversion",
+        "rationale": "NewRing already exposes the same cycle constructor contract, including directed and mutual edges, through the maintained igraph_ring entry point."
+      },
       "igraph_local_scan_neighborhood_ecount": {
         "go_api": "LocalScanSubsets",
         "domain": "local_scan_statistics",
@@ -114,38 +119,6 @@
       }
     },
     "deferred": {
-      "igraph_circulant": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
-      },
-      "igraph_wheel": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
-      },
-      "igraph_generalized_petersen": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
-      },
-      "igraph_full_multipartite": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 multipartite constructor with a Go-owned partition result and final reviewed disposition in #290 and #292."
-      },
-      "igraph_turan": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 multipartite constructor slice and final reviewed disposition in #290 and #292."
-      },
-      "igraph_full_citation": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 common deterministic graph-family API and final reviewed disposition in #290 and #292."
-      },
-      "igraph_linegraph": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for the Milestone 19 graph-derived constructor API and final reviewed disposition in #290 and #292."
-      },
-      "igraph_cycle_graph": {
-        "domain": "graph_construction_and_conversion",
-        "rationale": "Planned for review as a composed or duplicate cycle-construction surface in #290 and #292."
-      },
       "igraph_hexagonal_lattice": {
         "domain": "graph_construction_and_conversion",
         "rationale": "Planned for the Milestone 19 lattice constructor slice and final reviewed disposition in #291 and #292."
