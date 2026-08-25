@@ -7,7 +7,7 @@
 - Internal dependencies: **65**
 - Composed APIs: **24**
 - Intentionally unsupported: **128**
-- Deferred declarations: **0**
+- Deferred declarations: **9**
 - Completed domains: **attributes, graph_interchange, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -124,7 +124,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_adjlist_simplify` | `igraph_adjlist.h` | Missing | — |
 | `igraph_adjlist_size` | `igraph_adjlist.h` | Missing | — |
 | `igraph_adjlist_sort` | `igraph_adjlist.h` | Missing | — |
-| `igraph_all_minimal_st_separators` | `igraph_separators.h` | Missing | — |
+| `igraph_all_minimal_st_separators` | `igraph_separators.h` | Deferred | — |
 | `igraph_all_st_cuts` | `igraph_flow.h` | User-facing | `AllSTCuts` |
 | `igraph_all_st_mincuts` | `igraph_flow.h` | User-facing | `AllSTMincuts` |
 | `igraph_allow_interruption` | `igraph_interrupt.h` | Missing | — |
@@ -277,7 +277,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_blas_dgemv` | `igraph_blas.h` | Missing | — |
 | `igraph_blas_dgemv_array` | `igraph_blas.h` | Missing | — |
 | `igraph_blas_dnrm2` | `igraph_blas.h` | Missing | — |
-| `igraph_bond_percolation` | `igraph_components.h` | Missing | — |
+| `igraph_bond_percolation` | `igraph_components.h` | Deferred | — |
 | `igraph_bool_t` | `igraph_typed_list_pmt.h` | Missing | — |
 | `igraph_bridges` | `igraph_components.h` | User-facing | `Bridges` |
 | `igraph_callaway_traits_game` | `igraph_games.h` | Missing | — |
@@ -343,7 +343,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_cmp_epsilon` | `igraph_nongraph.h` | Missing | — |
 | `igraph_cocitation` | `igraph_cocitation.h` | User-facing | `CitationCoupling` |
 | `igraph_cohesion` | `igraph_flow.h` | User-facing | `Cohesion` |
-| `igraph_cohesive_blocks` | `igraph_cohesive_blocks.h` | Missing | — |
+| `igraph_cohesive_blocks` | `igraph_cohesive_blocks.h` | Deferred | — |
 | `igraph_community_eb_get_merges` | `igraph_community.h` | User-facing | `CommunityEBGetMerges` |
 | `igraph_community_edge_betweenness` | `igraph_community.h` | User-facing | `CommunityEdgeBetweenness` |
 | `igraph_community_fastgreedy` | `igraph_community.h` | User-facing | `CommunityFastGreedy` |
@@ -521,7 +521,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_edge_betweenness_subset` | `igraph_centrality.h` | Missing | — |
 | `igraph_edge_connectivity` | `igraph_flow.h` | User-facing | `EdgeConnectivity` |
 | `igraph_edge_disjoint_paths` | `igraph_flow.h` | User-facing | `EdgeDisjointPaths` |
-| `igraph_edgelist_percolation` | `igraph_components.h` | Missing | — |
+| `igraph_edgelist_percolation` | `igraph_components.h` | Deferred | — |
 | `igraph_edges` | `igraph_interface.h` | Missing | — |
 | `igraph_eigen_adjacency` | `igraph_eigen.h` | Missing | — |
 | `igraph_eigen_matrix` | `igraph_eigen.h` | Missing | — |
@@ -766,7 +766,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_invalidate_cache` | `igraph_datatype.h` | Missing | — |
 | `igraph_invert_permutation` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_is_acyclic` | `igraph_structural.h` | User-facing | `IsAcyclic` |
-| `igraph_is_biconnected` | `igraph_components.h` | Missing | — |
+| `igraph_is_biconnected` | `igraph_components.h` | Deferred | — |
 | `igraph_is_bigraphical` | `igraph_graphicality.h` | User-facing | `IsBigraphical` |
 | `igraph_is_bipartite` | `igraph_bipartite.h` | User-facing | `Bipartite` |
 | `igraph_is_bipartite_coloring` | `igraph_coloring.h` | Missing | — |
@@ -784,12 +784,12 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_is_loop` | `igraph_structural.h` | User-facing | `LoopEdgeFlags` |
 | `igraph_is_matching` | `igraph_matching.h` | User-facing | `IsBipartiteMatching` |
 | `igraph_is_maximal_matching` | `igraph_matching.h` | User-facing | `IsMaximalBipartiteMatching` |
-| `igraph_is_minimal_separator` | `igraph_separators.h` | Missing | — |
+| `igraph_is_minimal_separator` | `igraph_separators.h` | Deferred | — |
 | `igraph_is_multiple` | `igraph_structural.h` | User-facing | `MultipleEdgeFlags` |
 | `igraph_is_mutual` | `igraph_structural.h` | User-facing | `MutualEdgeFlags` |
 | `igraph_is_perfect` | `igraph_structural.h` | User-facing | `IsPerfect` |
 | `igraph_is_same_graph` | `igraph_interface.h` | Missing | — |
-| `igraph_is_separator` | `igraph_separators.h` | Missing | — |
+| `igraph_is_separator` | `igraph_separators.h` | Deferred | — |
 | `igraph_is_simple` | `igraph_structural.h` | Internal | `vf2GraphIsSimple` |
 | `igraph_is_tree` | `igraph_structural.h` | User-facing | `IsTree` |
 | `igraph_is_vertex_coloring` | `igraph_coloring.h` | Missing | — |
@@ -1250,7 +1250,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_mincut` | `igraph_flow.h` | User-facing | `MinCut` |
 | `igraph_mincut_value` | `igraph_flow.h` | User-facing | `MinCutValue` |
 | `igraph_minimum_cycle_basis` | `igraph_cycles.h` | User-facing | `MinimumCycleBasis` |
-| `igraph_minimum_size_separators` | `igraph_separators.h` | Missing | — |
+| `igraph_minimum_size_separators` | `igraph_separators.h` | Deferred | — |
 | `igraph_minimum_spanning_tree` | `igraph_structural.h` | User-facing | `MinimumSpanningForest` |
 | `igraph_modularity` | `igraph_community.h` | User-facing | `Modularity` |
 | `igraph_modularity_matrix` | `igraph_community.h` | User-facing | `ModularityMatrix` |
@@ -1375,7 +1375,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_sir` | `igraph_epidemics.h` | Missing | — |
 | `igraph_sir_destroy` | `igraph_epidemics.h` | Missing | — |
 | `igraph_sir_init` | `igraph_epidemics.h` | Missing | — |
-| `igraph_site_percolation` | `igraph_components.h` | Missing | — |
+| `igraph_site_percolation` | `igraph_components.h` | Deferred | — |
 | `igraph_small` | `igraph_constructors.h` | Composed | `NewGraphFromEdges` |
 | `igraph_solve_lsap` | `igraph_lsap.h` | Missing | — |
 | `igraph_sort_vertex_ids_by_degree` | `igraph_structural.h` | User-facing | `VerticesByDegree` |

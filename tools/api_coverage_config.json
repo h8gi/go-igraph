@@ -128,7 +128,44 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_is_biconnected": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans a graph-wide predicate that documents igraph's undirected treatment and its singleton and two-vertex conventions."
+      },
+      "igraph_is_separator": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans a VertexSelector-based predicate with explicit borrowing, duplicate-candidate, direction, and degenerate-graph semantics."
+      },
+      "igraph_is_minimal_separator": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans a VertexSelector-based minimality predicate aligned with the separator contract."
+      },
+      "igraph_all_minimal_st_separators": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 will determine whether this full materializing enumeration can satisfy a genuine pre-allocation bound before selecting a public or unsupported disposition."
+      },
+      "igraph_minimum_size_separators": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 will review the full materializing minimum-separator enumeration and expose it only if its allocation behavior satisfies the package's bounded-result contract."
+      },
+      "igraph_cohesive_blocks": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans one aligned Go-owned decomposition result with an independently owned block-tree graph and explicit partial-initialization cleanup."
+      },
+      "igraph_bond_percolation": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans a named experimental percolation result with a validated borrowed edge ordering and explicit activation-step indexing."
+      },
+      "igraph_site_percolation": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 plans a named experimental percolation result with a validated borrowed vertex ordering and explicit activation-step indexing."
+      },
+      "igraph_edgelist_percolation": {
+        "domain": "network_robustness",
+        "rationale": "Milestone 21 will review a graph-independent typed-edge percolation API against composition and unsupported alternatives without exposing a flat C integer vector."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_count_multiple_1": {
         "domain": "structural_diagnostics",
