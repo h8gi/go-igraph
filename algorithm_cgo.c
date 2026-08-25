@@ -167,6 +167,11 @@ igraph_error_t go_igraph_biconnected_components(
         articulation_points));
 }
 
+igraph_error_t go_igraph_is_biconnected(const igraph_t *graph,
+                                        igraph_bool_t *result) {
+    GO_IGRAPH_CALL(igraph_is_biconnected(graph, result));
+}
+
 igraph_error_t go_igraph_bfs(
     const igraph_t *graph, igraph_int_t root,
     const igraph_vector_int_t *roots, igraph_neimode_t mode,

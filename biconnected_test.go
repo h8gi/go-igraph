@@ -103,6 +103,39 @@ func TestCutStructureFixtures(t *testing.T) {
 	}
 }
 
+func TestIsBiconnectedConventions(t *testing.T) {
+	tests := []struct {
+		name        string
+		vertexCount int
+		edges       []Edge
+		directed    bool
+		want        bool
+	}{
+		{name: "empty"},
+		{name: "singleton", vertexCount: 1},
+		{name: "single edge", vertexCount: 2, edges: []Edge{{From: 0, To: 1}}, want: true},
+		{name: "two isolates", vertexCount: 2},
+		{name: "path", vertexCount: 3, edges: []Edge{{From: 0, To: 1}, {From: 1, To: 2}}},
+		{name: "cycle", vertexCount: 3, edges: []Edge{{From: 0, To: 1}, {From: 1, To: 2}, {From: 2, To: 0}}, want: true},
+		{name: "directed cycle", vertexCount: 3, edges: []Edge{{From: 0, To: 1}, {From: 1, To: 2}, {From: 2, To: 0}}, directed: true, want: true},
+		{name: "parallel edge pair", vertexCount: 2, edges: []Edge{{From: 0, To: 1}, {From: 0, To: 1}}, want: true},
+		{name: "loop only", vertexCount: 2, edges: []Edge{{From: 0, To: 0}}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			g, err := NewGraphFromEdges(tt.vertexCount, tt.edges, tt.directed)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { _ = g.Close() })
+			got, err := g.IsBiconnected()
+			if err != nil || got != tt.want {
+				t.Errorf("IsBiconnected() = %t, %v, want %t, nil", got, err, tt.want)
+			}
+		})
+	}
+}
+
 func TestCutStructureDegenerateGraphs(t *testing.T) {
 	for _, vertexCount := range []int{0, 1, 3} {
 		t.Run(testNameForVertexCount(vertexCount), func(t *testing.T) {
@@ -173,6 +206,9 @@ func TestCutStructureRejectsClosedGraph(t *testing.T) {
 		}
 		if _, err := graph.BiconnectedComponents(); !errors.Is(err, ErrClosed) {
 			t.Errorf("BiconnectedComponents() error = %v, want %v", err, ErrClosed)
+		}
+		if _, err := graph.IsBiconnected(); !errors.Is(err, ErrClosed) {
+			t.Errorf("IsBiconnected() error = %v, want %v", err, ErrClosed)
 		}
 	}
 }

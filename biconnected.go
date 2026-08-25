@@ -10,6 +10,37 @@ import (
 	"fmt"
 )
 
+// IsBiconnected reports whether the graph is connected and remains connected
+// after removing any one vertex. Edge directions are ignored. Loops and
+// parallel multiplicity do not affect the decision. An empty, singleton, or
+// disconnected graph is not biconnected. Following igraph's convention, two
+// vertices joined by an edge are biconnected.
+//
+//igraph:bind igraph_is_biconnected
+func (g *Graph) IsBiconnected() (bool, error) {
+	return g.isBiconnected(func() (bool, int) {
+		var result C.igraph_bool_t
+		code := C.go_igraph_is_biconnected(&g.graph, &result)
+		return result != booltoint(false), int(code)
+	})
+}
+
+func (g *Graph) isBiconnected(query func() (bool, int)) (bool, error) {
+	if g == nil {
+		return false, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return false, ErrClosed
+	}
+	result, code := query()
+	if code != int(C.IGRAPH_SUCCESS) {
+		return false, igraphError("check biconnectivity", code)
+	}
+	return result, nil
+}
+
 // ArticulationPoints returns the zero-based vertex IDs whose removal increases
 // the number of weakly connected components. Edge directions are ignored.
 // Loops do not affect the result, and parallel edges are preserved when

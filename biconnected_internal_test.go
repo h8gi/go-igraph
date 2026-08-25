@@ -4,6 +4,19 @@ import (
 	"testing"
 )
 
+func TestIsBiconnectedPropagatesUpstreamError(t *testing.T) {
+	g, err := NewGraphFromEdges(2, []Edge{{From: 0, To: 1}}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer g.Close()
+	if _, err := g.isBiconnected(func() (bool, int) {
+		return false, 4
+	}); err == nil {
+		t.Fatal("IsBiconnected upstream error not propagated")
+	}
+}
+
 func TestValidateBiconnectedComponentsErrors(t *testing.T) {
 	if err := validateBiconnectedComponents(BiconnectedComponents{ComponentEdges: nil}, 1, 1); err == nil {
 		t.Error("expected error for nil ComponentEdges")
