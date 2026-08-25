@@ -140,18 +140,6 @@
       "igraph_cohesive_blocks": {
         "domain": "network_robustness",
         "rationale": "Milestone 21 plans one aligned Go-owned decomposition result with an independently owned block-tree graph and explicit partial-initialization cleanup."
-      },
-      "igraph_bond_percolation": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans a named experimental percolation result with a validated borrowed edge ordering and explicit activation-step indexing."
-      },
-      "igraph_site_percolation": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans a named experimental percolation result with a validated borrowed vertex ordering and explicit activation-step indexing."
-      },
-      "igraph_edgelist_percolation": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 will review a graph-independent typed-edge percolation API against composition and unsupported alternatives without exposing a flat C integer vector."
       }
     },
     "intentionally_unsupported": {
