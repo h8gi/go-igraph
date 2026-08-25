@@ -1744,6 +1744,123 @@ Completion evidence:
   dispositions, statement coverage remains at least 90.0%, and `make verify`
   enforces the final inventory and race-enabled behavioral suite.
 
+## Milestone 21: Network robustness and cohesive decomposition
+
+Goal: make vertex-separation, cohesive hierarchy, and deterministic failure-order
+analysis available through coherent Go APIs without exposing C selectors,
+vector lists, parallel anonymous output vectors, or partially initialized graph
+ownership.
+
+Status: planned in [#322](https://github.com/h8gi/go-igraph/issues/322).
+Implementation and final disposition work is tracked in
+[#323](https://github.com/h8gi/go-igraph/issues/323)–
+[#326](https://github.com/h8gi/go-igraph/issues/326), followed by the
+integration, ownership, concurrency, documentation, and inventory audit in
+[#327](https://github.com/h8gi/go-igraph/issues/327).
+
+Reference workflows:
+
+- robustness inspection classifies a graph as biconnected and checks whether a
+  caller-selected vertex set is a separator or a minimal separator, then
+  composes those decisions with vertex deletion, connected components,
+  articulation points, and biconnected decomposition;
+- cohesive analysis returns aligned block membership, cohesion, parent, and
+  hierarchy information, then traverses an independently owned block tree whose
+  vertex IDs correspond to block indexes; and
+- deterministic percolation analysis adds vertices, graph edges, or typed
+  endpoint pairs in a validated caller-provided order and returns named,
+  step-aligned giant-component and active-graph summaries.
+
+Planned areas:
+
+- biconnectivity plus separator and minimal-separator predicates
+  ([#323](https://github.com/h8gi/go-igraph/issues/323));
+- experimental bond, site, and graph-independent edge-list percolation, with a
+  reviewed composition or unsupported disposition for the edge-list variant
+  ([#324](https://github.com/h8gi/go-igraph/issues/324));
+- an allocation-safety review and final dispositions for all-minimal and
+  minimum-size separator enumeration
+  ([#325](https://github.com/h8gi/go-igraph/issues/325));
+- cohesive block decomposition with an independently owned hierarchy graph
+  ([#326](https://github.com/h8gi/go-igraph/issues/326)); and
+- final integration, examples, documentation, ownership/race coverage, and
+  inventory audit ([#327](https://github.com/h8gi/go-igraph/issues/327)).
+
+Execution order: #322 establishes milestone-wide vocabulary, shared contracts,
+reference workflows, and initial dispositions. #323 through #326 may then
+proceed independently because they reuse the existing selector, integer-vector
+list, derived-graph ownership, connected-component, error, and locking
+contracts. #327 follows every implementation and review slice and removes every
+stale deferred disposition in the scoped headers.
+
+Shared ownership and concurrency contract: vertex selectors and percolation
+orders are borrowed only for the duration of a call and copied into temporary
+C-owned storage as needed. Returned scalar decisions, slices, and nested slices
+are Go-owned and remain valid after the source graph is closed. A cohesive block
+tree is independently owned and must be closed by the caller. Read-only graph
+operations hold the graph read lock through C execution and result copying.
+Graph-producing calls adopt C resources only after every checked conversion and
+cross-output validation succeeds; all earlier exits destroy initialized vector
+lists, vectors, selectors, and partial graphs.
+
+Separator contract: separator candidates use `VertexSelector`, edge directions
+are ignored as specified upstream, and duplicate materialized vertex IDs are
+rejected so that the input denotes a set rather than an ambiguous sequence. The
+empty candidate, all-vertex candidate, disconnected graph, empty graph, and
+singleton graph cases receive explicit documented results instead of inheriting
+implicit upstream conventions. `IsBiconnected` documents that upstream treats
+the graph as undirected, does not consider a singleton biconnected, and does
+consider a single-edge two-vertex graph biconnected.
+
+Enumeration contract: `igraph_all_minimal_st_separators` enumerates sets that
+are minimal for at least one source-target pair; those sets are not necessarily
+minimal for disconnecting the graph as a whole. `igraph_minimum_size_separators`
+requires undirected input, returns no sets for already disconnected or complete
+graphs, and promises no result ordering. Neither declaration becomes public
+merely by adding a Go-side `Limit` after C has materialized all results. A public
+enumeration requires a genuine pre-materialization allocation bound or a
+reviewed composition that provides one; otherwise it receives an intentionally
+unsupported disposition with an allocation-safety rationale.
+
+Cohesive hierarchy contract: the source graph must be undirected and simple.
+Block vertex sets use source vertex IDs. The block, cohesion, and parent slices
+have equal lengths and use their shared index as the block ID; the root parent
+is represented as `-1`. Block-tree vertex IDs use the same block IDs. Every
+inner and outer collection is non-nil and Go-owned. The returned block tree is
+independently usable after source closure, and partial C output is never adopted
+after an upstream, conversion, alignment, or validation failure.
+
+Percolation contract: all three upstream entry points are experimental and any
+public Go documentation preserves that warning. Bond and site operations use
+complete, duplicate-free permutations of source edge or vertex IDs supplied by
+the caller; the package does not select an implicit random order. Each result
+position describes the state immediately after activating the corresponding
+order entry. Named result fields distinguish largest-component size from active
+vertex or edge counts and have equal, validated lengths. Edge directions are
+ignored. The graph-independent edge-list form, if public, accepts typed endpoint
+pairs rather than a flat integer vector and explicitly defines inferred vertex
+count, empty input, loops, parallel pairs, and checked endpoint conversion.
+
+Completion criteria:
+
+- biconnectivity and separator predicates have known-answer coverage and agree
+  with independently checked deletion and component invariants;
+- cohesive blocks have aligned block, cohesion, parent, and block-tree results,
+  and the hierarchy remains valid after source closure;
+- percolation curves have deterministic known answers and independently checked
+  monotonic giant-component, active-vertex, and active-edge invariants;
+- separator enumeration is either genuinely bounded before materialization or
+  has a final intentionally unsupported allocation-safety rationale;
+- initialization failure, upstream error, early return, checked conversion, and
+  partial vector-list, vector, selector, or graph construction release every C
+  resource;
+- concurrent read-only analysis, source closure, repeated result closure, and
+  calls after `Close` satisfy package locking and ownership contracts; and
+- every declaration in `igraph_components.h`, `igraph_separators.h`, and
+  `igraph_cohesive_blocks.h` has a final reviewed disposition, examples cover
+  the reference workflows, statement coverage remains at least 90.0%, and
+  `make verify` passes.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
