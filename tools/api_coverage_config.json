@@ -129,18 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_is_biconnected": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans a graph-wide predicate that documents igraph's undirected treatment and its singleton and two-vertex conventions."
-      },
-      "igraph_is_separator": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans a VertexSelector-based predicate with explicit borrowing, duplicate-candidate, direction, and degenerate-graph semantics."
-      },
-      "igraph_is_minimal_separator": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans a VertexSelector-based minimality predicate aligned with the separator contract."
-      },
       "igraph_all_minimal_st_separators": {
         "domain": "network_robustness",
         "rationale": "Milestone 21 will determine whether this full materializing enumeration can satisfy a genuine pre-allocation bound before selecting a public or unsupported disposition."
