@@ -83,6 +83,9 @@
 // lifecycle. Component graphs own separate C resources; ID mappings,
 // composition provenance, articulation points, bridges, and biconnected nested
 // collections are non-nil Go-owned values that survive source closure.
+// Graph powers are independently owned simple graphs with identity vertex
+// provenance. Neighborhood closure is clone-and-swap atomic, maps original
+// edges exactly, and marks newly created edges as having no source edge.
 // Robustness analysis includes separator and minimal-separator predicates,
 // biconnectivity and biconnected decomposition, deterministic experimental
 // bond/site/edge-list percolation curves, and cohesive block hierarchy. A

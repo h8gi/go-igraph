@@ -22,6 +22,44 @@ type ManyGraphOperatorResult struct {
 	Inputs []GraphIDMapping
 }
 
+// GraphPower returns the requested power of g as an independently owned simple
+// graph. Vertices u and v are connected when v is reachable from u within at
+// most order steps. order must be non-negative; order zero returns the same
+// vertices and no edges, while order one removes loops and parallel edges.
+// When respectDirection is true, directed reachability is used and a directed
+// input produces a directed result. When false, input directions are ignored
+// and the result is undirected. The input is borrowed only for the call.
+//
+// Vertex IDs are unchanged and Vertices is an exact non-nil Go-owned identity
+// mapping. Graph and vertex attributes are preserved independently by upstream
+// igraph; edge attributes are intentionally discarded because power edges do
+// not have unique source-edge provenance. The returned graph must be closed.
+//
+//igraph:bind igraph_graph_power
+func (g *Graph) GraphPower(order int, respectDirection bool) (VertexMappedGraphResult, error) {
+	var result VertexMappedGraphResult
+	err := withLockedGraphs([]*Graph{g}, func(values []*C.igraph_t) error {
+		if order < 0 {
+			return fmt.Errorf("igraph: graph power order must be non-negative: %d", order)
+		}
+		vertices, _, err := graphCounts(values[0], "graph power source")
+		if err != nil {
+			return err
+		}
+		mapping, err := identityIDMapping(vertices)
+		if err != nil {
+			return err
+		}
+		var value C.igraph_t
+		if code := C.go_igraph_graph_power(values[0], &value, C.igraph_int_t(order), booltoint(respectDirection)); code != C.IGRAPH_SUCCESS {
+			return igraphError("create graph power", int(code))
+		}
+		result = VertexMappedGraphResult{Graph: adoptInitializedGraph(&value), Vertices: mapping}
+		return nil
+	})
+	return result, err
+}
+
 // DisjointUnionMany returns the disjoint union of graphs in operand order.
 // Vertex and edge ordering within each input is preserved, with IDs offset by
 // all preceding inputs. Inputs are borrowed only for the call; repeated graph

@@ -3,6 +3,7 @@ package igraph
 // #cgo pkg-config: igraph
 // #include <igraph.h>
 // #include "algorithm_cgo.h"
+// #include "operators_cgo.h"
 import "C"
 
 import (
@@ -33,6 +34,56 @@ type SimplifyOptions struct {
 	// edges. It is borrowed only for the call. Loop-only simplification
 	// preserves surviving edge attributes without requiring a policy.
 	EdgeAttributes *AttributeCombinationPolicy
+}
+
+// ConnectNeighborhoodInPlace atomically adds an edge from each vertex to every
+// vertex reachable within at most order steps. order must be non-negative;
+// zero is an explicit no-op. On directed graphs, DirectionOut adds source-to-
+// reachable edges and DirectionIn adds predecessor-to-source edges.
+// DirectionAll ignores direction for reachability and adds one directed edge
+// for each missing unordered connection in the pinned upstream ordering; it
+// does not add a reciprocal pair. Undirected graphs always use symmetric
+// reachability and add at most one undirected edge per vertex pair.
+// Existing connections are not duplicated; existing loops and parallel edges
+// are retained.
+//
+// Vertex IDs are unchanged. Mapping.Edges maps every pre-existing edge to the
+// result; newly added edges have RemovedID in NewToOld. Graph, vertex, and
+// existing edge attributes are preserved. New edges receive igraph's typed
+// missing defaults: NaN for numeric, the empty string for string, and false for
+// Boolean attributes. The operation uses clone-and-swap, so validation,
+// initialization, upstream, or mapping failure leaves g unchanged.
+//
+//igraph:bind igraph_connect_neighborhood
+func (g *Graph) ConnectNeighborhoodInPlace(order int, direction DirectionMode) (GraphTransformationResult, error) {
+	return g.connectNeighborhoodInPlace(order, direction, nil)
+}
+
+func (g *Graph) connectNeighborhoodInPlace(order int, direction DirectionMode, hook graphTransformationFailureHook) (GraphTransformationResult, error) {
+	if g == nil {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	if order < 0 {
+		return GraphTransformationResult{}, fmt.Errorf("igraph: neighborhood order must be non-negative: %d", order)
+	}
+	cDirection, err := direction.cValue()
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	if order == 0 {
+		return identityGraphTransformationResult(int(C.igraph_vcount(&g.graph)), int(C.igraph_ecount(&g.graph)))
+	}
+	return g.applyAtomicGraphTransformation("connect graph neighborhood", hook, func(replacement *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_connect_neighborhood(replacement, C.igraph_int_t(order), cDirection)
+	}, func(before, after []Edge, directed bool) (IDMapping, bool, error) {
+		mapping, err := prefixEdgeMapping(before, after, directed)
+		return mapping, true, err
+	})
 }
 
 // DirectedConversionMode controls how an undirected edge becomes directed.
@@ -386,6 +437,20 @@ func identityEndpointEdgeMapping(before, after []Edge, directed bool) (IDMapping
 		}
 	}
 	return identityIDMapping(len(before))
+}
+
+func prefixEdgeMapping(before, after []Edge, directed bool) (IDMapping, error) {
+	if len(after) < len(before) {
+		return IDMapping{}, fmt.Errorf("edge count decreased from %d to %d", len(before), len(after))
+	}
+	oldToNew := make([]int, len(before))
+	for id := range before {
+		if endpointKey(before[id], directed) != endpointKey(after[id], directed) {
+			return IDMapping{}, fmt.Errorf("edge %d endpoints changed from %v to %v", id, endpointKey(before[id], directed), endpointKey(after[id], directed))
+		}
+		oldToNew[id] = id
+	}
+	return newIDMapping(oldToNew, len(after))
 }
 
 func stableFilteredEdgeMapping(

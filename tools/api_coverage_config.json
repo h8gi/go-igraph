@@ -129,17 +129,9 @@
       }
     },
     "deferred": {
-      "igraph_connect_neighborhood": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #354 will define an atomic clone-and-swap neighborhood-closure API with explicit order, direction, attribute, and provenance semantics."
-      },
       "igraph_contract_vertices": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #356 will define validated many-to-one vertex contraction with explicit attribute combination, mappings, and atomic mutation."
-      },
-      "igraph_graph_power": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #354 will define an independently owned graph-power result with checked order and explicit directed-path semantics."
       },
       "igraph_induced_subgraph": {
         "domain": "graph_algebra_and_transformations",

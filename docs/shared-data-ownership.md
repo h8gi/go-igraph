@@ -429,6 +429,23 @@ union and intersection mappings preserve upstream's exact source-to-result
 edge correspondence. Attribute restoration uses all exact mappings and the
 same scope-specific conflict policy as binary operators.
 
+`GraphPower` borrows its source under the graph lock and returns an
+independently owned simple graph with an exact identity vertex mapping. Order
+zero retains vertices and removes all edges; positive orders connect vertices
+reachable within that many steps. Respecting direction preserves directed
+reachability, while ignoring it produces an undirected result. Graph and vertex
+attributes are independently preserved and edge attributes are intentionally
+dropped because power edges have no unique source edge.
+
+`ConnectNeighborhoodInPlace` adds the same bounded-reachability connections to
+a clone and swaps only after upstream execution and mapping conversion succeed.
+Its edge mapping covers every original edge and marks added edges with
+`RemovedID` in `NewToOld`. Existing edge attributes survive; added edges receive
+typed missing defaults. DirectionOut follows outgoing paths, DirectionIn
+follows incoming paths while retaining their path orientation, and DirectionAll
+ignores direction for reachability but adds one pinned-upstream-oriented edge
+per missing unordered connection. Order zero is a validated identity operation.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
