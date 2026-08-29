@@ -86,6 +86,12 @@
 // Graph powers are independently owned simple graphs with identity vertex
 // provenance. Neighborhood closure is clone-and-swap atomic, maps original
 // edges exactly, and marks newly created edges as having no source edge.
+// Joins and graph products expose operand-ordered Go-owned provenance;
+// contraction and selective edge reversal use clone-and-swap atomicity.
+// Experimental Mycielski construction returns generation and source lineage
+// while deliberately discarding attributes. InducedSubgraph is the coherent
+// public induced-subgraph workflow: it returns an independently owned graph
+// together with exact bidirectional vertex mappings.
 // Robustness analysis includes separator and minimal-separator predicates,
 // biconnectivity and biconnected decomposition, deterministic experimental
 // bond/site/edge-list percolation curves, and cohesive block hierarchy. A

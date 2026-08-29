@@ -5,10 +5,10 @@
 - Upstream: [igraph/igraph 1.0.1](https://github.com/igraph/igraph/releases/tag/1.0.1)
 - User-facing bindings: **401 / 2015 (19.90%)**
 - Internal dependencies: **65**
-- Composed APIs: **24**
+- Composed APIs: **26**
 - Intentionally unsupported: **189**
-- Deferred declarations: **2**
-- Completed domains: **advanced_random_graph_models, attributes, graph_interchange, structural_diagnostics**
+- Deferred declarations: **0**
+- Completed domains: **advanced_random_graph_models, attributes, graph_algebra_and_transformations, graph_interchange, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
@@ -758,8 +758,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_inclist_size` | `igraph_adjlist.h` | Missing | — |
 | `igraph_independence_number` | `igraph_cliques.h` | User-facing | `IndependenceNumber` |
 | `igraph_independent_vertex_sets` | `igraph_cliques.h` | User-facing | `IndependentVertexSets` |
-| `igraph_induced_subgraph` | `igraph_operators.h` | Deferred | — |
-| `igraph_induced_subgraph_edges` | `igraph_operators.h` | Deferred | — |
+| `igraph_induced_subgraph` | `igraph_operators.h` | Composed | `InducedSubgraph` |
+| `igraph_induced_subgraph_edges` | `igraph_operators.h` | Composed | `InducedSubgraph` |
 | `igraph_induced_subgraph_map` | `igraph_operators.h` | User-facing | `InducedSubgraph` |
 | `igraph_intersection` | `igraph_operators.h` | User-facing | `Intersection` |
 | `igraph_intersection_many` | `igraph_operators.h` | User-facing | `IntersectionMany` |
