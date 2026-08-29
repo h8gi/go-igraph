@@ -72,6 +72,23 @@ igraph_error_t go_igraph_connect_neighborhood(
     GO_IGRAPH_CALL(igraph_connect_neighborhood(graph, order, mode));
 }
 
+igraph_error_t go_igraph_join(
+    igraph_t *result, const igraph_t *left, const igraph_t *right) {
+    GO_IGRAPH_CALL(igraph_join(result, left, right));
+}
+
+igraph_error_t go_igraph_product(
+    igraph_t *result, const igraph_t *left, const igraph_t *right,
+    igraph_product_t type) {
+    GO_IGRAPH_CALL(igraph_product(result, left, right, type));
+}
+
+igraph_error_t go_igraph_rooted_product(
+    igraph_t *result, const igraph_t *left, const igraph_t *right,
+    igraph_int_t root) {
+    GO_IGRAPH_CALL(igraph_rooted_product(result, left, right, root));
+}
+
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *result, const igraph_t *left, const igraph_t *right) {
     GO_IGRAPH_CALL(igraph_disjoint_union(result, left, right));

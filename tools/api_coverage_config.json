@@ -141,25 +141,13 @@
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing mapped InducedSubgraph workflow."
       },
-      "igraph_join": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #355 will define independently owned join results, operand ordering, provenance, and attribute behavior."
-      },
       "igraph_mycielskian": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #357 will expose the upstream experimental Mycielski transformation with checked size, provenance, and ownership contracts."
       },
-      "igraph_product": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #355 will expose selected experimental graph products through a typed Go product mode and checked result contract."
-      },
       "igraph_reverse_edges": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #356 will define selector-based atomic edge reversal with explicit directed, duplicate-selection, and no-op behavior."
-      },
-      "igraph_rooted_product": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #355 will define an experimental rooted-product API with operand-specific root validation and independently owned output."
       }
     },
     "intentionally_unsupported": {

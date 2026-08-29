@@ -18,6 +18,12 @@ igraph_error_t go_igraph_graph_power(
     const igraph_t *, igraph_t *, igraph_int_t, igraph_bool_t);
 igraph_error_t go_igraph_connect_neighborhood(
     igraph_t *, igraph_int_t, igraph_neimode_t);
+igraph_error_t go_igraph_join(
+    igraph_t *, const igraph_t *, const igraph_t *);
+igraph_error_t go_igraph_product(
+    igraph_t *, const igraph_t *, const igraph_t *, igraph_product_t);
+igraph_error_t go_igraph_rooted_product(
+    igraph_t *, const igraph_t *, const igraph_t *, igraph_int_t);
 
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *, const igraph_t *, const igraph_t *);

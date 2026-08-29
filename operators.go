@@ -235,6 +235,249 @@ type BinaryGraphOperatorResult struct {
 	Right GraphIDMapping
 }
 
+// GraphProductMode selects the adjacency rule used by Product.
+type GraphProductMode uint8
+
+const (
+	GraphProductCartesian GraphProductMode = iota
+	GraphProductLexicographic
+	GraphProductStrong
+	GraphProductTensor
+	GraphProductModular
+)
+
+func (mode GraphProductMode) cValue() (C.igraph_product_t, error) {
+	switch mode {
+	case GraphProductCartesian:
+		return C.IGRAPH_PRODUCT_CARTESIAN, nil
+	case GraphProductLexicographic:
+		return C.IGRAPH_PRODUCT_LEXICOGRAPHIC, nil
+	case GraphProductStrong:
+		return C.IGRAPH_PRODUCT_STRONG, nil
+	case GraphProductTensor:
+		return C.IGRAPH_PRODUCT_TENSOR, nil
+	case GraphProductModular:
+		return C.IGRAPH_PRODUCT_MODULAR, nil
+	default:
+		return 0, fmt.Errorf("igraph: invalid graph product mode: %d", mode)
+	}
+}
+
+// ProductVertexProvenance identifies the operand vertex pair represented by a
+// product vertex.
+type ProductVertexProvenance struct {
+	LeftVertex  int
+	RightVertex int
+}
+
+// GraphProductResult contains an independently owned product graph and exact
+// Go-owned vertex provenance. Vertices is indexed by result vertex ID.
+// LeftToResult and RightToResult are indexed by the corresponding source
+// vertex and list result IDs in ascending order. All slices are non-nil and
+// survive closure of every graph.
+type GraphProductResult struct {
+	Graph         *Graph
+	Vertices      []ProductVertexProvenance
+	LeftToResult  [][]int
+	RightToResult [][]int
+}
+
+// Join returns the join of g followed by other. Operand vertex order is
+// preserved, with other vertex IDs offset by g's vertex count. Original loops
+// and parallel edges are preserved. Every left/right vertex pair gains one
+// edge in an undirected result, or one edge in each direction in a directed
+// result. Directedness must match. Exact mappings identify original vertices
+// and edges; new join edges have no source mapping. Attributes are restored
+// using the same explicit conflict policy as DisjointUnion, while new join
+// edges receive the attribute backend's missing values. Operands are borrowed
+// only for the call and the independently owned result must be closed.
+//
+//igraph:bind igraph_join
+func (g *Graph) Join(other *Graph, attributes *GraphOperatorAttributePolicy) (BinaryGraphOperatorResult, error) {
+	var result BinaryGraphOperatorResult
+	err := withLockedGraphs([]*Graph{g, other}, func(values []*C.igraph_t) error {
+		var snapshots [2]graphAttributeSnapshot
+		var vertexCounts [2]int
+		edgeSets := make([][]Edge, 2)
+		for index, graph := range values {
+			var err error
+			snapshots[index], err = snapshotGraphAttributesLocked(graph)
+			if err != nil {
+				return err
+			}
+			vertexCounts[index], _, err = graphCounts(graph, fmt.Sprintf("join operand %d", index))
+			if err != nil {
+				return err
+			}
+			edgeSets[index], err = edgeSlice(graph)
+			if err != nil {
+				return err
+			}
+		}
+		leftVertices, rightVertices := vertexCounts[0], vertexCounts[1]
+		leftEdges, rightEdges := edgeSets[0], edgeSets[1]
+		directed := C.igraph_is_directed(values[0]) != booltoint(false)
+		if directed != (C.igraph_is_directed(values[1]) != booltoint(false)) {
+			return errors.New("igraph: join operands must have the same directedness")
+		}
+
+		var value C.igraph_t
+		if code := C.go_igraph_join(&value, values[0], values[1]); code != C.IGRAPH_SUCCESS {
+			return igraphError("join graphs", int(code))
+		}
+		graph := adoptInitializedGraph(&value)
+		succeeded := false
+		defer func() {
+			if !succeeded {
+				_ = graph.Close()
+			}
+		}()
+		resultEdges, err := edgeSlice(&graph.graph)
+		if err != nil {
+			return err
+		}
+		leftVertexMap, err := offsetIDMapping(leftVertices, leftVertices+rightVertices, 0)
+		if err != nil {
+			return err
+		}
+		rightVertexMap, err := offsetIDMapping(rightVertices, leftVertices+rightVertices, leftVertices)
+		if err != nil {
+			return err
+		}
+		leftEdgeMap, err := structuralSubsetEdgeMapping(leftEdges, resultEdges, directed)
+		if err != nil {
+			return err
+		}
+		for index := range rightEdges {
+			rightEdges[index].From += leftVertices
+			rightEdges[index].To += leftVertices
+		}
+		rightEdgeMap, err := structuralSubsetEdgeMapping(rightEdges, resultEdges, directed)
+		if err != nil {
+			return err
+		}
+		result = BinaryGraphOperatorResult{
+			Graph: graph,
+			Left:  GraphIDMapping{Vertices: leftVertexMap, Edges: leftEdgeMap},
+			Right: GraphIDMapping{Vertices: rightVertexMap, Edges: rightEdgeMap},
+		}
+		if err := restoreBinaryOperatorAttributes(graph, snapshots[0], snapshots[1], result.Left, result.Right, attributes); err != nil {
+			return err
+		}
+		succeeded = true
+		return nil
+	})
+	if err != nil {
+		return BinaryGraphOperatorResult{}, err
+	}
+	return result, nil
+}
+
+// Product returns the selected graph product. This API wraps an experimental
+// upstream C/igraph function whose structural semantics may change on a future
+// dependency upgrade. Directedness must match; the modular product additionally
+// requires simple operands. Result vertex (u,v) has ID u*|V2|+v. Loops and
+// parallel edges follow the selected upstream adjacency rule, including input
+// multiplicity. Operand attributes are intentionally not propagated because
+// product vertices and edges do not have a unique source element. Operands are
+// borrowed only for the call and the independently owned result must be closed.
+//
+//igraph:bind igraph_product
+func (g *Graph) Product(other *Graph, mode GraphProductMode) (GraphProductResult, error) {
+	productType, err := mode.cValue()
+	if err != nil {
+		return GraphProductResult{}, err
+	}
+	return graphProduct(g, other, nil, mode == GraphProductModular, func(result, left, right *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_product(result, left, right, productType)
+	})
+}
+
+// RootedProduct returns the rooted product of g and other, using root from the
+// second operand. This API wraps an experimental upstream C/igraph function.
+// Directedness must match and root must be a valid vertex of other. Result
+// vertex ordering and ownership are identical to Product. Each copy of other
+// preserves its edges, and copies of root are connected according to g.
+// Attributes are intentionally not propagated. The independently owned result
+// must be closed by the caller.
+//
+//igraph:bind igraph_rooted_product
+func (g *Graph) RootedProduct(other *Graph, root int) (GraphProductResult, error) {
+	return graphProduct(g, other, &root, false, func(result, left, right *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_rooted_product(result, left, right, C.igraph_int_t(root))
+	})
+}
+
+func graphProduct(
+	leftGraph, rightGraph *Graph,
+	root *int,
+	requireSimple bool,
+	query func(*C.igraph_t, *C.igraph_t, *C.igraph_t) C.igraph_error_t,
+) (GraphProductResult, error) {
+	var result GraphProductResult
+	err := withLockedGraphs([]*Graph{leftGraph, rightGraph}, func(values []*C.igraph_t) error {
+		var vertexCounts [2]int
+		for index, graph := range values {
+			var err error
+			vertexCounts[index], _, err = graphCounts(graph, fmt.Sprintf("product operand %d", index))
+			if err != nil {
+				return err
+			}
+		}
+		leftVertices, rightVertices := vertexCounts[0], vertexCounts[1]
+		if (C.igraph_is_directed(values[0]) != booltoint(false)) != (C.igraph_is_directed(values[1]) != booltoint(false)) {
+			return errors.New("igraph: product operands must have the same directedness")
+		}
+		if root != nil && (*root < 0 || *root >= rightVertices) {
+			return fmt.Errorf("igraph: rooted product root %d out of range [0, %d)", *root, rightVertices)
+		}
+		if rightVertices != 0 && leftVertices > int(^uint(0)>>1)/rightVertices {
+			return errors.New("igraph: product vertex count overflows int")
+		}
+		if requireSimple {
+			for index, graph := range values {
+				simple, err := graphIsSimple(graph)
+				if err != nil {
+					return err
+				}
+				if !simple {
+					return fmt.Errorf("igraph: modular product operand %d must be simple", index)
+				}
+			}
+		}
+		var value C.igraph_t
+		if code := query(&value, values[0], values[1]); code != C.IGRAPH_SUCCESS {
+			return igraphError("create graph product", int(code))
+		}
+		graph := adoptInitializedGraph(&value)
+		vertices, leftToResult, rightToResult := productProvenance(leftVertices, rightVertices)
+		result = GraphProductResult{Graph: graph, Vertices: vertices, LeftToResult: leftToResult, RightToResult: rightToResult}
+		return nil
+	})
+	return result, err
+}
+
+func productProvenance(leftVertices, rightVertices int) ([]ProductVertexProvenance, [][]int, [][]int) {
+	vertices := make([]ProductVertexProvenance, leftVertices*rightVertices)
+	leftToResult := make([][]int, leftVertices)
+	rightToResult := make([][]int, rightVertices)
+	for left := 0; left < leftVertices; left++ {
+		leftToResult[left] = make([]int, rightVertices)
+		for right := 0; right < rightVertices; right++ {
+			resultID := left*rightVertices + right
+			vertices[resultID] = ProductVertexProvenance{LeftVertex: left, RightVertex: right}
+			leftToResult[left][right] = resultID
+			rightToResult[right] = append(rightToResult[right], resultID)
+		}
+	}
+	for right := range rightToResult {
+		if rightToResult[right] == nil {
+			rightToResult[right] = []int{}
+		}
+	}
+	return vertices, leftToResult, rightToResult
+}
+
 // DifferenceResult contains an independently owned difference graph and exact
 // left-operand vertex provenance. Left.Edges is a deterministic structural
 // source-to-result mapping: endpoint-equivalent parallel edges are paired by
@@ -682,6 +925,25 @@ func structuralDifferenceEdgeMapping(source, result []Edge, directed bool) (IDMa
 	}
 	if matched != len(result) {
 		return IDMapping{}, errors.New("igraph: difference result contains an edge absent from the left operand")
+	}
+	return newIDMapping(oldToNew, len(result))
+}
+
+func structuralSubsetEdgeMapping(source, result []Edge, directed bool) (IDMapping, error) {
+	resultBuckets := make(map[edgeEndpointKey][]int)
+	for resultID, edge := range result {
+		resultBuckets[endpointKey(edge, directed)] = append(resultBuckets[endpointKey(edge, directed)], resultID)
+	}
+	positions := make(map[edgeEndpointKey]int, len(resultBuckets))
+	oldToNew := make([]int, len(source))
+	for sourceID, edge := range source {
+		key := endpointKey(edge, directed)
+		position := positions[key]
+		if position >= len(resultBuckets[key]) {
+			return IDMapping{}, errors.New("igraph: operator result is missing a source edge")
+		}
+		oldToNew[sourceID] = resultBuckets[key][position]
+		positions[key] = position + 1
 	}
 	return newIDMapping(oldToNew, len(result))
 }
