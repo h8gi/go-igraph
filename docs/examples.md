@@ -22,6 +22,7 @@ Examples are grouped by functional domain:
 - `example_bipartite_test.go`: Bipartite matrix construction, reproducible random generation, explicit partitions, source-ID-preserving projection, and weighted matching.
 - `example_spatial_test.go`: Spatial graph construction, edge-ID-aligned distances, weighted routing, convex hulls, and proximity-graph comparison.
 - `example_attributes_test.go`: Typed graph, vertex, and edge metadata with ID-aligned inspection and mutation.
+- `example_random_test.go`: Reproducible expected-degree and fixed-edge-count random graph generation.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).

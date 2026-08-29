@@ -84,6 +84,39 @@ igraph_error_t go_igraph_sbm_game(
         graph, pref_matrix, block_sizes, directed, allowed_edge_types));
 }
 
+igraph_error_t go_igraph_chung_lu_game(
+    igraph_t *graph,
+    const igraph_vector_t *expected_out_degrees,
+    const igraph_vector_t *expected_in_degrees,
+    igraph_bool_t loops,
+    igraph_chung_lu_t variant) {
+    GO_IGRAPH_CALL(igraph_chung_lu_game(
+        graph, expected_out_degrees, expected_in_degrees, loops, variant));
+}
+
+igraph_error_t go_igraph_static_fitness_game(
+    igraph_t *graph,
+    igraph_int_t edge_count,
+    const igraph_vector_t *out_fitness,
+    const igraph_vector_t *in_fitness,
+    igraph_edge_type_sw_t allowed_edge_types) {
+    GO_IGRAPH_CALL(igraph_static_fitness_game(
+        graph, edge_count, out_fitness, in_fitness, allowed_edge_types));
+}
+
+igraph_error_t go_igraph_static_power_law_game(
+    igraph_t *graph,
+    igraph_int_t vertex_count,
+    igraph_int_t edge_count,
+    igraph_real_t out_exponent,
+    igraph_real_t in_exponent,
+    igraph_edge_type_sw_t allowed_edge_types,
+    igraph_bool_t finite_size_correction) {
+    GO_IGRAPH_CALL(igraph_static_power_law_game(
+        graph, vertex_count, edge_count, out_exponent, in_exponent,
+        allowed_edge_types, finite_size_correction));
+}
+
 igraph_error_t go_igraph_rewire(
     igraph_t *graph,
     igraph_int_t n,
@@ -117,5 +150,4 @@ igraph_error_t go_igraph_random_spanning_tree(
     igraph_int_t vid) {
     GO_IGRAPH_CALL(igraph_random_spanning_tree(graph, res, vid));
 }
-
 

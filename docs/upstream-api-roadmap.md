@@ -1950,8 +1950,10 @@ Generator validation contract: vertex and edge counts, dimensions, type IDs,
 block sizes, attachment counts, aging bins, windows, and endpoints use checked
 integer conversion and allocation bounds. Probabilities, correlations,
 preferences, fitnesses, exponents, radii, and latent values reject NaN and
-infinity and enforce their model-specific domains before C execution where
-practical. Directed in/out values have equal, explicit vertex alignment;
+unsupported infinities and enforce their model-specific domains before C
+execution where practical. Static power-law exponents deliberately accept
+positive infinity as the documented uniform-fitness limit. Directed in/out
+values have equal, explicit vertex alignment;
 undirected preference matrices are symmetric; permutations are complete
 bijections; and `EdgeType` expresses loop and multiple-edge policy wherever the
 upstream model supports those choices. Empty, singleton, zero-edge, and
