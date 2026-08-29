@@ -141,10 +141,6 @@
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this older trait-growth model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
       },
-      "igraph_chung_lu_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans an experimental expected-degree generator with a checked variant enum, vertex-aligned weights, and explicit directed and loop semantics."
-      },
       "igraph_cited_type_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this specialized citation generator for a typed Go contract or an explicit composed or unsupported disposition."
@@ -228,14 +224,6 @@
       "igraph_simple_interconnected_islands_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans or classifies the island model alongside block and preference generators with explicit vertex ordering and probability semantics."
-      },
-      "igraph_static_fitness_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans fixed-edge-count fitness generation with borrowed vertex-aligned fitness values and shared EdgeType semantics."
-      },
-      "igraph_static_power_law_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans power-law fitness generation with checked exponent, finite-size-correction, edge-type, direction, and size options."
       }
     },
     "intentionally_unsupported": {
