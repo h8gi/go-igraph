@@ -1865,6 +1865,15 @@ Completion criteria:
   the reference workflows, statement coverage remains at least 90.0%, and
   `make verify` passes.
 
+Completion evidence: Milestone 21 delivers separator and biconnectivity
+predicates, biconnected decomposition, experimental deterministic percolation,
+and cohesive block hierarchy with independently owned results. Integration
+tests reconstruct separator, component, hierarchy, and percolation invariants,
+exercise concurrent read-only calls, and preserve source/result closure
+contracts. All declarations in the three scoped headers, including generated
+graph-list container operations, have final dispositions; no deferred or
+missing scoped declaration remains.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones

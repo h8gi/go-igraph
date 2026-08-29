@@ -81,6 +81,13 @@
 // stable order. Component graphs own separate C resources; ID mappings,
 // composition provenance, articulation points, bridges, and biconnected nested
 // collections are non-nil Go-owned values that survive source closure.
+// Robustness analysis includes separator and minimal-separator predicates,
+// biconnectivity and biconnected decomposition, deterministic experimental
+// bond/site/edge-list percolation curves, and cohesive block hierarchy. A
+// CohesiveBlocksResult owns its nested Go slices while its BlockTree is an
+// independently closable graph. Full separator enumeration is intentionally
+// not exposed because pinned igraph materializes unbounded complete result
+// lists before a Go-side limit could be applied.
 //
 // Community structure APIs provide flat algorithms (Multilevel, Leiden,
 // Label Propagation, Infomap, Fluid), hierarchical algorithms (Walktrap,
