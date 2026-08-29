@@ -465,6 +465,24 @@ source-to-result lists as Go-owned values that outlive all graphs. Product
 attributes are intentionally not propagated because product vertices and
 edges do not have a unique source element.
 
+`ContractVerticesInPlace` borrows a Go target-label slice and optional vertex
+attribute policy while holding the receiver lock. Labels must be non-negative;
+gaps are removed by ranking distinct labels in ascending order. The returned
+vertex mapping records this exact many-to-one normalization and the edge
+mapping is identity because contraction preserves every edge ID and its
+attributes, even when endpoints become loops or parallel edges. A policy is
+required when an actual merge combines vertex attributes. Graph and edge
+attributes remain unchanged. Identity and empty mappings are validated no-ops.
+
+`ReverseEdgesInPlace` materializes a borrowed `EdgeSelector` before mutation,
+deduplicates selected IDs, and reverses each selected directed edge exactly
+once. Empty selections are no-ops and undirected graphs are rejected. Vertex
+and edge IDs, ordering, multiplicity, loops, and all attributes are preserved,
+so both returned mappings are exact identities. Both mutation APIs allocate
+and transform a clone and swap it into the receiver only after upstream work
+and provenance checks succeed; all earlier failures destroy temporary C
+vectors, selectors, combination records, and graph copies without mutation.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering

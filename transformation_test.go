@@ -5,8 +5,203 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 )
+
+func TestContractVerticesInPlaceNormalizationMappingsAndAttributes(t *testing.T) {
+	graph := transformationGraph(t, 4, []Edge{{0, 1}, {1, 2}, {2, 3}, {0, 3}, {1, 1}}, true)
+	if err := graph.SetGraphStringAttribute("name", "source"); err != nil {
+		t.Fatal(err)
+	}
+	if err := graph.SetVertexNumericAttributes("weight", []float64{1, 2, 4, 8}); err != nil {
+		t.Fatal(err)
+	}
+	if err := graph.SetEdgeStringAttributes("label", []string{"a", "b", "c", "d", "e"}); err != nil {
+		t.Fatal(err)
+	}
+	result, err := graph.ContractVerticesInPlace([]int{10, 10, 30, 20}, &AttributeCombinationPolicy{Default: AttributeCombineSum})
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{0, 0}, {0, 2}, {2, 1}, {0, 1}, {0, 0}})
+	assertIDMapping(t, result.Mapping.Vertices, []int{0, 0, 2, 1}, []int{0, 3, 2})
+	assertIDMapping(t, result.Mapping.Edges, []int{0, 1, 2, 3, 4}, []int{0, 1, 2, 3, 4})
+	if !result.EdgeMappingAvailable {
+		t.Error("contracted edge mapping unavailable")
+	}
+	if got, err := graph.VertexNumericAttributes("weight"); err != nil || !reflect.DeepEqual(got, []float64{3, 8, 4}) {
+		t.Errorf("contracted weights = %v, %v", got, err)
+	}
+	if got, err := graph.GraphStringAttribute("name"); err != nil || got != "source" {
+		t.Errorf("graph attribute = %q, %v", got, err)
+	}
+	if got, err := graph.EdgeStringAttributes("label"); err != nil || !reflect.DeepEqual(got, []string{"a", "b", "c", "d", "e"}) {
+		t.Errorf("edge attributes = %v, %v", got, err)
+	}
+	if err := graph.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(result.Mapping.Vertices.OldToNew, []int{0, 0, 2, 1}) {
+		t.Errorf("mapping after close = %#v", result.Mapping)
+	}
+}
+
+func TestContractVerticesInPlaceIdentityAllToOneEmptyAndValidation(t *testing.T) {
+	identity := transformationGraph(t, 2, []Edge{{0, 1}}, false)
+	if err := identity.SetVertexStringAttributes("label", []string{"a", "b"}); err != nil {
+		t.Fatal(err)
+	}
+	result, err := identity.ContractVerticesInPlace([]int{20, 40}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertIDMapping(t, result.Mapping.Vertices, []int{0, 1}, []int{0, 1})
+	assertTransformationGraph(t, identity, 2, false, []Edge{{0, 1}})
+	if _, err := identity.ContractVerticesInPlace([]int{0, 1}, &AttributeCombinationPolicy{Default: AttributeCombineFirst}); err != nil {
+		t.Errorf("identity contraction with valid policy: %v", err)
+	}
+	if _, err := identity.ContractVerticesInPlace([]int{0, 1}, &AttributeCombinationPolicy{Default: AttributeCombineSum}); err == nil {
+		t.Error("identity contraction with invalid policy error = nil")
+	}
+
+	all := transformationGraph(t, 3, []Edge{{0, 1}, {1, 2}}, false)
+	result, err = all.ContractVerticesInPlace([]int{7, 7, 7}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, all, 1, false, []Edge{{0, 0}, {0, 0}})
+	assertIDMapping(t, result.Mapping.Vertices, []int{0, 0, 0}, []int{0})
+
+	empty := transformationGraph(t, 0, nil, true)
+	result, err = empty.ContractVerticesInPlace([]int{}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Mapping.Vertices.OldToNew == nil || result.Mapping.Vertices.NewToOld == nil {
+		t.Errorf("empty contraction mapping = %#v", result.Mapping.Vertices)
+	}
+
+	for _, mapping := range [][]int{{0}, {0, 1, 2}, {0, -1}} {
+		before, _ := identity.Edges()
+		if got, err := identity.ContractVerticesInPlace(mapping, nil); err == nil || got.Mapping.Vertices.OldToNew != nil {
+			t.Errorf("invalid contraction %v = %#v, %v", mapping, got, err)
+		}
+		after, _ := identity.Edges()
+		if !reflect.DeepEqual(after, before) {
+			t.Errorf("invalid contraction mutated graph: %v -> %v", before, after)
+		}
+	}
+}
+
+func TestContractVerticesRequiresAndValidatesAttributePolicyAtomically(t *testing.T) {
+	graph := transformationGraph(t, 2, []Edge{{0, 1}}, true)
+	if err := graph.SetVertexStringAttributes("label", []string{"a", "b"}); err != nil {
+		t.Fatal(err)
+	}
+	before, _ := graph.Edges()
+	if result, err := graph.ContractVerticesInPlace([]int{0, 0}, nil); err == nil || result.Mapping.Vertices.OldToNew != nil {
+		t.Errorf("missing contraction policy = %#v, %v", result, err)
+	}
+	invalid := &AttributeCombinationPolicy{Default: AttributeCombineSum}
+	if result, err := graph.ContractVerticesInPlace([]int{0, 0}, invalid); err == nil || result.Mapping.Vertices.OldToNew != nil {
+		t.Errorf("invalid contraction policy = %#v, %v", result, err)
+	}
+	after, _ := graph.Edges()
+	if !reflect.DeepEqual(after, before) {
+		t.Errorf("failed contraction mutated edges: %v -> %v", before, after)
+	}
+}
+
+func TestReverseEdgesInPlaceSelectorsDuplicatesAndAttributes(t *testing.T) {
+	graph := transformationGraph(t, 3, []Edge{{0, 1}, {0, 1}, {1, 0}, {2, 2}}, true)
+	if err := graph.SetGraphBooleanAttribute("ok", true); err != nil {
+		t.Fatal(err)
+	}
+	if err := graph.SetEdgeNumericAttributes("weight", []float64{1, 2, 3, 4}); err != nil {
+		t.Fatal(err)
+	}
+	selector, err := EdgeIDs(1, 1, 3)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result, err := graph.ReverseEdgesInPlace(selector)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{0, 1}, {1, 0}, {1, 0}, {2, 2}})
+	assertIDMapping(t, result.Mapping.Vertices, []int{0, 1, 2}, []int{0, 1, 2})
+	assertIDMapping(t, result.Mapping.Edges, []int{0, 1, 2, 3}, []int{0, 1, 2, 3})
+	if got, err := graph.EdgeNumericAttributes("weight"); err != nil || !reflect.DeepEqual(got, []float64{1, 2, 3, 4}) {
+		t.Errorf("reversed weights = %v, %v", got, err)
+	}
+	if got, err := graph.GraphBooleanAttribute("ok"); err != nil || !got {
+		t.Errorf("reversed graph attribute = %t, %v", got, err)
+	}
+}
+
+func TestReverseEdgesInPlaceAllNonePairsAndValidation(t *testing.T) {
+	graph := transformationGraph(t, 3, []Edge{{0, 1}, {1, 2}}, true)
+	if _, err := graph.ReverseEdgesInPlace(NoEdges()); err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{0, 1}, {1, 2}})
+	pairs, err := EdgePairs([]Edge{{0, 1}, {0, 1}}, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := graph.ReverseEdgesInPlace(pairs); err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{1, 0}, {1, 2}})
+	if _, err := graph.ReverseEdgesInPlace(AllEdges()); err != nil {
+		t.Fatal(err)
+	}
+	assertTransformationGraph(t, graph, 3, true, []Edge{{0, 1}, {2, 1}})
+
+	badID, _ := EdgeIDs(9)
+	if _, err := graph.ReverseEdgesInPlace(badID); err == nil {
+		t.Error("out-of-range reverse selector error = nil")
+	}
+	undirected := transformationGraph(t, 2, []Edge{{0, 1}}, false)
+	if _, err := undirected.ReverseEdgesInPlace(AllEdges()); err == nil {
+		t.Error("undirected reversal error = nil")
+	}
+}
+
+func TestContractionAndReversalClosedAndCloseRace(t *testing.T) {
+	var nilGraph *Graph
+	if _, err := nilGraph.ContractVerticesInPlace(nil, nil); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil contraction error = %v", err)
+	}
+	if _, err := nilGraph.ReverseEdgesInPlace(AllEdges()); !errors.Is(err, ErrClosed) {
+		t.Errorf("nil reversal error = %v", err)
+	}
+	closed := transformationGraph(t, 1, nil, true)
+	_ = closed.Close()
+	if _, err := closed.ContractVerticesInPlace([]int{0}, nil); !errors.Is(err, ErrClosed) {
+		t.Errorf("closed contraction error = %v", err)
+	}
+	if _, err := closed.ReverseEdgesInPlace(AllEdges()); !errors.Is(err, ErrClosed) {
+		t.Errorf("closed reversal error = %v", err)
+	}
+
+	graph := transformationGraph(t, 4, []Edge{{0, 1}, {1, 2}, {2, 3}}, true)
+	var wait sync.WaitGroup
+	for range 8 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			_, err := graph.ReverseEdgesInPlace(AllEdges())
+			if err != nil && !errors.Is(err, ErrClosed) {
+				t.Errorf("reverse close race: %v", err)
+			}
+		}()
+	}
+	wait.Add(1)
+	go func() { defer wait.Done(); _ = graph.Close() }()
+	wait.Wait()
+}
 
 func TestSimplifyInPlaceOptions(t *testing.T) {
 	edges := []Edge{

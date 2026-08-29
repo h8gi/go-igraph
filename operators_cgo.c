@@ -72,6 +72,18 @@ igraph_error_t go_igraph_connect_neighborhood(
     GO_IGRAPH_CALL(igraph_connect_neighborhood(graph, order, mode));
 }
 
+igraph_error_t go_igraph_contract_vertices(
+    igraph_t *graph, const igraph_vector_int_t *mapping,
+    const igraph_attribute_combination_t *vertex_combination) {
+    GO_IGRAPH_CALL(igraph_contract_vertices(
+        graph, mapping, vertex_combination));
+}
+
+igraph_error_t go_igraph_reverse_edges(
+    igraph_t *graph, igraph_es_t edges) {
+    GO_IGRAPH_CALL(igraph_reverse_edges(graph, edges));
+}
+
 igraph_error_t go_igraph_join(
     igraph_t *result, const igraph_t *left, const igraph_t *right) {
     GO_IGRAPH_CALL(igraph_join(result, left, right));
