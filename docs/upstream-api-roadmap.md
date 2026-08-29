@@ -2036,12 +2036,12 @@ structural transformations safe, composable Go building blocks without exposing
 C graph-pointer vectors, generated mapping lists, selectors, attribute records,
 or partial graph ownership.
 
-Status: planned. This contract and initial inventory are established in
-[#352](https://github.com/h8gi/go-igraph/issues/352). Implementation proceeds
-through [#353](https://github.com/h8gi/go-igraph/issues/353)–
-[#357](https://github.com/h8gi/go-igraph/issues/357), followed by the
-integration, ownership, concurrency, documentation, and operator-inventory
-audit in [#358](https://github.com/h8gi/go-igraph/issues/358).
+Status: completed. The contract and initial inventory were established in
+[#352](https://github.com/h8gi/go-igraph/issues/352), implementation was
+delivered through [#353](https://github.com/h8gi/go-igraph/issues/353)–
+[#357](https://github.com/h8gi/go-igraph/issues/357), and the integration,
+ownership, concurrency, documentation, and operator-inventory audit was
+completed in [#358](https://github.com/h8gi/go-igraph/issues/358).
 
 Reference workflows:
 
@@ -2061,7 +2061,7 @@ Reference workflows:
   Go-owned generation provenance suitable for existing coloring and structural
   analysis workflows.
 
-Planned areas:
+Delivered areas:
 
 - many-graph union, intersection, and disjoint union
   ([#353](https://github.com/h8gi/go-igraph/issues/353));
@@ -2077,13 +2077,12 @@ Planned areas:
   classification of all 25 declarations in `igraph_operators.h`
   ([#358](https://github.com/h8gi/go-igraph/issues/358)).
 
-Execution order: #352 establishes the reference workflows, common contracts,
-and initial dispositions. #353 through #357 may then proceed independently
-because they reuse existing graph-result, stable-locking, selector, mapping,
-attribute-combination, checked-conversion, error, and clone-and-swap
-infrastructure. #358 follows every implementation slice, reviews the two
-lower-level induced-subgraph declarations against the existing mapped
-`InducedSubgraph` workflow, and removes every stale deferred disposition in
+Execution record: #352 established the reference workflows, common contracts,
+and initial dispositions. #353 through #357 reused existing graph-result,
+stable-locking, selector, mapping, attribute-combination, checked-conversion,
+error, and clone-and-swap infrastructure. #358 reviewed the two lower-level
+induced-subgraph declarations against the existing mapped `InducedSubgraph`
+workflow and removed every stale deferred disposition in
 `igraph_operators.h`.
 
 Ownership and concurrency contract: graph slices, individual graph operands,
@@ -2124,14 +2123,12 @@ Their Go ownership, validation, and error contracts are stable for the pinned
 1.0.1 release, but upstream structural semantics may change in a future
 dependency upgrade and must be re-audited before that upgrade.
 
-Initial inventory disposition: the 12 already classified declarations in
-`igraph_operators.h` retain their user-facing or internal dispositions. The 11
-new implementation declarations and two lower-level induced-subgraph
-declarations are deferred to #353–#358 under the
-`graph_algebra_and_transformations` domain. Every one of the header's 25
-declarations therefore has an initial reviewed disposition; #358 must replace
-all 13 deferred entries with user-facing, composed, internal, or intentionally
-unsupported final classifications and mark the domain complete.
+Final inventory disposition: the 12 previously classified declarations in
+`igraph_operators.h` retain their user-facing or internal dispositions, the 11
+implementation declarations are user-facing, and the two lower-level
+induced-subgraph declarations are composed by `InducedSubgraph`. Every one of
+the header's 25 declarations has a final disposition and the
+`graph_algebra_and_transformations` domain is complete.
 
 Completion criteria:
 
@@ -2150,6 +2147,25 @@ Completion criteria:
 - every declaration in `igraph_operators.h` has a final reviewed disposition,
   output-checked and runnable examples cover graph-algebra workflows, statement
   coverage remains at least 90.0%, and `make verify` passes.
+
+Completion evidence: Milestone 23 delivers many-graph union, intersection, and
+disjoint union; graph powers and atomic neighborhood closure; joins and five
+typed products plus rooted products; atomic vertex contraction and selective
+edge reversal; and experimental Mycielski construction. The integration suite
+composes these operations with induced subgraphs, components, and degree
+queries while exercising operand order, repeated operands, independent result
+ownership, Go-owned mappings after closure, concurrent calls, close races,
+empty graphs, and post-close errors. Output-checked package examples and the
+`examples/graph_algebra` program cover the reference workflow. The lower-level
+`igraph_induced_subgraph` and `igraph_induced_subgraph_edges` declarations are
+composed by the richer mapped `InducedSubgraph` workflow. All 25 declarations
+in `igraph_operators.h` now have final dispositions, the
+`graph_algebra_and_transformations` domain is complete, and no deferred
+declaration remains. Feature-level failure-injection tests cover initialization,
+upstream, conversion, mapping, provenance, attribute restoration and
+combination, and early-return cleanup; all temporary selectors, vectors, graph
+lists, mapping lists, attribute records, and partial graphs have explicit
+destructors or adopted ownership.
 
 ## Later domain milestones
 

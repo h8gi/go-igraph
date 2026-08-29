@@ -7,6 +7,16 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_induced_subgraph": {
+        "go_api": "InducedSubgraph",
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "InducedSubgraph uses the richer igraph_induced_subgraph_map entry point to return the same independently owned induced graph together with exact Go-owned vertex mappings."
+      },
+      "igraph_induced_subgraph_edges": {
+        "go_api": "InducedSubgraph",
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "InducedSubgraph provides the coherent graph-producing workflow and exact vertex provenance, so callers do not need a separate C integer-vector query for retained edge IDs."
+      },
       "igraph_lcf_small": {
         "go_api": "NewLCF",
         "domain": "graph_construction_and_conversion",
@@ -128,16 +138,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_induced_subgraph": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing InducedSubgraph API backed by igraph_induced_subgraph_map."
-      },
-      "igraph_induced_subgraph_edges": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing mapped InducedSubgraph workflow."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_matrix_list_capacity": {
         "domain": "advanced_random_graph_models",
@@ -900,6 +901,7 @@
   "completed_domains": [
     "advanced_random_graph_models",
     "attributes",
+    "graph_algebra_and_transformations",
     "graph_interchange",
     "structural_diagnostics"
   ]
