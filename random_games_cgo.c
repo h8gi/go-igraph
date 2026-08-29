@@ -223,6 +223,39 @@ igraph_error_t go_igraph_citing_cited_type_game(igraph_t *graph,
         edges, directed));
 }
 
+igraph_error_t go_igraph_correlated_game(igraph_t *graph,
+    const igraph_t *source, igraph_real_t correlation, igraph_real_t p,
+    const igraph_vector_int_t *permutation) {
+    GO_IGRAPH_CALL(igraph_correlated_game(graph, source, correlation, p,
+        permutation));
+}
+
+static igraph_error_t go_igraph_correlated_pair_game_impl(igraph_t *first,
+    igraph_t *second, igraph_int_t n, igraph_real_t correlation,
+    igraph_real_t p, igraph_bool_t directed,
+    const igraph_vector_int_t *permutation, igraph_bool_t *first_initialized,
+    igraph_bool_t *second_initialized) {
+    IGRAPH_CHECK(igraph_erdos_renyi_game_gnp(first, n, p, directed,
+        IGRAPH_SIMPLE_SW, IGRAPH_EDGE_UNLABELED));
+    *first_initialized = true;
+    IGRAPH_CHECK(igraph_correlated_game(second, first, correlation, p,
+        permutation));
+    *second_initialized = true;
+    return IGRAPH_SUCCESS;
+}
+
+igraph_error_t go_igraph_correlated_pair_game(igraph_t *first,
+    igraph_t *second, igraph_int_t n, igraph_real_t correlation,
+    igraph_real_t p, igraph_bool_t directed,
+    const igraph_vector_int_t *permutation, igraph_bool_t *first_initialized,
+    igraph_bool_t *second_initialized) {
+    *first_initialized = false;
+    *second_initialized = false;
+    GO_IGRAPH_CALL(go_igraph_correlated_pair_game_impl(first, second, n,
+        correlation, p, directed, permutation, first_initialized,
+        second_initialized));
+}
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,

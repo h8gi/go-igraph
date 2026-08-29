@@ -106,6 +106,11 @@ igraph_error_t go_igraph_cited_type_game(igraph_t *, igraph_int_t,
 igraph_error_t go_igraph_citing_cited_type_game(igraph_t *, igraph_int_t,
     const igraph_vector_int_t *, const igraph_matrix_t *, igraph_int_t,
     igraph_bool_t);
+igraph_error_t go_igraph_correlated_game(igraph_t *, const igraph_t *,
+    igraph_real_t, igraph_real_t, const igraph_vector_int_t *);
+igraph_error_t go_igraph_correlated_pair_game(igraph_t *, igraph_t *,
+    igraph_int_t, igraph_real_t, igraph_real_t, igraph_bool_t,
+    const igraph_vector_int_t *, igraph_bool_t *, igraph_bool_t *);
 
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
