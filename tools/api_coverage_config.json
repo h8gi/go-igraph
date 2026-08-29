@@ -136,10 +136,6 @@
       "igraph_induced_subgraph_edges": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing mapped InducedSubgraph workflow."
-      },
-      "igraph_mycielskian": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #357 will expose the upstream experimental Mycielski transformation with checked size, provenance, and ownership contracts."
       }
     },
     "intentionally_unsupported": {

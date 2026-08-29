@@ -483,6 +483,18 @@ and transform a clone and swap it into the receiver only after upstream work
 and provenance checks succeed; all earlier failures destroy temporary C
 vectors, selectors, combination records, and graph copies without mutation.
 
+`Mycielskian` borrows its source under the graph lock and returns an
+independently owned result from an experimental upstream function. Iterations
+and the pinned-upstream vertex-count recurrence are checked before C execution
+and provenance allocation. For ordinary generations, retained vertices keep
+their IDs, shadows follow in parent-ID order, and the apex is last. The null to
+singleton and singleton to two-vertex-path transitions add only an apex.
+`MycielskiResult` records each vertex's creation generation, kind, stable parent
+ID, and original source lineage, plus non-nil source-to-result lists. All
+metadata is Go-owned and survives graph closure. Attributes are explicitly
+removed from the result, including the zero-iteration copy, so generated and
+source elements follow one deterministic non-propagation contract.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering

@@ -22,6 +22,211 @@ type ManyGraphOperatorResult struct {
 	Inputs []GraphIDMapping
 }
 
+// MycielskiVertexKind identifies how a result vertex entered an iterated
+// Mycielski construction.
+type MycielskiVertexKind uint8
+
+const (
+	MycielskiVertexOriginal MycielskiVertexKind = iota
+	MycielskiVertexShadow
+	MycielskiVertexApex
+)
+
+// MycielskiVertexProvenance describes one result vertex. Generation is zero
+// for source vertices and otherwise the one-based iteration that created it.
+// Shadow vertices name their parent, whose ID remains stable in the result.
+// SourceVertex follows the shadow lineage to an original source vertex, or is
+// RemovedID for apexes and shadows descended from an apex. ParentVertex is
+// RemovedID for originals and apexes.
+type MycielskiVertexProvenance struct {
+	Kind         MycielskiVertexKind
+	Generation   int
+	SourceVertex int
+	ParentVertex int
+}
+
+// MycielskiResult contains an independently owned graph and pinned-upstream
+// vertex provenance. Vertices is indexed by result vertex ID. SourceToResult
+// is indexed by source vertex ID and lists all descendant result IDs in
+// ascending order. Every slice is non-nil, Go-owned, and survives closure of
+// the source and result graphs.
+type MycielskiResult struct {
+	Graph          *Graph
+	Vertices       []MycielskiVertexProvenance
+	SourceToResult [][]int
+}
+
+// Mycielskian returns iterations applications of the Mycielski construction.
+// This API wraps an experimental upstream C/igraph function whose structural
+// semantics may change on a future dependency upgrade. iterations must be
+// non-negative. Generation zero is the input graph. At each later generation,
+// all existing vertices retain their IDs, their shadows follow in existing-ID
+// order, and the new apex is last. For at least two vertices the count becomes
+// 2*n+1. Pinned upstream special-cases the null graph to a singleton and the
+// singleton to a two-vertex path; each adds one apex and no shadows.
+//
+// Directed edges, loops, and parallel edges are extended literally by the
+// upstream construction. Graph, vertex, and edge attributes are intentionally
+// not propagated because generated elements have no unique source attribute
+// contract. The source is borrowed only for the call; the independently owned
+// result must be closed by the caller.
+//
+//igraph:bind igraph_mycielskian
+func (g *Graph) Mycielskian(iterations int) (MycielskiResult, error) {
+	return g.mycielskian(iterations, nil)
+}
+
+func (g *Graph) mycielskian(iterations int, hook mycielskiFailureHook) (MycielskiResult, error) {
+	if iterations < 0 {
+		return MycielskiResult{}, fmt.Errorf("igraph: Mycielski iterations must be non-negative: %d", iterations)
+	}
+	cIterations, err := intToIgraphInt(iterations, "Mycielski iteration count")
+	if err != nil {
+		return MycielskiResult{}, err
+	}
+	var result MycielskiResult
+	err = withLockedGraphs([]*Graph{g}, func(values []*C.igraph_t) error {
+		sourceVertices, sourceEdges, err := graphCounts(values[0], "Mycielski source")
+		if err != nil {
+			return err
+		}
+		resultVertices, resultEdges, err := checkedMycielskiSize(sourceVertices, sourceEdges, iterations)
+		if err != nil {
+			return err
+		}
+		var value C.igraph_t
+		if code := C.go_igraph_mycielskian(values[0], &value, cIterations); code != C.IGRAPH_SUCCESS {
+			return igraphError("create Mycielskian", int(code))
+		}
+		graph := adoptInitializedGraph(&value)
+		succeeded := false
+		defer func() {
+			if !succeeded {
+				_ = graph.Close()
+			}
+		}()
+		if err := runMycielskiFailureHook(hook, mycielskiAfterConstruction); err != nil {
+			return err
+		}
+		for _, remove := range []func() error{
+			graph.RemoveAllGraphAttributes,
+			graph.RemoveAllVertexAttributes,
+			graph.RemoveAllEdgeAttributes,
+		} {
+			if err := remove(); err != nil {
+				return fmt.Errorf("igraph: discard Mycielski attributes: %w", err)
+			}
+		}
+		if got := int(C.igraph_vcount(&graph.graph)); got != resultVertices {
+			return fmt.Errorf("igraph: Mycielski vertex count is %d, want %d", got, resultVertices)
+		}
+		if got := int(C.igraph_ecount(&graph.graph)); got != resultEdges {
+			return fmt.Errorf("igraph: Mycielski edge count is %d, want %d", got, resultEdges)
+		}
+		vertices, sourceToResult := mycielskiProvenance(sourceVertices, iterations)
+		if err := runMycielskiFailureHook(hook, mycielskiAfterProvenance); err != nil {
+			return err
+		}
+		result = MycielskiResult{Graph: graph, Vertices: vertices, SourceToResult: sourceToResult}
+		succeeded = true
+		return nil
+	})
+	return result, err
+}
+
+func checkedMycielskiSize(sourceVertices, sourceEdges, iterations int) (int, int, error) {
+	if sourceVertices < 0 {
+		return 0, 0, fmt.Errorf("igraph: Mycielski source vertex count must be non-negative: %d", sourceVertices)
+	}
+	if sourceEdges < 0 {
+		return 0, 0, fmt.Errorf("igraph: Mycielski source edge count must be non-negative: %d", sourceEdges)
+	}
+	vertices, edges := sourceVertices, sourceEdges
+	maxInt := int(^uint(0) >> 1)
+	for generation := 1; generation <= iterations; generation++ {
+		if vertices < 2 {
+			if edges > maxInt-vertices {
+				return 0, 0, fmt.Errorf("igraph: Mycielski edge count overflows int at generation %d", generation)
+			}
+			edges += vertices
+			vertices++
+			continue
+		}
+		if edges > (maxInt-vertices)/3 {
+			return 0, 0, fmt.Errorf("igraph: Mycielski edge count overflows int at generation %d", generation)
+		}
+		edges = 3*edges + vertices
+		if vertices > (maxInt-1)/2 {
+			return 0, 0, fmt.Errorf("igraph: Mycielski vertex count overflows int at generation %d", generation)
+		}
+		vertices = 2*vertices + 1
+	}
+	return vertices, edges, nil
+}
+
+func mycielskiProvenance(sourceVertices, iterations int) ([]MycielskiVertexProvenance, [][]int) {
+	vertices := make([]MycielskiVertexProvenance, sourceVertices)
+	for source := range vertices {
+		vertices[source] = MycielskiVertexProvenance{
+			Kind: MycielskiVertexOriginal, SourceVertex: source, ParentVertex: RemovedID,
+		}
+	}
+	for generation := 1; generation <= iterations; generation++ {
+		previousCount := len(vertices)
+		if previousCount < 2 {
+			vertices = append(vertices, MycielskiVertexProvenance{
+				Kind: MycielskiVertexApex, Generation: generation,
+				SourceVertex: RemovedID, ParentVertex: RemovedID,
+			})
+			continue
+		}
+		next := make([]MycielskiVertexProvenance, 2*previousCount+1)
+		copy(next, vertices)
+		for parent := 0; parent < previousCount; parent++ {
+			next[previousCount+parent] = MycielskiVertexProvenance{
+				Kind:         MycielskiVertexShadow,
+				Generation:   generation,
+				SourceVertex: vertices[parent].SourceVertex,
+				ParentVertex: parent,
+			}
+		}
+		next[len(next)-1] = MycielskiVertexProvenance{
+			Kind: MycielskiVertexApex, Generation: generation,
+			SourceVertex: RemovedID, ParentVertex: RemovedID,
+		}
+		vertices = next
+	}
+	sourceToResult := make([][]int, sourceVertices)
+	for source := range sourceToResult {
+		sourceToResult[source] = []int{}
+	}
+	for resultID, provenance := range vertices {
+		if provenance.SourceVertex != RemovedID {
+			sourceToResult[provenance.SourceVertex] = append(sourceToResult[provenance.SourceVertex], resultID)
+		}
+	}
+	return vertices, sourceToResult
+}
+
+type mycielskiFailureStage uint8
+
+const (
+	mycielskiAfterConstruction mycielskiFailureStage = iota
+	mycielskiAfterProvenance
+)
+
+type mycielskiFailureHook func(mycielskiFailureStage) error
+
+func runMycielskiFailureHook(hook mycielskiFailureHook, stage mycielskiFailureStage) error {
+	if hook == nil {
+		return nil
+	}
+	if err := hook(stage); err != nil {
+		return fmt.Errorf("igraph: injected Mycielski failure at stage %d: %w", stage, err)
+	}
+	return nil
+}
+
 // GraphPower returns the requested power of g as an independently owned simple
 // graph. Vertices u and v are connected when v is reachable from u within at
 // most order steps. order must be non-negative; order zero returns the same
