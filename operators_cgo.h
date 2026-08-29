@@ -28,6 +28,8 @@ igraph_error_t go_igraph_product(
     igraph_t *, const igraph_t *, const igraph_t *, igraph_product_t);
 igraph_error_t go_igraph_rooted_product(
     igraph_t *, const igraph_t *, const igraph_t *, igraph_int_t);
+igraph_error_t go_igraph_mycielskian(
+    const igraph_t *, igraph_t *, igraph_int_t);
 
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *, const igraph_t *, const igraph_t *);

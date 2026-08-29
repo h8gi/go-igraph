@@ -1316,3 +1316,151 @@ func assertEdgeMultiset(t *testing.T, graph *Graph, want []Edge, directed bool) 
 		t.Errorf("edge multiset = %v, want %v", got, want)
 	}
 }
+
+func TestMycielskianOrderingProvenanceAndOwnership(t *testing.T) {
+	source := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	if err := source.SetGraphStringAttribute("name", "lost"); err != nil {
+		t.Fatal(err)
+	}
+	if err := source.SetVertexNumericAttributes("weight", []float64{1, 2}); err != nil {
+		t.Fatal(err)
+	}
+	zero, err := source.Mycielskian(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertGraphShape(t, zero.Graph, 2, 1, false)
+	if attributes, err := zero.Graph.GraphAttributes(); err != nil || len(attributes) != 0 {
+		t.Errorf("zero-iteration attributes = %v, %v", attributes, err)
+	}
+	if !reflect.DeepEqual(zero.SourceToResult, [][]int{{0}, {1}}) {
+		t.Errorf("zero-iteration source mapping = %#v", zero.SourceToResult)
+	}
+	_ = zero.Graph.Close()
+	result, err := source.Mycielskian(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	assertGraphShape(t, result.Graph, 5, 5, false)
+	assertEdgeMultiset(t, result.Graph, []Edge{{0, 1}, {1, 2}, {0, 3}, {2, 4}, {3, 4}}, false)
+	want := []MycielskiVertexProvenance{
+		{Kind: MycielskiVertexOriginal, SourceVertex: 0, ParentVertex: RemovedID},
+		{Kind: MycielskiVertexOriginal, SourceVertex: 1, ParentVertex: RemovedID},
+		{Kind: MycielskiVertexShadow, Generation: 1, SourceVertex: 0, ParentVertex: 0},
+		{Kind: MycielskiVertexShadow, Generation: 1, SourceVertex: 1, ParentVertex: 1},
+		{Kind: MycielskiVertexApex, Generation: 1, SourceVertex: RemovedID, ParentVertex: RemovedID},
+	}
+	if !reflect.DeepEqual(result.Vertices, want) {
+		t.Errorf("Mycielski provenance = %#v, want %#v", result.Vertices, want)
+	}
+	if !reflect.DeepEqual(result.SourceToResult, [][]int{{0, 2}, {1, 3}}) {
+		t.Errorf("Mycielski source mapping = %#v", result.SourceToResult)
+	}
+	if attributes, err := result.Graph.GraphAttributes(); err != nil || len(attributes) != 0 {
+		t.Errorf("Mycielski attributes = %v, %v", attributes, err)
+	}
+	if err := source.Close(); err != nil {
+		t.Fatal(err)
+	}
+	assertGraphShape(t, result.Graph, 5, 5, false)
+	if err := result.Graph.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(result.SourceToResult[0], []int{0, 2}) {
+		t.Errorf("Mycielski provenance after close = %#v", result)
+	}
+}
+
+func TestMycielskianIterationsSpecialCasesAndStructures(t *testing.T) {
+	path := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	defer path.Close()
+	second, err := path.Mycielskian(2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer second.Graph.Close()
+	assertGraphShape(t, second.Graph, 11, 20, false)
+	if len(second.Vertices) != 11 || second.Vertices[10].Kind != MycielskiVertexApex || second.Vertices[10].Generation != 2 {
+		t.Errorf("second-generation provenance = %#v", second.Vertices)
+	}
+	if !reflect.DeepEqual(second.SourceToResult, [][]int{{0, 2, 5, 7}, {1, 3, 6, 8}}) {
+		t.Errorf("second-generation source mapping = %#v", second.SourceToResult)
+	}
+
+	empty := testGraphFromEdges(t, 0, nil, true)
+	defer empty.Close()
+	for iterations, want := range map[int][2]int{0: {0, 0}, 1: {1, 0}, 2: {2, 1}} {
+		result, err := empty.Mycielskian(iterations)
+		if err != nil {
+			t.Fatalf("empty Mycielskian(%d): %v", iterations, err)
+		}
+		assertGraphShape(t, result.Graph, want[0], want[1], true)
+		if result.Vertices == nil || result.SourceToResult == nil {
+			t.Errorf("empty Mycielskian(%d) nil metadata = %#v", iterations, result)
+		}
+		_ = result.Graph.Close()
+	}
+
+	singleton := testGraphFromEdges(t, 1, nil, false)
+	defer singleton.Close()
+	special, err := singleton.Mycielskian(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer special.Graph.Close()
+	assertGraphShape(t, special.Graph, 2, 1, false)
+	loopedSingleton := testGraphFromEdges(t, 1, []Edge{{0, 0}}, true)
+	defer loopedSingleton.Close()
+	loopedSpecial, err := loopedSingleton.Mycielskian(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer loopedSpecial.Graph.Close()
+	assertGraphShape(t, loopedSpecial.Graph, 2, 2, true)
+
+	complex := testGraphFromEdges(t, 2, []Edge{{0, 0}, {0, 1}, {0, 1}}, true)
+	defer complex.Close()
+	literal, err := complex.Mycielskian(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer literal.Graph.Close()
+	assertGraphShape(t, literal.Graph, 5, 11, true)
+}
+
+func TestMycielskianValidationConcurrencyAndCloseRace(t *testing.T) {
+	graph := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
+	if result, err := graph.Mycielskian(-1); err == nil || result.Graph != nil {
+		t.Errorf("negative Mycielskian = %#v, %v", result, err)
+	}
+	if _, _, err := checkedMycielskiSize(int(^uint(0)>>1), 0, 1); err == nil {
+		t.Error("Mycielski overflow error = nil")
+	}
+	if _, _, err := checkedMycielskiSize(2, int(^uint(0)>>1), 1); err == nil {
+		t.Error("Mycielski edge overflow error = nil")
+	}
+	var wait sync.WaitGroup
+	for range 8 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			result, err := graph.Mycielskian(1)
+			if result.Graph != nil {
+				_ = result.Graph.Close()
+			}
+			if err != nil && !errors.Is(err, ErrClosed) {
+				t.Errorf("Mycielskian close race: %v", err)
+			}
+		}()
+	}
+	wait.Add(1)
+	go func() { defer wait.Done(); _ = graph.Close() }()
+	wait.Wait()
+	if result, err := graph.Mycielskian(0); !errors.Is(err, ErrClosed) || result.Graph != nil {
+		t.Errorf("closed Mycielskian = %#v, %v", result, err)
+	}
+	var nilGraph *Graph
+	if result, err := nilGraph.Mycielskian(0); !errors.Is(err, ErrClosed) || result.Graph != nil {
+		t.Errorf("nil Mycielskian = %#v, %v", result, err)
+	}
+}

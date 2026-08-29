@@ -101,6 +101,11 @@ igraph_error_t go_igraph_rooted_product(
     GO_IGRAPH_CALL(igraph_rooted_product(result, left, right, root));
 }
 
+igraph_error_t go_igraph_mycielskian(
+    const igraph_t *graph, igraph_t *result, igraph_int_t iterations) {
+    GO_IGRAPH_CALL(igraph_mycielskian(graph, result, iterations));
+}
+
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *result, const igraph_t *left, const igraph_t *right) {
     GO_IGRAPH_CALL(igraph_disjoint_union(result, left, right));
