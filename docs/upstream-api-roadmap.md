@@ -2213,6 +2213,39 @@ reads, and post-close calls. Output-checked and runnable examples cover the
 workflow. All four `igraph_coloring.h` declarations are user-facing in the
 completed `coloring` inventory domain, with no deferred disposition.
 
+## Milestone 25: SIR epidemic simulation
+
+Goal: expose reproducible continuous-time susceptible-infected-recovered
+simulation without C types or caller-managed nested resources.
+
+Status: completed. `Graph.SIR` accepts finite non-negative infection and finite
+positive recovery rates, a positive checked run count, and an optional seed.
+Each run starts with one uniformly selected infected vertex and stops at zero
+infected vertices. Directed edges are deliberately normalized as undirected;
+the pinned upstream warning is suppressed within the non-aborting C call.
+Empty, looped, and parallel-edge graphs return upstream errors. Singleton,
+edgeless, disconnected, directed, and ordinary connected graphs are supported.
+
+Ownership and concurrency contract: options are borrowed for the synchronous
+call. Results are non-nil Go-owned `SIRTrajectory` slices whose time,
+susceptible, infected, and recovered values are event-aligned and remain valid
+after graph closure. The graph read lock and package RNG lock cover C execution;
+equal non-nil seeds replay exactly and concurrent stochastic calls serialize
+without races. Every initialized pointer vector and nested `igraph_sir_t` is
+destroyed exactly once on success, upstream failure, extraction failure, and
+early return. Calls after `Close` return `ErrClosed`.
+
+Completion evidence: behavioral and integration tests cover zero infection,
+positive rates, singleton, edgeless, disconnected, directed, looped, parallel,
+and connected graphs; trajectory population and terminal invariants; exact
+seed replay; concurrent calls; failure injection; result ownership after
+closure; and post-close errors. An output-checked package example and runnable
+`examples/sir` workflow summarize individual runs without making statistical
+claims. `igraph_sir` is user-facing, while `igraph_sir_init` and
+`igraph_sir_destroy` are internal lifecycle dependencies. All declarations in
+`igraph_epidemics.h` have final dispositions and the `epidemic_simulation`
+inventory domain is complete.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
