@@ -128,8 +128,245 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_asymmetric_preference_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans an asymmetric typed-preference result with distinct Go-owned incoming and outgoing type assignments aligned to generated vertex IDs."
+      },
+      "igraph_barabasi_aging_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will expose or classify preferential-attachment aging through checked options, arrival-order semantics, and the shared reproducible RNG contract."
+      },
+      "igraph_callaway_traits_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review this older trait-growth model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
+      },
+      "igraph_chung_lu_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans an experimental expected-degree generator with a checked variant enum, vertex-aligned weights, and explicit directed and loop semantics."
+      },
+      "igraph_cited_type_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review this specialized citation generator for a typed Go contract or an explicit composed or unsupported disposition."
+      },
+      "igraph_citing_cited_type_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review this specialized citing/cited-type generator for a typed Go contract or an explicit composed or unsupported disposition."
+      },
+      "igraph_correlated_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans graph-derived correlated sampling with permutation validation, source read locking, reproducible RNG coordination, and an independently owned result."
+      },
+      "igraph_correlated_pair_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans a named independently owned graph-pair result with checked correlation, probability, permutation, and partial-result cleanup."
+      },
+      "igraph_dot_product_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans random-dot-product generation from a borrowed row-per-vertex Matrix with validated finite probability dot products."
+      },
+      "igraph_establishment_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review this older trait-establishment model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
+      },
+      "igraph_forest_fire_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans a checked arrival-ordered forest-fire generator using the package-wide reproducible RNG contract."
+      },
+      "igraph_grg_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans geometric random graph generation with an independently owned graph and a Go-owned row-per-vertex coordinate Matrix."
+      },
+      "igraph_growing_random_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans uniform stochastic growth with checked attachment counts, explicit arrival ordering, and reproducible RNG behavior."
+      },
+      "igraph_hsbm_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans hierarchical block generation from borrowed Go slices and matrices with checked block, distribution, and probability alignment."
+      },
+      "igraph_hsbm_list_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans the general hierarchical block model through ordinary Go collections while keeping C vector-list and matrix-list ownership internal."
+      },
+      "igraph_iea_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review the experimental independent-edge-assignment model against the existing Erdos-Renyi API before choosing a user-facing, composed, or unsupported disposition."
+      },
+      "igraph_lastcit_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will review this aging-bin citation model for a checked Go-native workflow or an explicit composed or unsupported disposition."
+      },
+      "igraph_preference_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans a typed-preference generator with checked distributions and matrices plus Go-owned vertex types aligned to generated IDs."
+      },
+      "igraph_recent_degree_aging_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will expose or classify recent-degree attachment with aging through checked options, arrival ordering, and reproducible RNG behavior."
+      },
+      "igraph_recent_degree_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 will expose or classify recent-degree attachment through checked windows, borrowed output sequences, and arrival-order semantics."
+      },
+      "igraph_rewire_directed_edges": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans directed endpoint rewiring through checked direction and probability options and the existing atomic clone-and-swap mutation contract."
+      },
+      "igraph_rng_sample_dirichlet": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans Dirichlet sampling into a Go-owned Matrix with one sample per row and checked positive finite concentration parameters."
+      },
+      "igraph_rng_sample_sphere_surface": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans sphere-surface latent sampling into a Go-owned row-per-sample Matrix with checked dimensions and radius."
+      },
+      "igraph_rng_sample_sphere_volume": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans sphere-volume latent sampling into a Go-owned row-per-sample Matrix with checked dimensions and radius."
+      },
+      "igraph_simple_interconnected_islands_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans or classifies the island model alongside block and preference generators with explicit vertex ordering and probability semantics."
+      },
+      "igraph_static_fitness_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans fixed-edge-count fitness generation with borrowed vertex-aligned fitness values and shared EdgeType semantics."
+      },
+      "igraph_static_power_law_game": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Milestone 22 plans power-law fitness generation with checked exponent, finite-size-correction, edge-type, direction, and size options."
+      }
+    },
     "intentionally_unsupported": {
+      "igraph_matrix_list_capacity": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Matrix-list capacity is an internal C storage detail; public hierarchical-model inputs use ordinary Go slices of immutable Matrix values."
+      },
+      "igraph_matrix_list_clear": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Mutable C matrix-list clearing remains internal so public callers cannot invalidate nested borrowed storage."
+      },
+      "igraph_matrix_list_destroy": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Matrix-list destruction is temporary C cleanup owned by call-scoped adapters, not a public Go lifecycle operation."
+      },
+      "igraph_matrix_list_discard": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Discarding an owned C matrix conflicts with the package's explicit temporary-resource cleanup contract."
+      },
+      "igraph_matrix_list_discard_back": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Discarding a trailing owned C matrix conflicts with the package's explicit temporary-resource cleanup contract."
+      },
+      "igraph_matrix_list_discard_fast": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Unordered discard would expose ambiguous C matrix ownership and mutable container state."
+      },
+      "igraph_matrix_list_empty": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "C matrix-list inspection is internal; public inputs and outputs use ordinary non-nil Go collections."
+      },
+      "igraph_matrix_list_get_ptr": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Borrowed pointers into mutable C matrix-list storage cannot form a safe public Go ownership contract."
+      },
+      "igraph_matrix_list_init": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Matrix-list initialization is call-scoped adapter plumbing; public APIs accept Go slices of immutable Matrix values."
+      },
+      "igraph_matrix_list_init_copy": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Raw C matrix-list copying is unnecessary because public Matrix values and slices are already Go-owned."
+      },
+      "igraph_matrix_list_insert": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Raw insertion would expose ambiguous transfer of C matrix ownership and mutable container state."
+      },
+      "igraph_matrix_list_insert_copy": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Matrix-list copying and mutation remain internal behind borrowed Go Matrix collections."
+      },
+      "igraph_matrix_list_insert_new": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Returning an uninitialized C matrix slot cannot satisfy the package's public Go ownership contract."
+      },
+      "igraph_matrix_list_permute": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Mutable C matrix-list ordering is internal; public collection order is represented by ordinary Go slices."
+      },
+      "igraph_matrix_list_pop_back": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Raw removal would expose ambiguous ownership transfer from a mutable C matrix container."
+      },
+      "igraph_matrix_list_push_back": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Raw insertion would expose ambiguous ownership transfer into a mutable C matrix container."
+      },
+      "igraph_matrix_list_push_back_copy": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Public APIs borrow immutable Go matrices and do not expose C container-copy operations."
+      },
+      "igraph_matrix_list_push_back_new": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Returning an uninitialized trailing C matrix slot cannot form a safe public API."
+      },
+      "igraph_matrix_list_remove": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Generic mutable C matrix-list removal is not part of the immutable Go Matrix collection contract."
+      },
+      "igraph_matrix_list_remove_consecutive_duplicates": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Generic C container deduplication is unrelated to the ordered borrowed matrix inputs used by graph models."
+      },
+      "igraph_matrix_list_remove_fast": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Unordered C matrix removal would expose unstable ordering and ambiguous ownership transfer."
+      },
+      "igraph_matrix_list_replace": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Replacing C-owned matrix elements would expose ambiguous destruction and transfer semantics."
+      },
+      "igraph_matrix_list_reserve": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Matrix-list capacity management is an internal C storage concern with no public Go semantics."
+      },
+      "igraph_matrix_list_resize": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Resizing creates or destroys C matrix slots and remains internal to call-scoped adapters."
+      },
+      "igraph_matrix_list_reverse": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Mutable C matrix-list ordering is internal; callers can order ordinary Go slices directly."
+      },
+      "igraph_matrix_list_set": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Setting C-owned matrix elements would expose mutable storage and ambiguous destruction semantics."
+      },
+      "igraph_matrix_list_size": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "C matrix-list size is internal; public APIs use the length of ordinary Go matrix slices."
+      },
+      "igraph_matrix_list_sort": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "The package exposes neither a mutable C matrix list nor a C comparator callback."
+      },
+      "igraph_matrix_list_sort_ind": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Indexed sorting of mutable C matrix storage has no role in the ordered Go Matrix input contract."
+      },
+      "igraph_matrix_list_swap": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Swapping mutable C matrix-list containers remains internal behind ordinary Go collections."
+      },
+      "igraph_matrix_list_swap_elements": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "Mutable C matrix element ordering is internal; public callers order Go slices directly."
+      },
+      "igraph_matrix_list_tail_ptr": {
+        "domain": "advanced_random_graph_models",
+        "rationale": "A borrowed pointer into mutable trailing C matrix storage cannot satisfy public Go ownership guarantees."
+      },
       "igraph_graph_list_capacity": {
         "domain": "network_robustness",
         "rationale": "Graph-list storage is an internal C ownership mechanism; public APIs return independently owned Graph values rather than exposing container capacity."

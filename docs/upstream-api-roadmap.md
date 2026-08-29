@@ -225,7 +225,7 @@ Completion evidence:
 
 ## Roadmap after Milestone 4
 
-Status: Milestones 5 through 18 are complete. The later domain milestones
+Status: Milestones 5 through 21 are complete. The later domain milestones
 below remain candidates. Later milestone numbers express dependency order, not
 a commitment to bind every function in the named upstream headers; each milestone must still
 be split into reviewable issues with explicit API contracts.
@@ -1873,6 +1873,142 @@ exercise concurrent read-only calls, and preserve source/result closure
 contracts. All declarations in the three scoped headers, including generated
 graph-list container operations, have final dispositions; no deferred or
 missing scoped declaration remains.
+
+## Milestone 22: Advanced random graph models
+
+Goal: complete the broadly useful stochastic graph-generation layer with
+expected-degree, fitness, block, preference, growth, citation, correlated,
+geometric, and latent-position models, without exposing C RNG objects, mutable
+matrix/vector-list containers, column-major storage, or partially initialized
+graph ownership.
+
+Status: planned in [#334](https://github.com/h8gi/go-igraph/issues/334).
+Implementation and final disposition work is tracked in
+[#335](https://github.com/h8gi/go-igraph/issues/335)–
+[#341](https://github.com/h8gi/go-igraph/issues/341), followed by the
+integration, ownership, concurrency, documentation, and inventory audit in
+[#342](https://github.com/h8gi/go-igraph/issues/342).
+
+Reference workflows:
+
+- expected-degree generation samples Chung-Lu, fixed-edge fitness, or
+  power-law-fitness graphs from borrowed vertex-aligned parameters, then checks
+  their degree and structural summaries through the existing analysis APIs;
+- typed generation samples block, hierarchical-block, island, or preference
+  models and composes their Go-owned vertex-type assignments with categorical
+  assortativity, mixing matrices, and community comparison;
+- dynamic generation models arrival-ordered growth, attachment, aging,
+  forest-fire, trait, and citation processes with explicit parameter and
+  direction semantics; and
+- latent and paired generation samples Go-owned positions, geometric graphs,
+  random-dot-product graphs, or correlated graph pairs whose coordinate,
+  permutation, and independent-ownership contracts compose with spatial,
+  matrix, comparison, and graph-transformation APIs.
+
+Planned areas:
+
+- expected-degree and fitness models, including experimental Chung-Lu variants
+  ([#335](https://github.com/h8gi/go-igraph/issues/335));
+- block, hierarchical-block, island, and symmetric/asymmetric preference
+  models with explicit vertex-type alignment
+  ([#336](https://github.com/h8gi/go-igraph/issues/336));
+- uniform, forest-fire, preferential-attachment-aging, and recent-degree
+  growth models ([#337](https://github.com/h8gi/go-igraph/issues/337));
+- trait and citation generators, including reviewed composed or unsupported
+  dispositions for older specialized entry points
+  ([#338](https://github.com/h8gi/go-igraph/issues/338));
+- graph-derived and paired correlated sampling with permutation validation and
+  partial-result cleanup ([#339](https://github.com/h8gi/go-igraph/issues/339));
+- geometric and random-dot-product generation plus Dirichlet and sphere latent
+  sampling through the existing immutable `Matrix` boundary
+  ([#340](https://github.com/h8gi/go-igraph/issues/340));
+- experimental independent-edge assignment and atomic directed endpoint
+  rewiring ([#341](https://github.com/h8gi/go-igraph/issues/341)); and
+- final integration, examples, documentation, ownership/race coverage, and
+  inventory audit ([#342](https://github.com/h8gi/go-igraph/issues/342)).
+
+Execution order: #334 establishes milestone-wide vocabulary, shared contracts,
+reference workflows, and initial dispositions. #335 through #341 may then
+proceed independently because they reuse the existing RNG, Matrix, EdgeType,
+graph-result, validation, error, and locking contracts. #342 follows every
+implementation and classification slice and removes every stale deferred
+disposition in the scoped headers.
+
+Shared RNG, ownership, and concurrency contract: every stochastic public call
+runs under the package-wide `withRNG` coordination and accepts an optional
+`Seed *uint64` through a feature-specific options value. Seeds provide
+reproducibility against the pinned C/igraph release; tests prefer structural and
+statistical invariants over making the full suite depend on one sampled edge
+list. Input slices, matrices, distributions, permutations, and parameter lists
+are borrowed only for the synchronous call and copied into temporary C-owned
+storage as needed. Returned slices and matrices are non-nil Go-owned values.
+Every returned graph is independently owned and must be closed. Multi-graph
+calls destroy all initialized outputs when any later initialization,
+conversion, alignment, or adoption step fails.
+
+Generator validation contract: vertex and edge counts, dimensions, type IDs,
+block sizes, attachment counts, aging bins, windows, and endpoints use checked
+integer conversion and allocation bounds. Probabilities, correlations,
+preferences, fitnesses, exponents, radii, and latent values reject NaN and
+infinity and enforce their model-specific domains before C execution where
+practical. Directed in/out values have equal, explicit vertex alignment;
+undirected preference matrices are symmetric; permutations are complete
+bijections; and `EdgeType` expresses loop and multiple-edge policy wherever the
+upstream model supports those choices. Empty, singleton, zero-edge, and
+zero-dimensional behavior is stated per model instead of inheriting implicit
+upstream sentinels.
+
+Typed and hierarchical result contract: returned vertex-type assignments use
+generated vertex IDs as indexes and remain valid after the graph is closed.
+Asymmetric models keep incoming and outgoing types in distinct named fields.
+Hierarchical block inputs use ordinary Go slices and immutable matrices; C
+vector lists and matrix lists are temporary internal ownership mechanisms and
+never become mutable public containers. Partial nested construction destroys
+every initialized element and container exactly once.
+
+Matrix and latent-position contract: public matrices use rows for vertices or
+samples and columns for coordinates or latent dimensions, matching the
+package's layout and spatial conventions even when C/igraph expects vectors in
+matrix columns. Conversion and transposition remain internal. Geometric output
+coordinates align row `i` with vertex ID `i`. Dirichlet and sphere samplers
+return one sample per row. Random-dot-product input is validated so every
+relevant dot product is a finite probability in `[0, 1]`; the Go API does not
+silently inherit upstream warning and clamping behavior.
+
+Graph-derived and mutation contract: correlated sampling holds the source
+graph read lock through C execution and result adoption while coordinating with
+the RNG lock in the existing graph-lock-before-RNG-lock order. Paired results
+use a named type and own both graphs independently. Optional permutations are
+borrowed, validated bijections. Directed endpoint rewiring follows the existing
+clone-and-swap mutation contract so validation, RNG, initialization, and
+upstream failures leave the receiver unchanged; calls after `Close` return
+`ErrClosed`.
+
+Experimental and legacy contract: public documentation preserves the upstream
+experimental status of Chung-Lu and independent-edge-assignment entry points.
+Older trait, citation, or compatibility generators are not exposed merely to
+increase declaration coverage; each receives a user-facing, composed, or
+intentionally unsupported disposition based on whether it provides a distinct,
+maintained workflow with a safe Go contract.
+
+Completion criteria:
+
+- seeded calls are reproducible and known structural or statistical invariants
+  cover every public model without relying solely on hard-coded random output;
+- expected-degree, fixed-edge, direction, loop, multiplicity, type, block,
+  arrival-order, coordinate, latent-dimension, and permutation alignment are
+  documented and tested;
+- initialization failure, upstream error or warning, early return, checked
+  conversion, and partial graph, matrix, vector-list, or matrix-list
+  construction release every C resource;
+- returned graphs are independently closable, returned auxiliary values remain
+  valid after graph closure, and race tests cover concurrent RNG calls,
+  graph-derived sampling, close races, and use after `Close`;
+- every declaration in `igraph_games.h`, the generated matrix-list declarations
+  discovered through that header, and `igraph_sampling.h` has a final reviewed
+  disposition; and
+- examples cover the reference workflows, statement coverage remains at least
+  90.0%, and `make verify` passes.
 
 ## Later domain milestones
 
