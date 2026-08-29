@@ -256,6 +256,37 @@ igraph_error_t go_igraph_correlated_pair_game(igraph_t *first,
         second_initialized));
 }
 
+igraph_error_t go_igraph_grg_game(igraph_t *graph, igraph_int_t nodes,
+    igraph_real_t radius, igraph_bool_t torus, igraph_vector_t *x,
+    igraph_vector_t *y) {
+    GO_IGRAPH_CALL(igraph_grg_game(graph, nodes, radius, torus, x, y));
+}
+
+igraph_error_t go_igraph_dot_product_game(igraph_t *graph,
+    const igraph_matrix_t *positions, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_dot_product_game(graph, positions, directed));
+}
+
+igraph_error_t go_igraph_rng_sample_dirichlet(igraph_int_t samples,
+    const igraph_vector_t *alpha, igraph_matrix_t *result) {
+    GO_IGRAPH_CALL(igraph_rng_sample_dirichlet(igraph_rng_default(), samples,
+        alpha, result));
+}
+
+igraph_error_t go_igraph_rng_sample_sphere_surface(igraph_int_t dimensions,
+    igraph_int_t samples, igraph_real_t radius, igraph_bool_t positive,
+    igraph_matrix_t *result) {
+    GO_IGRAPH_CALL(igraph_rng_sample_sphere_surface(igraph_rng_default(),
+        dimensions, samples, radius, positive, result));
+}
+
+igraph_error_t go_igraph_rng_sample_sphere_volume(igraph_int_t dimensions,
+    igraph_int_t samples, igraph_real_t radius, igraph_bool_t positive,
+    igraph_matrix_t *result) {
+    GO_IGRAPH_CALL(igraph_rng_sample_sphere_volume(igraph_rng_default(),
+        dimensions, samples, radius, positive, result));
+}
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,

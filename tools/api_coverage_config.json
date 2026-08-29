@@ -129,14 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_dot_product_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans random-dot-product generation from a borrowed row-per-vertex Matrix with validated finite probability dot products."
-      },
-      "igraph_grg_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans geometric random graph generation with an independently owned graph and a Go-owned row-per-vertex coordinate Matrix."
-      },
       "igraph_iea_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review the experimental independent-edge-assignment model against the existing Erdos-Renyi API before choosing a user-facing, composed, or unsupported disposition."
@@ -144,18 +136,6 @@
       "igraph_rewire_directed_edges": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans directed endpoint rewiring through checked direction and probability options and the existing atomic clone-and-swap mutation contract."
-      },
-      "igraph_rng_sample_dirichlet": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans Dirichlet sampling into a Go-owned Matrix with one sample per row and checked positive finite concentration parameters."
-      },
-      "igraph_rng_sample_sphere_surface": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans sphere-surface latent sampling into a Go-owned row-per-sample Matrix with checked dimensions and radius."
-      },
-      "igraph_rng_sample_sphere_volume": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans sphere-volume latent sampling into a Go-owned row-per-sample Matrix with checked dimensions and radius."
       }
     },
     "intentionally_unsupported": {
