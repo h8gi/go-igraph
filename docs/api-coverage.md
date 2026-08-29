@@ -7,7 +7,7 @@
 - Internal dependencies: **67**
 - Composed APIs: **26**
 - Intentionally unsupported: **189**
-- Deferred declarations: **0**
+- Deferred declarations: **13**
 - Completed domains: **advanced_random_graph_models, attributes, coloring, graph_algebra_and_transformations, graph_interchange, epidemic_simulation, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -576,7 +576,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_find_cycle` | `igraph_cycles.h` | User-facing | `FindCycle` |
 | `igraph_forest_fire_game` | `igraph_games.h` | User-facing | `ForestFireGame` |
 | `igraph_free` | `igraph_memory.h` | Internal | `AutomorphismGroupSize` |
-| `igraph_from_hrg_dendrogram` | `igraph_hrg.h` | Missing | — |
+| `igraph_from_hrg_dendrogram` | `igraph_hrg.h` | Deferred | — |
 | `igraph_from_prufer` | `igraph_constructors.h` | User-facing | `NewTreeFromPrufer` |
 | `igraph_full` | `igraph_constructors.h` | User-facing | `NewFull` |
 | `igraph_full_bipartite` | `igraph_bipartite.h` | User-facing | `NewFullBipartite` |
@@ -723,18 +723,18 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_heap_size` | `igraph_heap.h (generated)` | Missing | — |
 | `igraph_heap_top` | `igraph_heap.h (generated)` | Missing | — |
 | `igraph_hexagonal_lattice` | `igraph_constructors.h` | User-facing | `NewHexagonalLattice` |
-| `igraph_hrg_consensus` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_create` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_dendrogram` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_destroy` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_fit` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_game` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_init` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_predict` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_resize` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_sample` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_sample_many` | `igraph_hrg.h` | Missing | — |
-| `igraph_hrg_size` | `igraph_hrg.h` | Missing | — |
+| `igraph_hrg_consensus` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_create` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_dendrogram` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_destroy` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_fit` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_game` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_init` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_predict` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_resize` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_sample` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_sample_many` | `igraph_hrg.h` | Deferred | — |
+| `igraph_hrg_size` | `igraph_hrg.h` | Deferred | — |
 | `igraph_hsbm_game` | `igraph_games.h` | User-facing | `HierarchicalSBMGame` |
 | `igraph_hsbm_list_game` | `igraph_games.h` | User-facing | `HierarchicalSBMListGame` |
 | `igraph_hub_and_authority_scores` | `igraph_centrality.h` | User-facing | `HITS` |
