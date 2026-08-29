@@ -1882,10 +1882,11 @@ geometric, and latent-position models, without exposing C RNG objects, mutable
 matrix/vector-list containers, column-major storage, or partially initialized
 graph ownership.
 
-Status: planned in [#334](https://github.com/h8gi/go-igraph/issues/334).
-Implementation and final disposition work is tracked in
+Status: complete. The shared design and initial inventory were established in
+[#334](https://github.com/h8gi/go-igraph/issues/334). Implementation and final
+disposition work was delivered in
 [#335](https://github.com/h8gi/go-igraph/issues/335)–
-[#341](https://github.com/h8gi/go-igraph/issues/341), followed by the
+[#341](https://github.com/h8gi/go-igraph/issues/341), followed by the completed
 integration, ownership, concurrency, documentation, and inventory audit in
 [#342](https://github.com/h8gi/go-igraph/issues/342).
 
@@ -2011,6 +2012,22 @@ Completion criteria:
   disposition; and
 - examples cover the reference workflows, statement coverage remains at least
   90.0%, and `make verify` passes.
+
+Completion evidence: Milestone 22 delivers expected-degree and fitness,
+preference and hierarchical block, growth and citation, correlated-pair,
+geometric, latent-position, independent-edge, and atomic directed-rewiring
+workflows. Public matrices consistently use one vertex or sample per row;
+returned auxiliary values are Go-owned and every returned graph is
+independently closable. The integration suite composes these generators with
+degree summaries, categorical mixing, spatial analysis, random-dot-product
+generation, and graph comparison while exercising package-wide seeded and
+concurrent stochastic calls. Every declaration in `igraph_games.h` and
+`igraph_sampling.h` has a final disposition; all 32 generated matrix-list
+operations are intentionally unsupported as unsafe or unnecessary mutable C
+container surfaces, and no scoped deferred declaration remains. Output-checked
+and runnable examples cover the advanced workflows, while race, statement
+coverage, inventory freshness, and cleanup contracts are enforced by
+`make verify`.
 
 ## Later domain milestones
 

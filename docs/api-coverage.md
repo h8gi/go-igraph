@@ -8,7 +8,7 @@
 - Composed APIs: **24**
 - Intentionally unsupported: **189**
 - Deferred declarations: **0**
-- Completed domains: **attributes, graph_interchange, structural_diagnostics**
+- Completed domains: **advanced_random_graph_models, attributes, graph_interchange, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and
