@@ -999,3 +999,320 @@ func TestComplementRejectsParallelEdges(t *testing.T) {
 		t.Error("expected error when calling Complement on graph with parallel edges")
 	}
 }
+
+func TestJoinOrderingMappingsAttributesAndMultiplicity(t *testing.T) {
+	left := testGraphFromEdges(t, 2, []Edge{{0, 1}, {0, 1}}, false)
+	right := testGraphFromEdges(t, 2, []Edge{{0, 0}}, false)
+	defer left.Close()
+	defer right.Close()
+	if err := left.SetVertexStringAttributes("label", []string{"a", "b"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := right.SetVertexStringAttributes("label", []string{"c", "d"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := left.SetEdgeNumericAttributes("weight", []float64{2, 3}); err != nil {
+		t.Fatal(err)
+	}
+	if err := right.SetEdgeNumericAttributes("weight", []float64{5}); err != nil {
+		t.Fatal(err)
+	}
+
+	result, err := left.Join(right, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Graph.Close()
+	assertGraphShape(t, result.Graph, 4, 7, false)
+	assertOperatorMappingConsistent(t, left, result.Graph, result.Left)
+	assertOffsetOperatorMappingConsistent(t, right, result.Graph, result.Right, 2)
+	if !reflect.DeepEqual(result.Left.Vertices.OldToNew, []int{0, 1}) ||
+		!reflect.DeepEqual(result.Right.Vertices.OldToNew, []int{2, 3}) {
+		t.Errorf("join vertex mappings = %#v / %#v", result.Left.Vertices, result.Right.Vertices)
+	}
+	labels, err := result.Graph.VertexStringAttributes("label")
+	if err != nil || !reflect.DeepEqual(labels, []string{"a", "b", "c", "d"}) {
+		t.Errorf("join labels = %v, %v", labels, err)
+	}
+	weights, err := result.Graph.EdgeNumericAttributes("weight")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for sourceID, resultID := range result.Left.Edges.OldToNew {
+		if weights[resultID] != []float64{2, 3}[sourceID] {
+			t.Errorf("left edge weight %d = %v", sourceID, weights[resultID])
+		}
+	}
+	if weights[result.Right.Edges.OldToNew[0]] != 5 {
+		t.Errorf("right edge weight = %v", weights[result.Right.Edges.OldToNew[0]])
+	}
+	assertNonNilBinaryMappings(t, result)
+}
+
+func TestJoinRejectsUnresolvedAttributeConflict(t *testing.T) {
+	left := testGraphFromEdges(t, 1, nil, false)
+	right := testGraphFromEdges(t, 1, nil, false)
+	defer left.Close()
+	defer right.Close()
+	if err := left.SetGraphNumericAttribute("score", 1); err != nil {
+		t.Fatal(err)
+	}
+	if err := right.SetGraphNumericAttribute("score", 2); err != nil {
+		t.Fatal(err)
+	}
+	if result, err := left.Join(right, nil); err == nil || result.Graph != nil {
+		t.Errorf("Join without graph-attribute policy = %#v, %v", result, err)
+	}
+}
+
+func TestDirectedJoinAddsBothDirections(t *testing.T) {
+	left := testGraphFromEdges(t, 1, nil, true)
+	right := testGraphFromEdges(t, 2, nil, true)
+	defer left.Close()
+	defer right.Close()
+	result, err := left.Join(right, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Graph.Close()
+	assertGraphShape(t, result.Graph, 3, 4, true)
+	assertEdgeMultiset(t, result.Graph, []Edge{{0, 1}, {1, 0}, {0, 2}, {2, 0}}, true)
+}
+
+func TestGraphProductModesVertexProvenanceAndOwnership(t *testing.T) {
+	left := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
+	right := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
+	if err := left.SetGraphStringAttribute("lost", "left"); err != nil {
+		t.Fatal(err)
+	}
+	if err := right.SetVertexNumericAttributes("lost", []float64{1, 2, 3}); err != nil {
+		t.Fatal(err)
+	}
+	wantEdges := map[GraphProductMode]int{
+		GraphProductCartesian:     7,
+		GraphProductLexicographic: 13,
+		GraphProductStrong:        9,
+		GraphProductTensor:        2,
+		GraphProductModular:       6,
+	}
+	var retained GraphProductResult
+	for mode, edgeCount := range wantEdges {
+		result, err := left.Product(right, mode)
+		if err != nil {
+			t.Fatalf("Product(%d): %v", mode, err)
+		}
+		assertGraphShape(t, result.Graph, 6, edgeCount, true)
+		wantVertices := []ProductVertexProvenance{{0, 0}, {0, 1}, {0, 2}, {1, 0}, {1, 1}, {1, 2}}
+		if !reflect.DeepEqual(result.Vertices, wantVertices) {
+			t.Errorf("Product(%d) provenance = %#v", mode, result.Vertices)
+		}
+		if !reflect.DeepEqual(result.LeftToResult, [][]int{{0, 1, 2}, {3, 4, 5}}) ||
+			!reflect.DeepEqual(result.RightToResult, [][]int{{0, 3}, {1, 4}, {2, 5}}) {
+			t.Errorf("Product(%d) source maps = %#v / %#v", mode, result.LeftToResult, result.RightToResult)
+		}
+		if attributes, err := result.Graph.GraphAttributes(); err != nil || len(attributes) != 0 {
+			t.Errorf("Product(%d) graph attributes = %v, %v", mode, attributes, err)
+		}
+		if mode == GraphProductCartesian {
+			retained = result
+		} else {
+			_ = result.Graph.Close()
+		}
+	}
+	if err := left.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := right.Close(); err != nil {
+		t.Fatal(err)
+	}
+	assertGraphShape(t, retained.Graph, 6, 7, true)
+	if err := retained.Graph.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(retained.RightToResult[1], []int{1, 4}) {
+		t.Errorf("provenance after closure = %#v", retained)
+	}
+}
+
+func TestRootedProductOrderingRootAndEmptyOperands(t *testing.T) {
+	left := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	right := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, false)
+	defer left.Close()
+	defer right.Close()
+	result, err := left.RootedProduct(right, 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Graph.Close()
+	assertGraphShape(t, result.Graph, 6, 5, false)
+	assertEdgeMultiset(t, result.Graph, []Edge{{0, 1}, {1, 2}, {3, 4}, {4, 5}, {1, 4}}, false)
+
+	empty := testGraphFromEdges(t, 0, nil, false)
+	defer empty.Close()
+	emptyLeft, err := empty.Product(right, GraphProductCartesian)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer emptyLeft.Graph.Close()
+	assertGraphShape(t, emptyLeft.Graph, 0, 0, false)
+	if emptyLeft.Vertices == nil || emptyLeft.LeftToResult == nil || emptyLeft.RightToResult == nil {
+		t.Errorf("empty product provenance contains nil slice: %#v", emptyLeft)
+	}
+
+	singleton := testGraphFromEdges(t, 1, nil, false)
+	defer singleton.Close()
+	rootFromSecond, err := singleton.RootedProduct(right, 2)
+	if err != nil {
+		t.Fatalf("root valid only in second operand: %v", err)
+	}
+	defer rootFromSecond.Graph.Close()
+	assertGraphShape(t, rootFromSecond.Graph, 3, 2, false)
+}
+
+func TestProductAndJoinValidationAndClosedGraphs(t *testing.T) {
+	undirected := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	directed := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
+	nonSimple := testGraphFromEdges(t, 2, []Edge{{0, 1}, {0, 1}}, false)
+	closed := testGraphFromEdges(t, 1, nil, false)
+	_ = closed.Close()
+	defer undirected.Close()
+	defer directed.Close()
+	defer nonSimple.Close()
+
+	if got, err := undirected.Product(directed, GraphProductCartesian); err == nil || got.Graph != nil {
+		t.Errorf("mixed product = %#v, %v", got, err)
+	}
+	if got, err := undirected.Join(directed, nil); err == nil || got.Graph != nil {
+		t.Errorf("mixed join = %#v, %v", got, err)
+	}
+	if got, err := undirected.Product(undirected, GraphProductMode(99)); err == nil || got.Graph != nil {
+		t.Errorf("invalid product mode = %#v, %v", got, err)
+	}
+	for _, root := range []int{-1, 2} {
+		if got, err := undirected.RootedProduct(undirected, root); err == nil || got.Graph != nil {
+			t.Errorf("invalid root %d = %#v, %v", root, got, err)
+		}
+	}
+	if got, err := nonSimple.Product(undirected, GraphProductModular); err == nil || got.Graph != nil {
+		t.Errorf("non-simple modular product = %#v, %v", got, err)
+	}
+	if got, err := undirected.Product(nonSimple, GraphProductModular); err == nil || got.Graph != nil {
+		t.Errorf("non-simple right modular product = %#v, %v", got, err)
+	}
+	if got, err := closed.Product(undirected, GraphProductCartesian); !errors.Is(err, ErrClosed) || got.Graph != nil {
+		t.Errorf("closed product = %#v, %v", got, err)
+	}
+	if got, err := undirected.Join(closed, nil); !errors.Is(err, ErrClosed) || got.Graph != nil {
+		t.Errorf("closed join = %#v, %v", got, err)
+	}
+	if got, err := undirected.RootedProduct(closed, 0); !errors.Is(err, ErrClosed) || got.Graph != nil {
+		t.Errorf("closed rooted product = %#v, %v", got, err)
+	}
+}
+
+func TestStructuralSubsetEdgeMappingRejectsMissingEdge(t *testing.T) {
+	if mapping, err := structuralSubsetEdgeMapping([]Edge{{0, 1}}, nil, true); err == nil || mapping.OldToNew != nil {
+		t.Errorf("missing subset edge = %#v, %v", mapping, err)
+	}
+}
+
+func TestProductAndJoinConcurrentReversedOperands(t *testing.T) {
+	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, false)
+	right := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	defer left.Close()
+	defer right.Close()
+	selfProduct, err := left.Product(left, GraphProductTensor)
+	if err != nil {
+		t.Fatalf("repeated product operand: %v", err)
+	}
+	_ = selfProduct.Graph.Close()
+	selfJoin, err := right.Join(right, nil)
+	if err != nil {
+		t.Fatalf("repeated join operand: %v", err)
+	}
+	_ = selfJoin.Graph.Close()
+	var wait sync.WaitGroup
+	for index := 0; index < 12; index++ {
+		wait.Add(2)
+		go func() {
+			defer wait.Done()
+			result, err := left.Product(right, GraphProductStrong)
+			if err != nil {
+				t.Errorf("forward product: %v", err)
+				return
+			}
+			_ = result.Graph.Close()
+		}()
+		go func() {
+			defer wait.Done()
+			result, err := right.Join(left, nil)
+			if err != nil {
+				t.Errorf("reverse join: %v", err)
+				return
+			}
+			_ = result.Graph.Close()
+		}()
+	}
+	wait.Wait()
+}
+
+func TestProductConcurrentUseAndClose(t *testing.T) {
+	left := testGraphFromEdges(t, 8, []Edge{{0, 1}, {1, 2}, {2, 3}, {3, 4}}, false)
+	right := testGraphFromEdges(t, 8, []Edge{{4, 5}, {5, 6}, {6, 7}}, false)
+	var wait sync.WaitGroup
+	for range 8 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			result, err := left.Product(right, GraphProductCartesian)
+			if result.Graph != nil {
+				_ = result.Graph.Close()
+			}
+			if err != nil && !errors.Is(err, ErrClosed) {
+				t.Errorf("Product close race error = %v", err)
+			}
+		}()
+	}
+	wait.Add(1)
+	go func() { defer wait.Done(); _ = right.Close() }()
+	wait.Wait()
+	_ = left.Close()
+}
+
+func assertOffsetOperatorMappingConsistent(t *testing.T, source, result *Graph, mapping GraphIDMapping, vertexOffset int) {
+	t.Helper()
+	sourceEdges, err := source.Edges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	resultEdges, err := result.Edges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	for oldID, newID := range mapping.Edges.OldToNew {
+		want := sourceEdges[oldID]
+		want.From += vertexOffset
+		want.To += vertexOffset
+		if newID < 0 || newID >= len(resultEdges) || endpointKey(want, false) != endpointKey(resultEdges[newID], false) {
+			t.Errorf("offset edge mapping %d -> %d does not preserve endpoints", oldID, newID)
+		}
+	}
+}
+
+func assertEdgeMultiset(t *testing.T, graph *Graph, want []Edge, directed bool) {
+	t.Helper()
+	got, err := graph.Edges()
+	if err != nil {
+		t.Fatal(err)
+	}
+	counts := func(edges []Edge) map[edgeEndpointKey]int {
+		result := make(map[edgeEndpointKey]int)
+		for _, edge := range edges {
+			result[endpointKey(edge, directed)]++
+		}
+		return result
+	}
+	if !reflect.DeepEqual(counts(got), counts(want)) {
+		t.Errorf("edge multiset = %v, want %v", got, want)
+	}
+}

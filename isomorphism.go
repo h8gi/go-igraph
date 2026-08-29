@@ -279,11 +279,11 @@ func prepareVF2Colors(first, second *C.igraph_t, firstVertices, secondVertices, 
 	if (firstEdges == nil) != (secondEdges == nil) {
 		return nil, fmt.Errorf("igraph: VF2 edge colors must be provided for both operands or neither")
 	}
-	firstSimple, err := vf2GraphIsSimple(first)
+	firstSimple, err := graphIsSimple(first)
 	if err != nil {
 		return nil, err
 	}
-	secondSimple, err := vf2GraphIsSimple(second)
+	secondSimple, err := graphIsSimple(second)
 	if err != nil {
 		return nil, err
 	}
@@ -314,10 +314,10 @@ func prepareVF2Colors(first, second *C.igraph_t, firstVertices, secondVertices, 
 }
 
 //igraph:internal igraph_is_simple
-func vf2GraphIsSimple(graph *C.igraph_t) (bool, error) {
+func graphIsSimple(graph *C.igraph_t) (bool, error) {
 	var result C.igraph_bool_t
 	if code := C.go_igraph_is_simple(graph, &result); code != C.IGRAPH_SUCCESS {
-		return false, igraphError("check VF2 graph shape", int(code))
+		return false, igraphError("check graph simplicity", int(code))
 	}
 	return result != booltoint(false), nil
 }

@@ -446,6 +446,25 @@ follows incoming paths while retaining their path orientation, and DirectionAll
 ignores direction for reachability but adds one pinned-upstream-oriented edge
 per missing unordered connection. Order zero is a validated identity operation.
 
+`Join` borrows two same-directedness operands and returns an independently
+owned graph. Left vertex IDs are preserved and right vertex IDs are offset by
+the left vertex count. Exact structural edge mappings pair endpoint-equivalent
+parallel edges by ascending IDs; newly created cross-operand edges have no
+source. Graph, vertex, and original edge attributes are reconstructed through
+`GraphOperatorAttributePolicy`, while new edges receive typed missing values.
+
+`Product` and `RootedProduct` wrap experimental upstream functions. Their Go
+ownership and validation contracts are stable for pinned igraph 1.0.1, but the
+structural semantics must be re-audited on dependency upgrades. Both borrow
+same-directedness operands and return an independently owned graph. Product
+mode and rooted-product root are validated before the product call; the root is
+a vertex of the second operand. Modular products additionally reject operands
+with loops or parallel edges. Result vertex `(u,v)` has ID `u*|V2|+v`.
+`GraphProductResult` exposes both result-to-pair provenance and non-nil
+source-to-result lists as Go-owned values that outlive all graphs. Product
+attributes are intentionally not propagated because product vertices and
+edges do not have a unique source element.
+
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
 indexed by component ID; and `Count` equals `len(Sizes)`. Component numbering
