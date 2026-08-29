@@ -1,6 +1,7 @@
 package igraph
 
 // #cgo pkg-config: igraph
+// #include <stdlib.h>
 // #include <igraph.h>
 // #include "operators_cgo.h"
 import "C"
@@ -8,7 +9,183 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	"unsafe"
 )
+
+// ManyGraphOperatorResult contains an independently owned result graph and
+// exact source-to-result provenance for each input graph in operand order.
+// Inputs is non-nil, has the same length as the borrowed input slice, and all
+// nested mapping slices are non-nil and Go-owned. Graph must be closed by the
+// caller; mappings remain valid after every source and result graph is closed.
+type ManyGraphOperatorResult struct {
+	Graph  *Graph
+	Inputs []GraphIDMapping
+}
+
+// DisjointUnionMany returns the disjoint union of graphs in operand order.
+// Vertex and edge ordering within each input is preserved, with IDs offset by
+// all preceding inputs. Inputs are borrowed only for the call; repeated graph
+// pointers are allowed and locked once. All non-empty inputs must have the same
+// directedness. An empty input slice returns an independently owned directed
+// null graph and a non-nil empty Inputs slice. Attributes use the same explicit
+// conflict policy as DisjointUnion.
+//
+//igraph:bind igraph_disjoint_union_many
+func DisjointUnionMany(graphs []*Graph, attributes *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error) {
+	return manyGraphOperator(graphs, manyOperatorDisjointUnion, attributes)
+}
+
+// UnionMany returns the union of graphs. The result vertex count is the
+// largest operand vertex count and each endpoint pair has the maximum input
+// multiplicity. Per-input vertex and edge mappings are exact. Inputs are
+// borrowed only for the call; repeated pointers are allowed and locked once.
+// All non-empty inputs must have the same directedness. An empty input slice
+// returns an independently owned directed null graph. Attribute conflicts use
+// the supplied scope-specific policy.
+//
+//igraph:bind igraph_union_many
+func UnionMany(graphs []*Graph, attributes *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error) {
+	return manyGraphOperator(graphs, manyOperatorUnion, attributes)
+}
+
+// IntersectionMany returns edges present in every input graph. The result
+// vertex count is the largest operand vertex count and each endpoint pair has
+// the minimum input multiplicity. Per-input mappings mark excluded edges with
+// RemovedID. Inputs are borrowed only for the call; repeated pointers are
+// allowed and locked once. All non-empty inputs must have the same
+// directedness. An empty input slice returns an independently owned directed
+// null graph. Attribute conflicts use the supplied scope-specific policy.
+//
+//igraph:bind igraph_intersection_many
+func IntersectionMany(graphs []*Graph, attributes *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error) {
+	return manyGraphOperator(graphs, manyOperatorIntersection, attributes)
+}
+
+type manyOperatorMode uint8
+
+const (
+	manyOperatorDisjointUnion manyOperatorMode = iota
+	manyOperatorUnion
+	manyOperatorIntersection
+)
+
+func manyGraphOperator(graphs []*Graph, mode manyOperatorMode, attributes *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error) {
+	var result ManyGraphOperatorResult
+	err := withLockedGraphs(graphs, func(values []*C.igraph_t) error {
+		counts := make([]struct{ vertices, edges int }, len(values))
+		snapshots := make([]graphAttributeSnapshot, len(values))
+		for index, graph := range values {
+			var err error
+			counts[index].vertices, counts[index].edges, err = graphCounts(graph, fmt.Sprintf("many-graph operand %d", index))
+			if err != nil {
+				return err
+			}
+			snapshots[index], err = snapshotGraphAttributesLocked(graph)
+			if err != nil {
+				return err
+			}
+		}
+
+		array, err := newCGraphArray(values)
+		if err != nil {
+			return err
+		}
+		defer C.free(unsafe.Pointer(array))
+
+		var maps *intVectorList
+		if mode != manyOperatorDisjointUnion {
+			maps, err = newIntVectorList()
+			if err != nil {
+				return err
+			}
+			defer maps.close()
+		}
+
+		var value C.igraph_t
+		var code C.igraph_error_t
+		switch mode {
+		case manyOperatorDisjointUnion:
+			code = C.go_igraph_disjoint_union_many(&value, array, C.igraph_int_t(len(values)))
+		case manyOperatorUnion:
+			code = C.go_igraph_union_many(&value, array, C.igraph_int_t(len(values)), &maps.value)
+		case manyOperatorIntersection:
+			code = C.go_igraph_intersection_many(&value, array, C.igraph_int_t(len(values)), &maps.value)
+		default:
+			return errors.New("igraph: invalid many-graph operator")
+		}
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("combine many graphs", int(code))
+		}
+		graph := adoptInitializedGraph(&value)
+		succeeded := false
+		defer func() {
+			if !succeeded {
+				_ = graph.Close()
+			}
+		}()
+
+		resultVertices, resultEdges, err := graphCounts(&graph.graph, "many-graph result")
+		if err != nil {
+			return err
+		}
+		var edgeMaps [][]int
+		if maps != nil {
+			edgeMaps, err = maps.slices()
+			if err != nil {
+				return err
+			}
+			if len(edgeMaps) != len(values) {
+				return errors.New("igraph: many-graph edge mapping count is inconsistent")
+			}
+		}
+		inputMappings := make([]GraphIDMapping, len(values))
+		vertexOffset, edgeOffset := 0, 0
+		for index, count := range counts {
+			if mode == manyOperatorDisjointUnion {
+				inputMappings[index], err = offsetGraphIDMapping(count.vertices, count.edges, resultVertices, resultEdges, vertexOffset, edgeOffset)
+				vertexOffset += count.vertices
+				edgeOffset += count.edges
+			} else {
+				if len(edgeMaps[index]) != count.edges {
+					return fmt.Errorf("igraph: many-graph edge mapping %d length is inconsistent", index)
+				}
+				var vertices, edges IDMapping
+				vertices, err = offsetIDMapping(count.vertices, resultVertices, 0)
+				if err == nil {
+					edges, err = newIDMapping(edgeMaps[index], resultEdges)
+				}
+				inputMappings[index] = GraphIDMapping{Vertices: vertices, Edges: edges}
+			}
+			if err != nil {
+				return err
+			}
+		}
+		if err := restoreManyOperatorAttributes(graph, snapshots, inputMappings, attributes); err != nil {
+			return err
+		}
+		result = ManyGraphOperatorResult{Graph: graph, Inputs: inputMappings}
+		succeeded = true
+		return nil
+	})
+	return result, err
+}
+
+// newCGraphArray shallow-copies graph descriptors into C-owned temporary
+// storage. The copies only borrow the original graphs' C allocations while
+// their locks are held; callers free the array without destroying its entries.
+func newCGraphArray(graphs []*C.igraph_t) (*C.igraph_t, error) {
+	if len(graphs) == 0 {
+		return nil, nil
+	}
+	array := C.go_igraph_graph_array_alloc(C.igraph_int_t(len(graphs)))
+	if array == nil {
+		return nil, errors.New("igraph: allocate temporary graph array")
+	}
+	for index, graph := range graphs {
+		C.go_igraph_graph_array_set(array, C.igraph_int_t(index), graph)
+	}
+	return array, nil
+}
 
 // BinaryGraphOperatorResult contains an independently owned result graph and
 // exact source-to-result provenance for both operands. Left and Right vertex

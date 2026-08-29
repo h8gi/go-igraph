@@ -7,6 +7,7 @@ package igraph
 import "C"
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"sort"
@@ -416,6 +417,40 @@ func restoreBinaryOperatorAttributes(result *Graph, left, right graphAttributeSn
 		}
 	}
 	return nil
+}
+
+func restoreManyOperatorAttributes(result *Graph, snapshots []graphAttributeSnapshot, mappings []GraphIDMapping, policy *GraphOperatorAttributePolicy) error {
+	if len(snapshots) != len(mappings) {
+		return errors.New("igraph: many-graph attribute snapshots and mappings are misaligned")
+	}
+	for _, item := range []struct {
+		scope AttributeScope
+		count int
+		maps  func(GraphIDMapping) []int
+	}{
+		{AttributeGraph, 1, func(GraphIDMapping) []int { return []int{0} }},
+		{AttributeVertex, lenResultMapping(mappings, true), func(mapping GraphIDMapping) []int { return mapping.Vertices.OldToNew }},
+		{AttributeEdge, lenResultMapping(mappings, false), func(mapping GraphIDMapping) []int { return mapping.Edges.OldToNew }},
+	} {
+		sources := make([]mappedAttributeSource, len(snapshots))
+		for index := range snapshots {
+			sources[index] = mappedAttributeSource{snapshots[index].scope(item.scope), item.maps(mappings[index])}
+		}
+		if err := restoreMappedAttributes(result, item.scope, item.count, sources, policy.scope(item.scope)); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func lenResultMapping(mappings []GraphIDMapping, vertices bool) int {
+	if len(mappings) == 0 {
+		return 0
+	}
+	if vertices {
+		return len(mappings[0].Vertices.NewToOld)
+	}
+	return len(mappings[0].Edges.NewToOld)
 }
 
 func expandAttributeValues(attributes map[string]attributeValues, sourceIDs []int) map[string]attributeValues {

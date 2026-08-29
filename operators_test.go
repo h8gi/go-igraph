@@ -69,6 +69,275 @@ func TestUnionAndIntersectionMappingsLoopsParallelAndOperandOrder(t *testing.T) 
 	assertOperatorMappingConsistent(t, left, reversed.Graph, reversed.Right)
 }
 
+func TestManyUnionAndIntersectionMappingsRepeatedOperands(t *testing.T) {
+	first := testGraphFromEdges(t, 4, []Edge{{0, 1}, {0, 1}, {1, 1}, {3, 0}}, true)
+	second := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 1}, {1, 1}, {2, 0}}, true)
+	defer first.Close()
+	defer second.Close()
+
+	union, err := UnionMany([]*Graph{first, second, first}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer union.Graph.Close()
+	if len(union.Inputs) != 3 {
+		t.Fatalf("union mapping count = %d, want 3", len(union.Inputs))
+	}
+	assertGraphShape(t, union.Graph, 4, 6, true)
+	assertEdgesEqual(t, union.Graph, []Edge{{3, 0}, {2, 0}, {1, 1}, {1, 1}, {0, 1}, {0, 1}})
+	for index, source := range []*Graph{first, second, first} {
+		assertOperatorMappingConsistent(t, source, union.Graph, union.Inputs[index])
+	}
+	if !reflect.DeepEqual(union.Inputs[0], union.Inputs[2]) {
+		t.Fatalf("repeated-input mappings differ: %#v / %#v", union.Inputs[0], union.Inputs[2])
+	}
+
+	intersection, err := IntersectionMany([]*Graph{first, second, first}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer intersection.Graph.Close()
+	assertGraphShape(t, intersection.Graph, 4, 2, true)
+	assertEdgesEqual(t, intersection.Graph, []Edge{{1, 1}, {0, 1}})
+	for index, source := range []*Graph{first, second, first} {
+		assertOperatorMappingConsistent(t, source, intersection.Graph, intersection.Inputs[index])
+	}
+	if !reflect.DeepEqual(intersection.Inputs[0], intersection.Inputs[2]) {
+		t.Fatalf("repeated-input intersection mappings differ: %#v / %#v", intersection.Inputs[0], intersection.Inputs[2])
+	}
+}
+
+func TestDisjointUnionManyOrderMappingsAndEmpty(t *testing.T) {
+	first := testGraphFromEdges(t, 2, []Edge{{0, 1}}, false)
+	second := testGraphFromEdges(t, 1, []Edge{{0, 0}}, false)
+	defer first.Close()
+	defer second.Close()
+
+	result, err := DisjointUnionMany([]*Graph{first, second, first}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Graph.Close()
+	assertGraphShape(t, result.Graph, 5, 3, false)
+	assertEdgesEqual(t, result.Graph, []Edge{{0, 1}, {2, 2}, {3, 4}})
+	want := []GraphIDMapping{
+		{Vertices: IDMapping{OldToNew: []int{0, 1}, NewToOld: []int{0, 1, -1, -1, -1}}, Edges: IDMapping{OldToNew: []int{0}, NewToOld: []int{0, -1, -1}}},
+		{Vertices: IDMapping{OldToNew: []int{2}, NewToOld: []int{-1, -1, 0, -1, -1}}, Edges: IDMapping{OldToNew: []int{1}, NewToOld: []int{-1, 0, -1}}},
+		{Vertices: IDMapping{OldToNew: []int{3, 4}, NewToOld: []int{-1, -1, -1, 0, 1}}, Edges: IDMapping{OldToNew: []int{2}, NewToOld: []int{-1, -1, 0}}},
+	}
+	if !reflect.DeepEqual(result.Inputs, want) {
+		t.Fatalf("disjoint mappings = %#v, want %#v", result.Inputs, want)
+	}
+
+	for name, call := range map[string]func([]*Graph, *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error){
+		"disjoint":     DisjointUnionMany,
+		"union":        UnionMany,
+		"intersection": IntersectionMany,
+	} {
+		empty, err := call(nil, nil)
+		if err != nil {
+			t.Fatalf("empty %s error = %v", name, err)
+		}
+		if empty.Inputs == nil || len(empty.Inputs) != 0 {
+			t.Errorf("empty %s mappings = %#v, want non-nil empty", name, empty.Inputs)
+		}
+		assertGraphShape(t, empty.Graph, 0, 0, true)
+		_ = empty.Graph.Close()
+	}
+}
+
+func TestManyOperatorsAttributesOwnershipAndValidation(t *testing.T) {
+	first := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
+	second := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
+	for index, graph := range []*Graph{first, second} {
+		base := float64(index + 1)
+		if err := graph.SetGraphNumericAttribute("score", base); err != nil {
+			t.Fatal(err)
+		}
+		if err := graph.SetVertexNumericAttributes("score", []float64{base, base + 2}); err != nil {
+			t.Fatal(err)
+		}
+		if err := graph.SetEdgeNumericAttributes("score", []float64{base}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if result, err := UnionMany([]*Graph{first, second}, nil); err == nil || result.Graph != nil {
+		t.Fatalf("UnionMany without conflict policy = %#v, %v", result, err)
+	}
+	policy := &GraphOperatorAttributePolicy{
+		Graph:    AttributeCombinationPolicy{Default: AttributeCombineSum},
+		Vertices: AttributeCombinationPolicy{Default: AttributeCombineSum},
+		Edges:    AttributeCombinationPolicy{Default: AttributeCombineSum},
+	}
+	result, err := UnionMany([]*Graph{first, second}, policy)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := result.Graph.GraphNumericAttribute("score"); got != 3 {
+		t.Errorf("graph score = %v, want 3", got)
+	}
+	if got, _ := result.Graph.VertexNumericAttributes("score"); !reflect.DeepEqual(got, []float64{3, 7}) {
+		t.Errorf("vertex scores = %v, want [3 7]", got)
+	}
+	if got, _ := result.Graph.EdgeNumericAttributes("score"); !reflect.DeepEqual(got, []float64{3}) {
+		t.Errorf("edge scores = %v, want [3]", got)
+	}
+	if err := first.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := second.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if got, _ := result.Graph.EdgeNumericAttributes("score"); !reflect.DeepEqual(got, []float64{3}) {
+		t.Errorf("result attribute after source closure = %v", got)
+	}
+	if err := result.Graph.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(result.Inputs[0].Edges.OldToNew, []int{0}) {
+		t.Errorf("mapping after all graph closure = %#v", result.Inputs)
+	}
+
+	open := testGraphFromEdges(t, 1, nil, false)
+	defer open.Close()
+	closed := testGraphFromEdges(t, 1, nil, false)
+	_ = closed.Close()
+	var nilGraph *Graph
+	for name, call := range map[string]func([]*Graph, *GraphOperatorAttributePolicy) (ManyGraphOperatorResult, error){
+		"disjoint":     DisjointUnionMany,
+		"union":        UnionMany,
+		"intersection": IntersectionMany,
+	} {
+		if got, err := call([]*Graph{open, nilGraph}, nil); !errors.Is(err, ErrClosed) || got.Graph != nil {
+			t.Errorf("%s nil input = %#v, %v", name, got, err)
+		}
+		if got, err := call([]*Graph{open, closed}, nil); !errors.Is(err, ErrClosed) || got.Graph != nil {
+			t.Errorf("%s closed input = %#v, %v", name, got, err)
+		}
+	}
+	directed := testGraphFromEdges(t, 1, nil, true)
+	defer directed.Close()
+	if got, err := UnionMany([]*Graph{open, directed}, nil); err == nil || got.Graph != nil {
+		t.Errorf("mixed directedness UnionMany = %#v, %v", got, err)
+	}
+}
+
+func TestDisjointUnionManyConcatenatesElementAttributes(t *testing.T) {
+	first := testGraphFromEdges(t, 2, []Edge{{0, 1}}, true)
+	second := testGraphFromEdges(t, 1, []Edge{{0, 0}}, true)
+	defer first.Close()
+	defer second.Close()
+	if err := first.SetGraphStringAttribute("name", "first"); err != nil {
+		t.Fatal(err)
+	}
+	if err := second.SetGraphStringAttribute("name", "second"); err != nil {
+		t.Fatal(err)
+	}
+	if err := first.SetVertexStringAttributes("label", []string{"a", "b"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := second.SetVertexStringAttributes("label", []string{"c"}); err != nil {
+		t.Fatal(err)
+	}
+	if err := first.SetEdgeBooleanAttributes("active", []bool{true}); err != nil {
+		t.Fatal(err)
+	}
+	if err := second.SetEdgeBooleanAttributes("active", []bool{false}); err != nil {
+		t.Fatal(err)
+	}
+	result, err := DisjointUnionMany([]*Graph{first, second}, &GraphOperatorAttributePolicy{
+		Graph: AttributeCombinationPolicy{Default: AttributeCombineConcat},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer result.Graph.Close()
+	if got, _ := result.Graph.GraphStringAttribute("name"); got != "firstsecond" {
+		t.Errorf("graph name = %q, want firstsecond", got)
+	}
+	if got, _ := result.Graph.VertexStringAttributes("label"); !reflect.DeepEqual(got, []string{"a", "b", "c"}) {
+		t.Errorf("vertex labels = %v", got)
+	}
+	if got, _ := result.Graph.EdgeBooleanAttributes("active"); !reflect.DeepEqual(got, []bool{true, false}) {
+		t.Errorf("edge active = %v", got)
+	}
+}
+
+func TestManyOperatorInternalValidation(t *testing.T) {
+	graph := testGraphFromEdges(t, 1, nil, true)
+	defer graph.Close()
+	if result, err := manyGraphOperator([]*Graph{graph}, manyOperatorMode(255), nil); err == nil || result.Graph != nil {
+		t.Errorf("invalid many operator = %#v, %v", result, err)
+	}
+	if err := restoreManyOperatorAttributes(graph, []graphAttributeSnapshot{{}}, nil, nil); err == nil {
+		t.Error("misaligned attribute snapshots and mappings were accepted")
+	}
+}
+
+func TestManyOperatorLockOrderingHandlesReversedAndRepeatedOperands(t *testing.T) {
+	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
+	right := testGraphFromEdges(t, 3, []Edge{{0, 2}, {2, 1}}, true)
+	defer left.Close()
+	defer right.Close()
+	var wait sync.WaitGroup
+	errorsCh := make(chan error, 40)
+	for range 20 {
+		wait.Add(2)
+		go func() {
+			defer wait.Done()
+			result, err := UnionMany([]*Graph{left, right, left}, nil)
+			if result.Graph != nil {
+				_ = result.Graph.Close()
+			}
+			errorsCh <- err
+		}()
+		go func() {
+			defer wait.Done()
+			result, err := IntersectionMany([]*Graph{right, left, right}, nil)
+			if result.Graph != nil {
+				_ = result.Graph.Close()
+			}
+			errorsCh <- err
+		}()
+	}
+	done := make(chan struct{})
+	go func() { wait.Wait(); close(done) }()
+	select {
+	case <-done:
+	case <-time.After(5 * time.Second):
+		t.Fatal("reversed/repeated many-operator calls deadlocked")
+	}
+	close(errorsCh)
+	for err := range errorsCh {
+		if err != nil {
+			t.Errorf("concurrent many-operator error = %v", err)
+		}
+	}
+}
+
+func TestManyOperatorsConcurrentUseAndClose(t *testing.T) {
+	first := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 2}}, true)
+	second := testGraphFromEdges(t, 3, []Edge{{0, 2}, {2, 1}}, true)
+	var wait sync.WaitGroup
+	for range 8 {
+		wait.Add(1)
+		go func() {
+			defer wait.Done()
+			result, err := UnionMany([]*Graph{first, second, first}, nil)
+			if result.Graph != nil {
+				_ = result.Graph.Close()
+			}
+			if err != nil && !errors.Is(err, ErrClosed) {
+				t.Errorf("UnionMany close race error = %v", err)
+			}
+		}()
+	}
+	wait.Add(1)
+	go func() { defer wait.Done(); _ = second.Close() }()
+	wait.Wait()
+	_ = first.Close()
+}
+
 func TestDifferenceIsOrderedAndComplementOptions(t *testing.T) {
 	left := testGraphFromEdges(t, 3, []Edge{{0, 1}, {0, 1}, {1, 1}, {2, 0}}, true)
 	right := testGraphFromEdges(t, 3, []Edge{{0, 1}, {1, 1}, {1, 1}}, true)

@@ -78,7 +78,9 @@
 // Graph-returning transformations borrow their source graphs only for the
 // synchronous call and return independently closable graphs. Multi-graph
 // operators deduplicate repeated operands and acquire distinct graph locks in
-// stable order. Component graphs own separate C resources; ID mappings,
+// stable order. Many-graph union, intersection, and disjoint union return one
+// exact Go-owned mapping per input and expose no C graph-pointer or mapping-list
+// lifecycle. Component graphs own separate C resources; ID mappings,
 // composition provenance, articulation points, bridges, and biconnected nested
 // collections are non-nil Go-owned values that survive source closure.
 // Robustness analysis includes separator and minimal-separator predicates,

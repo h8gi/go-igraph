@@ -1,6 +1,66 @@
 #include "operators_cgo.h"
 #include "igraph_error_cgo.h"
 
+#include <stdlib.h>
+
+igraph_t *go_igraph_graph_array_alloc(igraph_int_t count) {
+    if (count == 0) {
+        return NULL;
+    }
+    return calloc((size_t) count, sizeof(igraph_t));
+}
+
+void go_igraph_graph_array_set(
+    igraph_t *graphs, igraph_int_t index, const igraph_t *graph) {
+    graphs[index] = *graph;
+}
+
+typedef igraph_error_t (*go_igraph_many_operator_t)(
+    igraph_t *, const igraph_vector_ptr_t *, igraph_vector_int_list_t *);
+
+static igraph_error_t go_igraph_call_many_operator(
+    igraph_t *result, const igraph_t *graphs, igraph_int_t count,
+    igraph_vector_int_list_t *maps, go_igraph_many_operator_t operation) {
+    igraph_vector_ptr_t pointers;
+    igraph_error_t code = igraph_vector_ptr_init(&pointers, count);
+    if (code != IGRAPH_SUCCESS) {
+        return code;
+    }
+    for (igraph_int_t index = 0; index < count; ++index) {
+        VECTOR(pointers)[index] = (void *) &graphs[index];
+    }
+    code = operation(result, &pointers, maps);
+    igraph_vector_ptr_destroy(&pointers);
+    return code;
+}
+
+static igraph_error_t go_igraph_disjoint_union_many_adapter(
+    igraph_t *result, const igraph_vector_ptr_t *graphs,
+    igraph_vector_int_list_t *unused) {
+    (void) unused;
+    return igraph_disjoint_union_many(result, graphs);
+}
+
+igraph_error_t go_igraph_disjoint_union_many(
+    igraph_t *result, const igraph_t *graphs, igraph_int_t count) {
+    GO_IGRAPH_CALL(go_igraph_call_many_operator(
+        result, graphs, count, NULL, go_igraph_disjoint_union_many_adapter));
+}
+
+igraph_error_t go_igraph_union_many(
+    igraph_t *result, const igraph_t *graphs, igraph_int_t count,
+    igraph_vector_int_list_t *maps) {
+    GO_IGRAPH_CALL(go_igraph_call_many_operator(
+        result, graphs, count, maps, igraph_union_many));
+}
+
+igraph_error_t go_igraph_intersection_many(
+    igraph_t *result, const igraph_t *graphs, igraph_int_t count,
+    igraph_vector_int_list_t *maps) {
+    GO_IGRAPH_CALL(go_igraph_call_many_operator(
+        result, graphs, count, maps, igraph_intersection_many));
+}
+
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *result, const igraph_t *left, const igraph_t *right) {
     GO_IGRAPH_CALL(igraph_disjoint_union(result, left, right));
