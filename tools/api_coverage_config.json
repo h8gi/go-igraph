@@ -130,6 +130,114 @@
     },
     "deferred": {},
     "intentionally_unsupported": {
+      "igraph_graph_list_capacity": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list storage is an internal C ownership mechanism; public APIs return independently owned Graph values rather than exposing container capacity."
+      },
+      "igraph_graph_list_clear": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list mutation remains internal so public APIs cannot invalidate or leak C-owned graph elements."
+      },
+      "igraph_graph_list_discard": {
+        "domain": "network_robustness",
+        "rationale": "Discarding an owned C graph without destruction conflicts with the package's explicit Graph ownership contract."
+      },
+      "igraph_graph_list_discard_back": {
+        "domain": "network_robustness",
+        "rationale": "Discarding an owned C graph without destruction conflicts with the package's explicit Graph ownership contract."
+      },
+      "igraph_graph_list_discard_fast": {
+        "domain": "network_robustness",
+        "rationale": "Discarding an owned C graph without destruction conflicts with the package's explicit Graph ownership contract."
+      },
+      "igraph_graph_list_empty": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list inspection is an internal implementation detail; public results use ordinary non-nil Go slices."
+      },
+      "igraph_graph_list_get_ptr": {
+        "domain": "network_robustness",
+        "rationale": "Borrowed pointers into mutable C graph-list storage cannot satisfy the public independent-ownership contract."
+      },
+      "igraph_graph_list_init_copy": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list copying is internal; public Graph results establish ownership per graph instead of exposing C containers."
+      },
+      "igraph_graph_list_insert": {
+        "domain": "network_robustness",
+        "rationale": "Raw graph-list insertion would expose ambiguous C graph ownership and mutable container state."
+      },
+      "igraph_graph_list_insert_copy": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list copying and mutation remain internal behind independently owned Graph results."
+      },
+      "igraph_graph_list_insert_new": {
+        "domain": "network_robustness",
+        "rationale": "Returning an uninitialized C graph slot cannot form a safe public Go ownership contract."
+      },
+      "igraph_graph_list_permute": {
+        "domain": "network_robustness",
+        "rationale": "Mutable C graph-list ordering is internal; public graph collections use ordinary Go slice ordering."
+      },
+      "igraph_graph_list_pop_back": {
+        "domain": "network_robustness",
+        "rationale": "Raw removal would expose ambiguous transfer of C graph ownership; internal extraction adopts each graph explicitly."
+      },
+      "igraph_graph_list_push_back": {
+        "domain": "network_robustness",
+        "rationale": "Raw insertion would expose ambiguous transfer of C graph ownership; internal helpers copy source graphs explicitly."
+      },
+      "igraph_graph_list_push_back_new": {
+        "domain": "network_robustness",
+        "rationale": "Returning an uninitialized C graph slot cannot form a safe public Go ownership contract."
+      },
+      "igraph_graph_list_remove_consecutive_duplicates": {
+        "domain": "network_robustness",
+        "rationale": "Generic mutable C graph-list operations are not part of the typed independently owned Graph result contract."
+      },
+      "igraph_graph_list_remove_fast": {
+        "domain": "network_robustness",
+        "rationale": "Raw removal would expose ambiguous transfer of C graph ownership and unstable ordering."
+      },
+      "igraph_graph_list_replace": {
+        "domain": "network_robustness",
+        "rationale": "Replacing C-owned graph elements would expose ambiguous destruction and transfer semantics."
+      },
+      "igraph_graph_list_reserve": {
+        "domain": "network_robustness",
+        "rationale": "Graph-list capacity management is an internal C storage detail with no public Go result semantics."
+      },
+      "igraph_graph_list_resize": {
+        "domain": "network_robustness",
+        "rationale": "Resizing creates or destroys C graph slots and remains internal to preserve explicit per-Graph ownership."
+      },
+      "igraph_graph_list_reverse": {
+        "domain": "network_robustness",
+        "rationale": "Mutable C graph-list ordering is internal; public graph collections use ordinary Go slice ordering."
+      },
+      "igraph_graph_list_set": {
+        "domain": "network_robustness",
+        "rationale": "Setting C-owned graph elements would expose ambiguous destruction and transfer semantics."
+      },
+      "igraph_graph_list_sort": {
+        "domain": "network_robustness",
+        "rationale": "The package exposes no comparator callback or mutable C graph-list container across the Go boundary."
+      },
+      "igraph_graph_list_sort_ind": {
+        "domain": "network_robustness",
+        "rationale": "The package exposes no comparator callback or mutable C graph-list container across the Go boundary."
+      },
+      "igraph_graph_list_swap": {
+        "domain": "network_robustness",
+        "rationale": "Mutable C graph-list container operations remain internal behind Go-owned graph collections."
+      },
+      "igraph_graph_list_swap_elements": {
+        "domain": "network_robustness",
+        "rationale": "Mutable C graph-list ordering is internal; public graph collections use ordinary Go slice ordering."
+      },
+      "igraph_graph_list_tail_ptr": {
+        "domain": "network_robustness",
+        "rationale": "Borrowed pointers into mutable C graph-list storage cannot satisfy the public independent-ownership contract."
+      },
       "igraph_all_minimal_st_separators": {
         "domain": "network_robustness",
         "rationale": "The API materializes every minimal s-t separator in an unbounded vector list and provides no result bound or callback, so a Go-side limit could not prevent exponential C allocation."

@@ -6,7 +6,7 @@
 - User-facing bindings: **363 / 2015 (18.01%)**
 - Internal dependencies: **65**
 - Composed APIs: **24**
-- Intentionally unsupported: **130**
+- Intentionally unsupported: **157**
 - Deferred declarations: **0**
 - Completed domains: **attributes, graph_interchange, structural_diagnostics**
 
@@ -618,38 +618,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_gomory_hu_tree` | `igraph_flow.h` | User-facing | `GomoryHuTree` |
 | `igraph_graph_center` | `igraph_paths.h` | User-facing | `GraphCenter` |
 | `igraph_graph_count` | `igraph_isomorphism.h` | Missing | — |
-| `igraph_graph_list_capacity` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_clear` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_capacity` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_clear` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_list_destroy` | `igraph_components.h (generated)` | Internal | `close` |
-| `igraph_graph_list_discard` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_discard_back` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_discard_fast` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_empty` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_get_ptr` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_discard` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_discard_back` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_discard_fast` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_empty` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_get_ptr` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_list_init` | `igraph_components.h (generated)` | Internal | `newGraphList` |
-| `igraph_graph_list_init_copy` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_insert` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_insert_copy` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_insert_new` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_permute` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_pop_back` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_push_back` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_init_copy` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_insert` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_insert_copy` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_insert_new` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_permute` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_pop_back` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_push_back` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_list_push_back_copy` | `igraph_components.h (generated)` | Internal | `appendCopy` |
-| `igraph_graph_list_push_back_new` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_push_back_new` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_list_remove` | `igraph_components.h (generated)` | Internal | `takeGraphs` |
-| `igraph_graph_list_remove_consecutive_duplicates` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_remove_fast` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_replace` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_reserve` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_resize` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_reverse` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_set` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_remove_consecutive_duplicates` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_remove_fast` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_replace` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_reserve` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_resize` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_reverse` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_set` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_list_size` | `igraph_components.h (generated)` | Internal | `takeGraphs` |
-| `igraph_graph_list_sort` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_sort_ind` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_swap` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_swap_elements` | `igraph_components.h (generated)` | Missing | — |
-| `igraph_graph_list_tail_ptr` | `igraph_components.h (generated)` | Missing | — |
+| `igraph_graph_list_sort` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_sort_ind` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_swap` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_swap_elements` | `igraph_components.h (generated)` | Intentionally unsupported | — |
+| `igraph_graph_list_tail_ptr` | `igraph_components.h (generated)` | Intentionally unsupported | — |
 | `igraph_graph_power` | `igraph_operators.h` | Missing | — |
 | `igraph_graphlets` | `igraph_graphlets.h` | User-facing | `Graphlets` |
 | `igraph_graphlets_candidate_basis` | `igraph_graphlets.h` | User-facing | `GraphletsCandidateBasis` |
