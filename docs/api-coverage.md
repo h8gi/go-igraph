@@ -6,8 +6,8 @@
 - User-facing bindings: **362 / 2015 (17.97%)**
 - Internal dependencies: **65**
 - Composed APIs: **24**
-- Intentionally unsupported: **128**
-- Deferred declarations: **3**
+- Intentionally unsupported: **130**
+- Deferred declarations: **1**
 - Completed domains: **attributes, graph_interchange, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -124,7 +124,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_adjlist_simplify` | `igraph_adjlist.h` | Missing | — |
 | `igraph_adjlist_size` | `igraph_adjlist.h` | Missing | — |
 | `igraph_adjlist_sort` | `igraph_adjlist.h` | Missing | — |
-| `igraph_all_minimal_st_separators` | `igraph_separators.h` | Deferred | — |
+| `igraph_all_minimal_st_separators` | `igraph_separators.h` | Intentionally unsupported | — |
 | `igraph_all_st_cuts` | `igraph_flow.h` | User-facing | `AllSTCuts` |
 | `igraph_all_st_mincuts` | `igraph_flow.h` | User-facing | `AllSTMincuts` |
 | `igraph_allow_interruption` | `igraph_interrupt.h` | Missing | — |
@@ -1250,7 +1250,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_mincut` | `igraph_flow.h` | User-facing | `MinCut` |
 | `igraph_mincut_value` | `igraph_flow.h` | User-facing | `MinCutValue` |
 | `igraph_minimum_cycle_basis` | `igraph_cycles.h` | User-facing | `MinimumCycleBasis` |
-| `igraph_minimum_size_separators` | `igraph_separators.h` | Deferred | — |
+| `igraph_minimum_size_separators` | `igraph_separators.h` | Intentionally unsupported | — |
 | `igraph_minimum_spanning_tree` | `igraph_structural.h` | User-facing | `MinimumSpanningForest` |
 | `igraph_modularity` | `igraph_community.h` | User-facing | `Modularity` |
 | `igraph_modularity_matrix` | `igraph_community.h` | User-facing | `ModularityMatrix` |
