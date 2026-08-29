@@ -129,10 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_asymmetric_preference_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans an asymmetric typed-preference result with distinct Go-owned incoming and outgoing type assignments aligned to generated vertex IDs."
-      },
       "igraph_barabasi_aging_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will expose or classify preferential-attachment aging through checked options, arrival-order semantics, and the shared reproducible RNG contract."
@@ -177,14 +173,6 @@
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans uniform stochastic growth with checked attachment counts, explicit arrival ordering, and reproducible RNG behavior."
       },
-      "igraph_hsbm_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans hierarchical block generation from borrowed Go slices and matrices with checked block, distribution, and probability alignment."
-      },
-      "igraph_hsbm_list_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans the general hierarchical block model through ordinary Go collections while keeping C vector-list and matrix-list ownership internal."
-      },
       "igraph_iea_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review the experimental independent-edge-assignment model against the existing Erdos-Renyi API before choosing a user-facing, composed, or unsupported disposition."
@@ -192,10 +180,6 @@
       "igraph_lastcit_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this aging-bin citation model for a checked Go-native workflow or an explicit composed or unsupported disposition."
-      },
-      "igraph_preference_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans a typed-preference generator with checked distributions and matrices plus Go-owned vertex types aligned to generated IDs."
       },
       "igraph_recent_degree_aging_game": {
         "domain": "advanced_random_graph_models",
@@ -220,10 +204,6 @@
       "igraph_rng_sample_sphere_volume": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans sphere-volume latent sampling into a Go-owned row-per-sample Matrix with checked dimensions and radius."
-      },
-      "igraph_simple_interconnected_islands_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans or classifies the island model alongside block and preference generators with explicit vertex ordering and probability semantics."
       }
     },
     "intentionally_unsupported": {
