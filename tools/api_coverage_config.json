@@ -128,12 +128,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_cohesive_blocks": {
-        "domain": "network_robustness",
-        "rationale": "Milestone 21 plans one aligned Go-owned decomposition result with an independently owned block-tree graph and explicit partial-initialization cleanup."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_all_minimal_st_separators": {
         "domain": "network_robustness",
