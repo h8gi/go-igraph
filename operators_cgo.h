@@ -14,6 +14,10 @@ igraph_error_t go_igraph_union_many(
 igraph_error_t go_igraph_intersection_many(
     igraph_t *, const igraph_t *, igraph_int_t,
     igraph_vector_int_list_t *);
+igraph_error_t go_igraph_graph_power(
+    const igraph_t *, igraph_t *, igraph_int_t, igraph_bool_t);
+igraph_error_t go_igraph_connect_neighborhood(
+    igraph_t *, igraph_int_t, igraph_neimode_t);
 
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *, const igraph_t *, const igraph_t *);

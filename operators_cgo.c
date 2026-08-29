@@ -61,6 +61,17 @@ igraph_error_t go_igraph_intersection_many(
         result, graphs, count, maps, igraph_intersection_many));
 }
 
+igraph_error_t go_igraph_graph_power(
+    const igraph_t *graph, igraph_t *result, igraph_int_t order,
+    igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_graph_power(graph, result, order, directed));
+}
+
+igraph_error_t go_igraph_connect_neighborhood(
+    igraph_t *graph, igraph_int_t order, igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_connect_neighborhood(graph, order, mode));
+}
+
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *result, const igraph_t *left, const igraph_t *right) {
     GO_IGRAPH_CALL(igraph_disjoint_union(result, left, right));
