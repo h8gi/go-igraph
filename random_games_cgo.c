@@ -334,6 +334,24 @@ igraph_error_t go_igraph_rewire_edges(
     GO_IGRAPH_CALL(igraph_rewire_edges(graph, prob, allowed_edge_types));
 }
 
+igraph_error_t go_igraph_iea_game(
+    igraph_t *graph,
+    igraph_int_t vertex_count,
+    igraph_int_t edge_count,
+    igraph_bool_t directed,
+    igraph_bool_t loops) {
+    GO_IGRAPH_CALL(igraph_iea_game(
+        graph, vertex_count, edge_count, directed, loops));
+}
+
+igraph_error_t go_igraph_rewire_directed_edges(
+    igraph_t *graph,
+    igraph_real_t prob,
+    igraph_bool_t loops,
+    igraph_neimode_t mode) {
+    GO_IGRAPH_CALL(igraph_rewire_directed_edges(graph, prob, loops, mode));
+}
+
 igraph_error_t go_igraph_random_walk(
     const igraph_t *graph,
     const igraph_vector_t *weights,

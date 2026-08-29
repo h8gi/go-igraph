@@ -128,16 +128,7 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {
-      "igraph_iea_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review the experimental independent-edge-assignment model against the existing Erdos-Renyi API before choosing a user-facing, composed, or unsupported disposition."
-      },
-      "igraph_rewire_directed_edges": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans directed endpoint rewiring through checked direction and probability options and the existing atomic clone-and-swap mutation contract."
-      }
-    },
+    "deferred": {},
     "intentionally_unsupported": {
       "igraph_matrix_list_capacity": {
         "domain": "advanced_random_graph_models",

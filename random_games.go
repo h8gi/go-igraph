@@ -122,6 +122,29 @@ func ErdosRenyiGNM(n int, m int, directed bool, loops bool, options ErdosRenyiOp
 	})
 }
 
+// IndependentEdgeAssignmentGame generates an experimental random multigraph
+// by assigning each of m distinguishable edges independently and uniformly to
+// an ordered pair of n vertices. Unlike the usual G(n,m) model, this does not
+// sample unlabeled multigraphs uniformly. Parallel edges are allowed; loops
+// controls whether self-loops are allowed.
+//
+// The returned graph is independently Go-owned and must be closed by the
+// caller. Options are borrowed for the duration of the call. This API mirrors
+// an upstream C/igraph function that is explicitly marked experimental.
+//
+//igraph:bind igraph_iea_game
+func IndependentEdgeAssignmentGame(n, m int, directed, loops bool, options ErdosRenyiOptions) (*Graph, error) {
+	if err := validateConstructorSize("vertex count", n); err != nil {
+		return nil, err
+	}
+	if err := validateConstructorSize("edge count", m); err != nil {
+		return nil, err
+	}
+	return generateGraph("igraph_iea_game", options.Seed, func(graph *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_iea_game(graph, C.igraph_int_t(n), C.igraph_int_t(m), booltoint(directed), booltoint(loops))
+	})
+}
+
 // ErdosRenyiGNP samples a random graph with n vertices where every possible
 // edge is included independently with probability p, following the G(n,p)
 // Erdős-Rényi model. When loops is true, self-loops are sampled with the same
@@ -803,6 +826,86 @@ func (g *Graph) RewireEdges(prob float64, loops bool, multiple bool, options Rew
 
 	committed = true
 	return adoptInitializedGraph(&clone), nil
+}
+
+type directedRewireStage uint8
+
+const (
+	directedRewireBeforeClone directedRewireStage = iota
+	directedRewireAtMutation
+	directedRewireAfterMutation
+)
+
+type directedRewireFailureHook func(directedRewireStage) error
+
+// RewireDirectedEdges rewires selected endpoints of the receiver's edges with
+// probability prob. DirectionOut rewires each edge's end and preserves
+// out-degrees; DirectionIn rewires each edge's start and preserves in-degrees;
+// DirectionAll rewires both endpoints. On undirected graphs direction is
+// ignored. Parallel edges may be produced, while loops controls self-loops.
+//
+// The receiver is mutated atomically and retains its ownership and attributes.
+// Validation, clone initialization, RNG, or upstream failure leaves it
+// unchanged. Options are borrowed for the duration of the call.
+//
+//igraph:bind igraph_rewire_directed_edges
+func (g *Graph) RewireDirectedEdges(prob float64, direction DirectionMode, loops bool, options RewireOptions) error {
+	return g.rewireDirectedEdges(prob, direction, loops, options, nil)
+}
+
+func (g *Graph) rewireDirectedEdges(prob float64, direction DirectionMode, loops bool, options RewireOptions, hook directedRewireFailureHook) error {
+	if g == nil {
+		return ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return ErrClosed
+	}
+	if math.IsNaN(prob) || math.IsInf(prob, 0) || prob < 0 || prob > 1 {
+		return fmt.Errorf("igraph: probability must be finite and in [0,1], got %g", prob)
+	}
+	cDirection, err := direction.cValue()
+	if err != nil {
+		return err
+	}
+	if err := runDirectedRewireHook(hook, directedRewireBeforeClone); err != nil {
+		return err
+	}
+	var replacement C.igraph_t
+	if code := C.go_igraph_copy(&replacement, &g.graph); code != C.IGRAPH_SUCCESS {
+		return igraphError("copy graph for directed edge rewiring", int(code))
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			C.igraph_destroy(&replacement)
+		}
+	}()
+	if err := runDirectedRewireHook(hook, directedRewireAtMutation); err != nil {
+		return err
+	}
+	if err := withRNG(options.Seed, func() error {
+		if code := C.go_igraph_rewire_directed_edges(&replacement, C.igraph_real_t(prob), booltoint(loops), cDirection); code != C.IGRAPH_SUCCESS {
+			return igraphError("igraph_rewire_directed_edges", int(code))
+		}
+		return nil
+	}); err != nil {
+		return err
+	}
+	if err := runDirectedRewireHook(hook, directedRewireAfterMutation); err != nil {
+		return err
+	}
+	replaceInitializedGraph(&g.graph, &replacement)
+	committed = true
+	return nil
+}
+
+func runDirectedRewireHook(hook directedRewireFailureHook, stage directedRewireStage) error {
+	if hook == nil {
+		return nil
+	}
+	return hook(stage)
 }
 
 // RandomWalk performs a random walk of up to steps length starting at vertex start.
