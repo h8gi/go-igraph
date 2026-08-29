@@ -129,14 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_correlated_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans graph-derived correlated sampling with permutation validation, source read locking, reproducible RNG coordination, and an independently owned result."
-      },
-      "igraph_correlated_pair_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans a named independently owned graph-pair result with checked correlation, probability, permutation, and partial-result cleanup."
-      },
       "igraph_dot_product_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans random-dot-product generation from a borrowed row-per-vertex Matrix with validated finite probability dot products."
