@@ -128,7 +128,60 @@
         "rationale": "Call-scoped Go policy values are immutable during an operation, so records never need public mutation or removal."
       }
     },
-    "deferred": {},
+    "deferred": {
+      "igraph_connect_neighborhood": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #354 will define an atomic clone-and-swap neighborhood-closure API with explicit order, direction, attribute, and provenance semantics."
+      },
+      "igraph_contract_vertices": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #356 will define validated many-to-one vertex contraction with explicit attribute combination, mappings, and atomic mutation."
+      },
+      "igraph_disjoint_union_many": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #353 will replace the raw graph-pointer vector with a borrowed Go graph slice and independently owned result."
+      },
+      "igraph_graph_power": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #354 will define an independently owned graph-power result with checked order and explicit directed-path semantics."
+      },
+      "igraph_induced_subgraph": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing InducedSubgraph API backed by igraph_induced_subgraph_map."
+      },
+      "igraph_induced_subgraph_edges": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing mapped InducedSubgraph workflow."
+      },
+      "igraph_intersection_many": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #353 will define stable multi-graph locking, per-input provenance, and attribute conflict handling for many-graph intersection."
+      },
+      "igraph_join": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #355 will define independently owned join results, operand ordering, provenance, and attribute behavior."
+      },
+      "igraph_mycielskian": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #357 will expose the upstream experimental Mycielski transformation with checked size, provenance, and ownership contracts."
+      },
+      "igraph_product": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #355 will expose selected experimental graph products through a typed Go product mode and checked result contract."
+      },
+      "igraph_reverse_edges": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #356 will define selector-based atomic edge reversal with explicit directed, duplicate-selection, and no-op behavior."
+      },
+      "igraph_rooted_product": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #355 will define an experimental rooted-product API with operand-specific root validation and independently owned output."
+      },
+      "igraph_union_many": {
+        "domain": "graph_algebra_and_transformations",
+        "rationale": "Milestone 23 issue #353 will define stable multi-graph locking, per-input provenance, and attribute conflict handling for many-graph union."
+      }
+    },
     "intentionally_unsupported": {
       "igraph_matrix_list_capacity": {
         "domain": "advanced_random_graph_models",

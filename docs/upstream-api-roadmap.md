@@ -2029,6 +2029,128 @@ and runnable examples cover the advanced workflows, while race, statement
 coverage, inventory freshness, and cleanup contracts are enforced by
 `make verify`.
 
+## Milestone 23: Graph algebra and advanced transformations
+
+Goal: make many-graph set operations, graph powers and products, and advanced
+structural transformations safe, composable Go building blocks without exposing
+C graph-pointer vectors, generated mapping lists, selectors, attribute records,
+or partial graph ownership.
+
+Status: planned. This contract and initial inventory are established in
+[#352](https://github.com/h8gi/go-igraph/issues/352). Implementation proceeds
+through [#353](https://github.com/h8gi/go-igraph/issues/353)–
+[#357](https://github.com/h8gi/go-igraph/issues/357), followed by the
+integration, ownership, concurrency, documentation, and operator-inventory
+audit in [#358](https://github.com/h8gi/go-igraph/issues/358).
+
+Reference workflows:
+
+- graph-set algebra combines a borrowed slice of graphs by union,
+  intersection, or disjoint union, uses per-input Go-owned mappings to align
+  source IDs with the independently owned result, and continues using the
+  result and mappings after every source is closed;
+- neighborhood expansion computes an independently owned graph power or
+  atomically connects the receiver within a checked path distance, then
+  composes the result with existing degree, component, and shortest-path APIs;
+- product construction joins two graphs or forms a selected standard or rooted
+  product, with explicit operand ordering and Go-owned source provenance;
+- atomic editing contracts vertices under a caller-selected attribute policy
+  or reverses selected directed edges, returning exact structural mappings
+  when available and leaving the receiver unchanged on failure; and
+- experimental Mycielski construction returns an independently owned graph and
+  Go-owned generation provenance suitable for existing coloring and structural
+  analysis workflows.
+
+Planned areas:
+
+- many-graph union, intersection, and disjoint union
+  ([#353](https://github.com/h8gi/go-igraph/issues/353));
+- graph powers and atomic neighborhood closure
+  ([#354](https://github.com/h8gi/go-igraph/issues/354));
+- joins, typed standard graph products, and rooted products
+  ([#355](https://github.com/h8gi/go-igraph/issues/355));
+- atomic vertex contraction and selector-based edge reversal
+  ([#356](https://github.com/h8gi/go-igraph/issues/356));
+- experimental Mycielski graph construction
+  ([#357](https://github.com/h8gi/go-igraph/issues/357)); and
+- final integration, examples, documentation, ownership/race coverage, and
+  classification of all 25 declarations in `igraph_operators.h`
+  ([#358](https://github.com/h8gi/go-igraph/issues/358)).
+
+Execution order: #352 establishes the reference workflows, common contracts,
+and initial dispositions. #353 through #357 may then proceed independently
+because they reuse existing graph-result, stable-locking, selector, mapping,
+attribute-combination, checked-conversion, error, and clone-and-swap
+infrastructure. #358 follows every implementation slice, reviews the two
+lower-level induced-subgraph declarations against the existing mapped
+`InducedSubgraph` workflow, and removes every stale deferred disposition in
+`igraph_operators.h`.
+
+Ownership and concurrency contract: graph slices, individual graph operands,
+selectors, mappings, product options, and attribute policies are borrowed only
+for the synchronous call. Returned graphs are independently owned and must be
+closed; returned mappings and provenance are non-nil Go-owned values that
+remain valid after source, sibling, and result closure. Multi-graph operations
+reject nil and closed operands, deduplicate repeated graph pointers for
+locking, and acquire distinct read locks in stable order through C execution,
+attribute restoration, mapping conversion, and result adoption. Reversed
+operand order and repeated operands must not deadlock.
+
+Mutation and failure contract: neighborhood closure, contraction, and edge
+reversal validate checked counts, orders, IDs, mappings, selectors, and
+attribute policies before mutation and operate on a clone. They swap the
+completed clone into the receiver only after C execution, mapping conversion,
+and attribute handling succeed. Validation, initialization, upstream,
+conversion, provenance, and combination failures destroy every temporary
+vector, selector, pointer container, mapping list, combination record, and
+partial graph exactly once and leave the receiver unchanged. A racing `Close`
+waits for the operation or causes it to return `ErrClosed`; calls after
+`Close` return `ErrClosed`.
+
+Structural and attribute contract: APIs explicitly define result vertex and
+edge ordering, directedness, loop and parallel-edge multiplicity, operand
+order, repeated operands, empty collections and graphs, singleton and identity
+cases, zero order, disconnected input, root IDs, contraction target
+normalization, duplicate selections, and checked result-size overflow.
+Graph, vertex, and edge attributes are preserved or combined through the
+existing typed operator and transformation policies wherever exact provenance
+exists; an operation must reject an unresolved conflict or document deliberate
+non-propagation instead of guessing provenance. Many-to-one contraction
+requires explicit vertex-attribute combination when values merge.
+
+Experimental contract: public product, rooted-product, and Mycielski APIs retain
+visible warnings that their upstream C/igraph functions are experimental.
+Their Go ownership, validation, and error contracts are stable for the pinned
+1.0.1 release, but upstream structural semantics may change in a future
+dependency upgrade and must be re-audited before that upgrade.
+
+Initial inventory disposition: the 12 already classified declarations in
+`igraph_operators.h` retain their user-facing or internal dispositions. The 11
+new implementation declarations and two lower-level induced-subgraph
+declarations are deferred to #353–#358 under the
+`graph_algebra_and_transformations` domain. Every one of the header's 25
+declarations therefore has an initial reviewed disposition; #358 must replace
+all 13 deferred entries with user-facing, composed, internal, or intentionally
+unsupported final classifications and mark the domain complete.
+
+Completion criteria:
+
+- reference workflows require no C types or caller-inferred ownership,
+  ordering, alignment, attribute, direction, or experimental semantics;
+- many-graph and binary operations remain deadlock-free with repeated operands,
+  reversed operand order, concurrent calls, and close races;
+- every returned graph survives source and sibling closure and every Go-owned
+  mapping or provenance value survives closure of all graphs;
+- initialization failure, upstream error, early return, checked conversion,
+  attribute conflict, mapping mismatch, and partial result construction release
+  all temporary C resources and preserve atomic mutations;
+- behavioral and race coverage includes empty and degenerate graphs, loops,
+  parallel edges, directed and undirected inputs, invalid roots and mappings,
+  duplicate selectors, no-op operations, and use after `Close`; and
+- every declaration in `igraph_operators.h` has a final reviewed disposition,
+  output-checked and runnable examples cover graph-algebra workflows, statement
+  coverage remains at least 90.0%, and `make verify` passes.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
