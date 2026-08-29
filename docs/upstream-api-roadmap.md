@@ -1814,13 +1814,17 @@ consider a single-edge two-vertex graph biconnected.
 
 Enumeration contract: `igraph_all_minimal_st_separators` enumerates sets that
 are minimal for at least one source-target pair; those sets are not necessarily
-minimal for disconnecting the graph as a whole. `igraph_minimum_size_separators`
+minimal for disconnecting the graph as a whole. Its implementation grows the
+result vector list while using previously found separators to generate more,
+with no result bound, callback, or interruption point. `igraph_minimum_size_separators`
 requires undirected input, returns no sets for already disconnected or complete
-graphs, and promises no result ordering. Neither declaration becomes public
-merely by adding a Go-side `Limit` after C has materialized all results. A public
-enumeration requires a genuine pre-materialization allocation bound or a
-reviewed composition that provides one; otherwise it receives an intentionally
-unsupported disposition with an allocation-safety rationale.
+graphs, and promises no result ordering. Although its outer search permits
+interruption, each qualifying source-target pair delegates to an all-mincut
+operation that materializes its complete nested result before returning. No
+existing bounded go-igraph operation composes these global enumerations without
+the same unbounded intermediate storage. Both declarations are therefore
+intentionally unsupported: a Go-side `Limit` applied after C returns would not
+provide a genuine pre-materialization allocation bound.
 
 Cohesive hierarchy contract: the source graph must be undirected and simple.
 Block vertex sets use source vertex IDs. The block, cohesion, and parent slices
