@@ -10,7 +10,7 @@ import (
 func main() {
 	seed := uint64(2026)
 
-	fmt.Println("=== Milestone 8: Reproducible Random Graphs & Sampling Demo ===")
+	fmt.Println("=== Reproducible and Advanced Random Graph Models ===")
 
 	// 1. Generate a Barabási-Albert scale-free network reproducibly.
 	baGraph, err := igraph.BarabasiGame(20, 2, 1.0, 1.0, false, igraph.BarabasiOptions{Seed: &seed})
@@ -59,6 +59,31 @@ func main() {
 		log.Fatalf("RandomSpanningTree failed: %v", err)
 	}
 	fmt.Printf("5. Sampled Random Spanning Tree Edge IDs: %v\n", treeEdges)
+
+	// 6. Sample row-oriented latent positions and generate a random-dot-product graph.
+	positions, err := igraph.SampleDirichlet(8, []float64{1, 1, 1}, igraph.LatentSampleOptions{Seed: &seed})
+	if err != nil {
+		log.Fatalf("SampleDirichlet failed: %v", err)
+	}
+	latentGraph, err := igraph.DotProductGame(positions, igraph.LatentGraphOptions{Seed: &seed})
+	if err != nil {
+		log.Fatalf("DotProductGame failed: %v", err)
+	}
+	defer latentGraph.Close()
+	rows, dimensions := positions.Dims()
+	fmt.Printf("6. Generated latent graph from a %d-by-%d row-per-vertex matrix.\n", rows, dimensions)
+
+	// 7. Reuse Go-owned geometric coordinates in spatial analysis.
+	geometric, err := igraph.GeometricRandomGame(12, 0.3, igraph.GeometricGraphOptions{Seed: &seed})
+	if err != nil {
+		log.Fatalf("GeometricRandomGame failed: %v", err)
+	}
+	defer geometric.Graph.Close()
+	lengths, err := geometric.Graph.SpatialEdgeLengths(geometric.Coordinates, igraph.SpatialEuclidean)
+	if err != nil {
+		log.Fatalf("SpatialEdgeLengths failed: %v", err)
+	}
+	fmt.Printf("7. Reused geometric coordinates to measure %d spatial edges.\n", len(lengths))
 }
 
 func mustCounts(g *igraph.Graph) (int, int) {

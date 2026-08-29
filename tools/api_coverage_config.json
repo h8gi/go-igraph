@@ -889,6 +889,7 @@
     }
   },
   "completed_domains": [
+    "advanced_random_graph_models",
     "attributes",
     "graph_interchange",
     "structural_diagnostics"

@@ -102,6 +102,15 @@
 // RANDESU motif sampling follows the same RNG contract. Its histogram keeps
 // upstream NaN markers for impossible isomorphism classes; every finite count
 // and all graphlet clique, threshold, and coefficient slices are Go-owned.
+// Advanced random graph models use the same package RNG contract. Expected
+// degree, fitness, preference, block, growth, citation, correlated, geometric,
+// and latent-position inputs are borrowed synchronously. Returned graphs own
+// independent C resources and must be closed; auxiliary type assignments,
+// coordinates, and sample matrices are Go-owned. Public matrices always use
+// one vertex or sample per row. Multi-graph results own each graph separately,
+// and directed endpoint rewiring commits through clone-and-swap so failures
+// leave the receiver and its attributes unchanged. APIs that mirror upstream
+// experimental generators state that status explicitly.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined
