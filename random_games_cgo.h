@@ -78,6 +78,20 @@ igraph_error_t go_igraph_asymmetric_preference_game(igraph_t *, igraph_int_t,
     igraph_vector_int_t *, igraph_vector_int_t *, igraph_bool_t);
 igraph_error_t go_igraph_simple_interconnected_islands_game(igraph_t *,
     igraph_int_t, igraph_int_t, igraph_real_t, igraph_int_t);
+igraph_error_t go_igraph_growing_random_game(igraph_t *, igraph_int_t,
+    igraph_int_t, igraph_bool_t, igraph_bool_t);
+igraph_error_t go_igraph_forest_fire_game(igraph_t *, igraph_int_t,
+    igraph_real_t, igraph_real_t, igraph_int_t, igraph_bool_t);
+igraph_error_t go_igraph_barabasi_aging_game(igraph_t *, igraph_int_t,
+    igraph_int_t, const igraph_vector_int_t *, igraph_bool_t, igraph_real_t,
+    igraph_real_t, igraph_int_t, igraph_real_t, igraph_real_t, igraph_real_t,
+    igraph_real_t, igraph_bool_t);
+igraph_error_t go_igraph_recent_degree_game(igraph_t *, igraph_int_t,
+    igraph_real_t, igraph_int_t, igraph_int_t, const igraph_vector_int_t *,
+    igraph_bool_t, igraph_real_t, igraph_bool_t);
+igraph_error_t go_igraph_recent_degree_aging_game(igraph_t *, igraph_int_t,
+    igraph_int_t, const igraph_vector_int_t *, igraph_bool_t, igraph_real_t,
+    igraph_real_t, igraph_int_t, igraph_int_t, igraph_real_t, igraph_bool_t);
 
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
