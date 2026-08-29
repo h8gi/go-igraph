@@ -148,6 +148,46 @@ igraph_error_t go_igraph_simple_interconnected_islands_game(igraph_t *graph,
     GO_IGRAPH_CALL(igraph_simple_interconnected_islands_game(graph, count, size, pin, inter));
 }
 
+igraph_error_t go_igraph_growing_random_game(igraph_t *graph, igraph_int_t n,
+    igraph_int_t m, igraph_bool_t directed, igraph_bool_t citation) {
+    GO_IGRAPH_CALL(igraph_growing_random_game(graph, n, m, directed, citation));
+}
+
+igraph_error_t go_igraph_forest_fire_game(igraph_t *graph, igraph_int_t nodes,
+    igraph_real_t forward, igraph_real_t backward, igraph_int_t ambassadors,
+    igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_forest_fire_game(graph, nodes, forward, backward,
+        ambassadors, directed));
+}
+
+igraph_error_t go_igraph_barabasi_aging_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_int_t m, const igraph_vector_int_t *outseq,
+    igraph_bool_t outpref, igraph_real_t pa_exp, igraph_real_t aging_exp,
+    igraph_int_t aging_bins, igraph_real_t zero_degree,
+    igraph_real_t zero_age, igraph_real_t degree_coefficient,
+    igraph_real_t age_coefficient, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_barabasi_aging_game(graph, nodes, m, outseq,
+        outpref, pa_exp, aging_exp, aging_bins, zero_degree, zero_age,
+        degree_coefficient, age_coefficient, directed));
+}
+
+igraph_error_t go_igraph_recent_degree_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_real_t power, igraph_int_t window,
+    igraph_int_t m, const igraph_vector_int_t *outseq, igraph_bool_t outpref,
+    igraph_real_t zero_appeal, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_recent_degree_game(graph, nodes, power, window, m,
+        outseq, outpref, zero_appeal, directed));
+}
+
+igraph_error_t go_igraph_recent_degree_aging_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_int_t m, const igraph_vector_int_t *outseq,
+    igraph_bool_t outpref, igraph_real_t pa_exp, igraph_real_t aging_exp,
+    igraph_int_t aging_bins, igraph_int_t window, igraph_real_t zero_appeal,
+    igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_recent_degree_aging_game(graph, nodes, m, outseq,
+        outpref, pa_exp, aging_exp, aging_bins, window, zero_appeal, directed));
+}
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,

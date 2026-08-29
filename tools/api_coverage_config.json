@@ -129,10 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_barabasi_aging_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will expose or classify preferential-attachment aging through checked options, arrival-order semantics, and the shared reproducible RNG contract."
-      },
       "igraph_callaway_traits_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this older trait-growth model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
@@ -161,17 +157,9 @@
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this older trait-establishment model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
       },
-      "igraph_forest_fire_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans a checked arrival-ordered forest-fire generator using the package-wide reproducible RNG contract."
-      },
       "igraph_grg_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans geometric random graph generation with an independently owned graph and a Go-owned row-per-vertex coordinate Matrix."
-      },
-      "igraph_growing_random_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 plans uniform stochastic growth with checked attachment counts, explicit arrival ordering, and reproducible RNG behavior."
       },
       "igraph_iea_game": {
         "domain": "advanced_random_graph_models",
@@ -180,14 +168,6 @@
       "igraph_lastcit_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review this aging-bin citation model for a checked Go-native workflow or an explicit composed or unsupported disposition."
-      },
-      "igraph_recent_degree_aging_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will expose or classify recent-degree attachment with aging through checked options, arrival ordering, and reproducible RNG behavior."
-      },
-      "igraph_recent_degree_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will expose or classify recent-degree attachment through checked windows, borrowed output sequences, and arrival-order semantics."
       },
       "igraph_rewire_directed_edges": {
         "domain": "advanced_random_graph_models",
