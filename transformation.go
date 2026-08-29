@@ -8,10 +8,12 @@ import "C"
 
 import (
 	"fmt"
+	"sort"
 )
 
 // GraphTransformationResult describes ID provenance from a successful in-place
-// graph transformation. Vertex IDs are always available and unchanged. When
+// graph transformation. Vertex mappings are always exact; operation-specific
+// documentation states whether they are identity or many-to-one. When
 // EdgeMappingAvailable is true, Mapping.Edges maps source edge IDs to result
 // edge IDs and may be many-to-one. When it is false, Mapping.Edges contains
 // non-nil empty slices and must not be interpreted as an empty source graph.
@@ -84,6 +86,225 @@ func (g *Graph) connectNeighborhoodInPlace(order int, direction DirectionMode, h
 		mapping, err := prefixEdgeMapping(before, after, directed)
 		return mapping, true, err
 	})
+}
+
+// ContractVerticesInPlace atomically merges vertices according to mapping.
+// mapping is indexed by the current vertex ID and must have exactly one
+// non-negative target label per vertex. Labels may contain gaps: distinct
+// labels are ranked in ascending order to produce consecutive result IDs.
+// Mapping.Vertices is the exact old-to-normalized-result mapping and chooses
+// the lowest source ID as each NewToOld representative. All edges retain their
+// IDs and attributes; contraction may turn them into loops or parallel edges.
+// Directedness, graph attributes, and edge attributes are preserved.
+//
+// When contraction merges vertices that have attributes, vertexAttributes is
+// required and controls each many-to-one value. The mapping and policy are
+// borrowed only for the synchronous call. An identity mapping, including one
+// produced by normalizing gapped labels, is a validated no-op. The operation
+// uses clone-and-swap, so validation, allocation, upstream, attribute
+// combination, or provenance failure leaves g unchanged.
+//
+//igraph:bind igraph_contract_vertices
+func (g *Graph) ContractVerticesInPlace(mapping []int, vertexAttributes *AttributeCombinationPolicy) (GraphTransformationResult, error) {
+	return g.contractVerticesInPlace(mapping, vertexAttributes, nil)
+}
+
+func (g *Graph) contractVerticesInPlace(mapping []int, vertexAttributes *AttributeCombinationPolicy, hook graphTransformationFailureHook) (GraphTransformationResult, error) {
+	if g == nil {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	vertexCount := int(C.igraph_vcount(&g.graph))
+	normalized, resultVertexCount, identity, err := normalizeContractionMapping(mapping, vertexCount)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	metadata, err := attributeMetadataLocked(&g.graph, AttributeVertex)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	if identity {
+		if vertexAttributes != nil {
+			if err := validateCombinationPolicy(vertexAttributes, metadata); err != nil {
+				return GraphTransformationResult{}, err
+			}
+		}
+		return contractionResult(normalized, resultVertexCount, int(C.igraph_ecount(&g.graph)))
+	}
+	combination, err := newAttributeCombination(vertexAttributes, metadata)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	defer combination.close()
+	cMapping, err := newIntVector(normalized)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	defer cMapping.close()
+	result, err := contractionResult(normalized, resultVertexCount, int(C.igraph_ecount(&g.graph)))
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	if err := runGraphTransformationHook(hook, graphTransformationAtClone); err != nil {
+		return GraphTransformationResult{}, err
+	}
+	var replacement C.igraph_t
+	if code := C.go_igraph_copy(&replacement, &g.graph); code != C.IGRAPH_SUCCESS {
+		return GraphTransformationResult{}, igraphError("contract vertices copy", int(code))
+	}
+	committed := false
+	defer func() {
+		if !committed {
+			C.igraph_destroy(&replacement)
+		}
+	}()
+	if err := runGraphTransformationHook(hook, graphTransformationAtTransform); err != nil {
+		return GraphTransformationResult{}, err
+	}
+	var cCombination *C.igraph_attribute_combination_t
+	if combination != nil {
+		cCombination = &combination.value
+	}
+	if code := C.go_igraph_contract_vertices(&replacement, &cMapping.value, cCombination); code != C.IGRAPH_SUCCESS {
+		return GraphTransformationResult{}, igraphError("contract vertices", int(code))
+	}
+	if err := runGraphTransformationHook(hook, graphTransformationAfterTransform); err != nil {
+		return GraphTransformationResult{}, err
+	}
+	if got := int(C.igraph_vcount(&replacement)); got != resultVertexCount {
+		return GraphTransformationResult{}, fmt.Errorf("igraph: contracted vertex count is %d, want %d", got, resultVertexCount)
+	}
+	if got, want := int(C.igraph_ecount(&replacement)), len(result.Mapping.Edges.OldToNew); got != want {
+		return GraphTransformationResult{}, fmt.Errorf("igraph: contracted edge count is %d, want %d", got, want)
+	}
+	replaceInitializedGraph(&g.graph, &replacement)
+	committed = true
+	return result, nil
+}
+
+func normalizeContractionMapping(mapping []int, vertexCount int) ([]int, int, bool, error) {
+	if len(mapping) != vertexCount {
+		return nil, 0, false, fmt.Errorf("igraph: contraction mapping length is %d, want %d", len(mapping), vertexCount)
+	}
+	labels := make([]int, 0, vertexCount)
+	seen := make(map[int]struct{}, vertexCount)
+	for vertex, label := range mapping {
+		if label < 0 {
+			return nil, 0, false, fmt.Errorf("igraph: contraction target for vertex %d must be non-negative: %d", vertex, label)
+		}
+		if _, ok := seen[label]; !ok {
+			seen[label] = struct{}{}
+			labels = append(labels, label)
+		}
+	}
+	sort.Ints(labels)
+	ranks := make(map[int]int, len(labels))
+	for rank, label := range labels {
+		ranks[label] = rank
+	}
+	normalized := make([]int, vertexCount)
+	identity := len(labels) == vertexCount
+	for vertex, label := range mapping {
+		normalized[vertex] = ranks[label]
+		identity = identity && normalized[vertex] == vertex
+	}
+	return normalized, len(labels), identity, nil
+}
+
+func contractionResult(vertices []int, resultVertexCount, edgeCount int) (GraphTransformationResult, error) {
+	vertexMapping, err := newIDMapping(vertices, resultVertexCount)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	edgeMapping, err := identityIDMapping(edgeCount)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	return GraphTransformationResult{
+		Mapping:              GraphIDMapping{Vertices: vertexMapping, Edges: edgeMapping},
+		EdgeMappingAvailable: true,
+	}, nil
+}
+
+// ReverseEdgesInPlace atomically reverses selected edges of a directed graph.
+// The selector is validated and materialized before cloning. Duplicate IDs or
+// endpoint pairs select an edge once, so they never cancel by double reversal.
+// An empty selector is a validated no-op. Vertex and edge IDs, ordering, loops,
+// parallel multiplicity, and all attributes are preserved; both returned
+// mappings are exact non-nil identities. Undirected graphs are rejected.
+//
+//igraph:bind igraph_reverse_edges
+func (g *Graph) ReverseEdgesInPlace(selector EdgeSelector) (GraphTransformationResult, error) {
+	return g.reverseEdgesInPlace(selector, nil)
+}
+
+func (g *Graph) reverseEdgesInPlace(selector EdgeSelector, hook graphTransformationFailureHook) (GraphTransformationResult, error) {
+	if g == nil {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return GraphTransformationResult{}, ErrClosed
+	}
+	if C.igraph_is_directed(&g.graph) == booltoint(false) {
+		return GraphTransformationResult{}, fmt.Errorf("igraph: edge reversal requires a directed graph")
+	}
+	selected, err := materializeSelectedEdgeIDs(&g.graph, selector)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	selected = uniqueSelectedEdgeIDs(selected)
+	if len(selected) == 0 {
+		return identityGraphTransformationResult(int(C.igraph_vcount(&g.graph)), int(C.igraph_ecount(&g.graph)))
+	}
+	selectedSelector, err := EdgeIDs(selected...)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	cSelector, err := newCEdgeSelector(selectedSelector)
+	if err != nil {
+		return GraphTransformationResult{}, err
+	}
+	defer cSelector.close()
+	selectedSet := make(map[int]struct{}, len(selected))
+	for _, edgeID := range selected {
+		selectedSet[edgeID] = struct{}{}
+	}
+	return g.applyAtomicGraphTransformation("reverse graph edges", hook, func(replacement *C.igraph_t) C.igraph_error_t {
+		return C.go_igraph_reverse_edges(replacement, cSelector.value)
+	}, func(before, after []Edge, _ bool) (IDMapping, bool, error) {
+		if len(before) != len(after) {
+			return IDMapping{}, false, fmt.Errorf("edge count changed from %d to %d", len(before), len(after))
+		}
+		for edgeID, edge := range before {
+			if _, reverse := selectedSet[edgeID]; reverse {
+				edge.From, edge.To = edge.To, edge.From
+			}
+			if edge != after[edgeID] {
+				return IDMapping{}, false, fmt.Errorf("edge %d is %v after reversal, want %v", edgeID, after[edgeID], edge)
+			}
+		}
+		mapping, err := identityIDMapping(len(before))
+		return mapping, true, err
+	})
+}
+
+func uniqueSelectedEdgeIDs(ids []int) []int {
+	result := make([]int, 0, len(ids))
+	seen := make(map[int]struct{}, len(ids))
+	for _, id := range ids {
+		if _, ok := seen[id]; ok {
+			continue
+		}
+		seen[id] = struct{}{}
+		result = append(result, id)
+	}
+	return result
 }
 
 // DirectedConversionMode controls how an undirected edge becomes directed.

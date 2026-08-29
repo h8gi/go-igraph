@@ -129,10 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_contract_vertices": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #356 will define validated many-to-one vertex contraction with explicit attribute combination, mappings, and atomic mutation."
-      },
       "igraph_induced_subgraph": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #358 will review this lower-level declaration against the existing InducedSubgraph API backed by igraph_induced_subgraph_map."
@@ -144,10 +140,6 @@
       "igraph_mycielskian": {
         "domain": "graph_algebra_and_transformations",
         "rationale": "Milestone 23 issue #357 will expose the upstream experimental Mycielski transformation with checked size, provenance, and ownership contracts."
-      },
-      "igraph_reverse_edges": {
-        "domain": "graph_algebra_and_transformations",
-        "rationale": "Milestone 23 issue #356 will define selector-based atomic edge reversal with explicit directed, duplicate-selection, and no-op behavior."
       }
     },
     "intentionally_unsupported": {

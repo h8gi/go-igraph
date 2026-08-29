@@ -18,6 +18,10 @@ igraph_error_t go_igraph_graph_power(
     const igraph_t *, igraph_t *, igraph_int_t, igraph_bool_t);
 igraph_error_t go_igraph_connect_neighborhood(
     igraph_t *, igraph_int_t, igraph_neimode_t);
+igraph_error_t go_igraph_contract_vertices(
+    igraph_t *, const igraph_vector_int_t *,
+    const igraph_attribute_combination_t *);
+igraph_error_t go_igraph_reverse_edges(igraph_t *, igraph_es_t);
 igraph_error_t go_igraph_join(
     igraph_t *, const igraph_t *, const igraph_t *);
 igraph_error_t go_igraph_product(
