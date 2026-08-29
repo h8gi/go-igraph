@@ -7,6 +7,11 @@
   "documentation_version": "latest",
   "dispositions": {
     "composed": {
+      "igraph_hrg_dendrogram": {
+        "go_api": "Dendrogram",
+        "domain": "hierarchical_random_graph_models",
+        "rationale": "HRGModel.Dendrogram uses the maintained igraph_from_hrg_dendrogram entry point and also returns the aligned Go-owned probabilities omitted by the deprecated API."
+      },
       "igraph_induced_subgraph": {
         "go_api": "InducedSubgraph",
         "domain": "graph_algebra_and_transformations",
@@ -143,18 +148,6 @@
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #379 plans a seeded graph analysis that returns aligned, immutable, Go-owned consensus parent and weight data, optionally borrowing a validated starting HRG model."
       },
-      "igraph_hrg_create": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 plans a validated conversion from a borrowed dendrogram graph and aligned probabilities to an immutable, Go-owned HRG model."
-      },
-      "igraph_hrg_dendrogram": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 will review the deprecated entry point as composed by the maintained igraph_from_hrg_dendrogram conversion rather than exposing it mechanically."
-      },
-      "igraph_hrg_destroy": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 plans call-scoped destruction of every temporary igraph_hrg_t; public HRG values remain Go-owned and require no Close method."
-      },
       "igraph_hrg_fit": {
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #378 plans reproducible fresh and warm-started fitting that returns an immutable, Go-owned HRG model."
@@ -163,17 +156,9 @@
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #380 will review this single-graph generator as composed by one coherent seeded HRG sampling API."
       },
-      "igraph_hrg_init": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 plans checked, call-scoped igraph_hrg_t initialization behind immutable Go model values."
-      },
       "igraph_hrg_predict": {
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #379 plans seeded missing-edge prediction with explicit endpoint pairs aligned to finite Go-owned probabilities."
-      },
-      "igraph_hrg_resize": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 will keep mutable C model resizing inside checked call-scoped reconstruction and extraction adapters."
       },
       "igraph_hrg_sample": {
         "domain": "hierarchical_random_graph_models",
@@ -182,14 +167,6 @@
       "igraph_hrg_sample_many": {
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #380 plans checked multi-sampling with exact graph-list adoption and independently closable Graph results."
-      },
-      "igraph_hrg_size": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 plans to use C model size only for checked adapter validation and extraction; public models expose validated Go-owned topology."
-      },
-      "igraph_from_hrg_dendrogram": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #377 plans conversion from an immutable borrowed HRG model to an independently owned dendrogram graph plus aligned Go-owned probabilities."
       }
     },
     "intentionally_unsupported": {
