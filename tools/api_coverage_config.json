@@ -901,6 +901,7 @@
   "completed_domains": [
     "advanced_random_graph_models",
     "attributes",
+    "coloring",
     "graph_algebra_and_transformations",
     "graph_interchange",
     "structural_diagnostics"

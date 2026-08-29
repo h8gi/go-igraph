@@ -729,3 +729,13 @@ make verify
 It checks formatting, runs `go vet`, tests and the statement-coverage floor
 against the pinned igraph release in Docker, tests the inventory tool, and
 checks that the generated API coverage report is current.
+
+# Coloring ownership
+
+Color slices passed to coloring validators and bipartite partitions passed to
+`IsBipartiteColoring` are borrowed only for the synchronous call and copied
+into temporary C-owned vectors. `GreedyVertexColoring` returns a non-nil,
+Go-owned slice that remains valid after the source graph is closed. All four
+coloring operations hold the graph read lock through validation, C execution,
+and result extraction, so a racing `Close` waits or the operation returns
+`ErrClosed`.
