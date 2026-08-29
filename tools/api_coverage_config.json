@@ -904,6 +904,7 @@
     "coloring",
     "graph_algebra_and_transformations",
     "graph_interchange",
+    "epidemic_simulation",
     "structural_diagnostics"
   ]
 }

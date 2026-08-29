@@ -122,6 +122,9 @@
 // and directed endpoint rewiring commits through clone-and-swap so failures
 // leave the receiver and its attributes unchanged. APIs that mirror upstream
 // experimental generators state that status explicitly.
+// SIR epidemic simulations also use this RNG contract. They return Go-owned,
+// event-aligned trajectories, treat directed edges as undirected, and retain
+// pinned upstream rejection of empty, looped, and parallel-edge graphs.
 //
 // Unreachable distances are positive infinity and an unreachable Path has
 // Found false with non-nil empty slices. APIs with mathematically undefined
