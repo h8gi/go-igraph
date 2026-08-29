@@ -2246,6 +2246,93 @@ claims. `igraph_sir` is user-facing, while `igraph_sir_init` and
 `igraph_epidemics.h` have final dispositions and the `epidemic_simulation`
 inventory domain is complete.
 
+## Milestone 26: Hierarchical random graph models
+
+Goal: expose construction, conversion, fitting, consensus analysis, missing-edge
+prediction, and graph sampling through one immutable Go-owned hierarchical
+random graph (HRG) model, without C types or caller-managed resources.
+
+Status: planned. [#376](https://github.com/h8gi/go-igraph/issues/376)
+establishes the contracts and initial inventory dispositions;
+[#377](https://github.com/h8gi/go-igraph/issues/377) adds model construction and
+dendrogram conversion; [#378](https://github.com/h8gi/go-igraph/issues/378)
+adds fitting; [#379](https://github.com/h8gi/go-igraph/issues/379) adds
+consensus and prediction; [#380](https://github.com/h8gi/go-igraph/issues/380)
+adds sampling; and [#381](https://github.com/h8gi/go-igraph/issues/381)
+performs the final integration, ownership, concurrency, documentation, and
+inventory audit. These issues are implemented in that dependency order.
+
+The public model is an immutable Go value containing copied left-child,
+right-child, internal-edge-count, and merge-probability slices. A model with
+`n` leaves has `n-1` internal nodes. Leaves are vertex IDs `0..n-1`; negative
+child values encode internal nodes in the same order as the aligned model
+slices. Validation reconstructs parent relationships and rejects invalid child
+references, repeated children, cycles, multiple roots, unreachable nodes,
+mismatched lengths, non-finite or out-of-range probabilities, negative edge
+counts, and any count that cannot be represented safely by C igraph. Public
+accessors return values or copies, never mutable aliases to model storage.
+
+Construction borrows a dendrogram graph and aligned probabilities for one
+synchronous call and returns a fully Go-owned model. The reverse conversion
+borrows a model and returns an independently owned dendrogram `Graph` plus a
+non-nil Go-owned probability slice. The conversion APIs define graph
+directedness, vertex ordering, root and internal-node representation, and
+minimum model size rather than requiring callers to infer them from C. Loops,
+parallel edges, malformed trees, and graph/model vertex misalignment are
+rejected before publishing a result. The deprecated `igraph_hrg_dendrogram`
+entry point is planned as composed by the maintained
+`igraph_from_hrg_dendrogram` workflow.
+
+Fitting, consensus, prediction, and sampling accept Go-native option values.
+Graph analyses may either initialize a fresh model or borrow a validated
+starting model; a raw mutable C `start` flag is not exposed. Step, sample, bin,
+and result-allocation counts use checked conversions. Prediction returns
+explicit endpoint pairs aligned with finite probabilities. Consensus returns
+named, aligned parent and weight data with documented vertex, internal-node,
+and root indexing. Sampling uses one coherent API for one or many results and
+returns a non-nil slice of independently closable graphs; closing the model
+source, one result, or one sibling never affects another result.
+
+Stochastic contract: fitting, consensus, prediction, and sampling reuse the
+package optional-seed contract and RNG mutex. Graph methods acquire the graph
+read lock before the RNG lock and retain both through C execution and result
+extraction. Equal non-nil seeds replay complete returned values exactly;
+different seeds are not promised to differ. Concurrent stochastic calls are
+serialized at the C RNG boundary, close races are safe, and calls after graph
+`Close` return `ErrClosed`. Model inputs are immutable Go values and are safe
+for concurrent reads.
+
+Ownership and cleanup contract: call-scoped adapters initialize, reconstruct,
+resize, inspect, and destroy every temporary `igraph_hrg_t`. Every initialized
+vector, graph, and graph list has one explicit cleanup owner on initialization,
+upstream, validation, conversion, extraction, and early-return failures.
+Graph-list results are adopted only after successful upstream execution, with
+the adopted prefix and unadopted suffix destroyed exactly once if extraction
+fails. Non-aborting error and warning handlers contain upstream failures. All
+returned models, hierarchy data, probabilities, and predicted edges are
+Go-owned and remain valid after graph closure.
+
+Reference workflows are: construct a validated model from a dendrogram and
+round-trip it; fit a fresh or warm-started model reproducibly from a supported
+undirected simple graph; compute a consensus hierarchy and predict absent
+edges with alignment preserved; and sample one or many independently owned
+graphs from the fitted model. Behavioral tests define pinned igraph 1.0.1
+semantics for empty, singleton, disconnected, directed, looped, parallel-edge,
+complete, and representative simple graphs instead of assuming every shape is
+accepted.
+
+Initial inventory disposition: `igraph_hrg_create`,
+`igraph_from_hrg_dendrogram`, `igraph_hrg_fit`, `igraph_hrg_consensus`,
+`igraph_hrg_predict`, `igraph_hrg_sample`, and `igraph_hrg_sample_many` are
+planned public or composed workflow entry points. `igraph_hrg_init`,
+`igraph_hrg_resize`, `igraph_hrg_size`, and `igraph_hrg_destroy` are planned
+call-scoped adapter plumbing. `igraph_hrg_game` is reviewed through the
+single-sample convenience workflow, and deprecated `igraph_hrg_dendrogram` is
+reviewed through the maintained reverse conversion. All 13 declarations in
+`igraph_hrg.h` remain explicitly deferred until their implementation issue
+lands; #381 removes every stale deferred disposition and marks the
+`hierarchical_random_graph_models` inventory domain complete.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
