@@ -11,6 +11,8 @@ package igraph
 // static igraph_error_t go_hrg_resize(igraph_hrg_t *h, igraph_int_t n) { GO_IGRAPH_CALL(igraph_hrg_resize(h, n)); }
 // static igraph_error_t go_hrg_create(igraph_hrg_t *h, const igraph_t *g, const igraph_vector_t *p) { GO_IGRAPH_CALL(igraph_hrg_create(h, g, p)); }
 // static igraph_error_t go_from_hrg(igraph_t *g, const igraph_hrg_t *h, igraph_vector_t *p) { GO_IGRAPH_CALL(igraph_from_hrg_dendrogram(g, h, p)); }
+// static igraph_error_t go_hrg_fit(const igraph_t *g, igraph_hrg_t *h, igraph_bool_t start, igraph_int_t steps) { GO_IGRAPH_CALL(igraph_hrg_fit(g, h, start, steps)); }
+// static igraph_error_t go_hrg_is_simple(const igraph_t *g, igraph_bool_t *simple) { GO_IGRAPH_CALL(igraph_is_simple(g, simple, IGRAPH_UNDIRECTED)); }
 import "C"
 
 import (
@@ -27,6 +29,16 @@ type HRGModel struct {
 	left, right     []int
 	probabilities   []float64
 	edges, vertices []int
+}
+
+// HRGFitOptions controls hierarchical random graph fitting. Steps is the
+// number of MCMC steps and must be non-negative. Seed optionally resets the
+// package-wide C/igraph RNG. StartingModel, when non-nil, is borrowed and
+// copied for a warm start; otherwise fitting starts from a fresh model.
+type HRGFitOptions struct {
+	Steps         int
+	Seed          *uint64
+	StartingModel *HRGModel
 }
 
 // NewHRGModel validates and copies an HRG model. left, right, probabilities,
@@ -67,26 +79,54 @@ func NewHRGModel(left, right []int, probabilities []float64, edges []int) (HRGMo
 				leaves[child] = true
 			} else {
 				ci := -child - 1
-				if ci <= i || ci >= nodes || parents[ci] != -1 {
+				if ci == i || ci >= nodes || parents[ci] != -1 {
 					return HRGModel{}, fmt.Errorf("igraph: HRG node %d has invalid or repeated internal child %d", i, child)
 				}
 				parents[ci] = i
 			}
 		}
 	}
-	// There are exactly 2*n child slots and exactly 2*n possible non-root
-	// nodes. The range and uniqueness checks above therefore also prove that
-	// every leaf and non-root internal node is reachable.
-	for i := nodes - 1; i >= 0; i-- {
+	if parents[0] != -1 {
+		return HRGModel{}, errors.New("igraph: HRG root -1 has a parent")
+	}
+	for i := 1; i < nodes; i++ {
+		if parents[i] == -1 {
+			return HRGModel{}, fmt.Errorf("igraph: HRG internal node %d is unreachable", -i-1)
+		}
+	}
+	state := make([]uint8, nodes)
+	var visit func(int) (int, error)
+	visit = func(i int) (int, error) {
+		if state[i] == 1 {
+			return 0, fmt.Errorf("igraph: HRG contains a cycle through internal node %d", -i-1)
+		}
+		if state[i] == 2 {
+			return m.vertices[i], nil
+		}
+		state[i] = 1
 		count := 0
 		for _, child := range []int{m.left[i], m.right[i]} {
 			if child >= 0 {
 				count++
 			} else {
-				count += m.vertices[-child-1]
+				childCount, err := visit(-child - 1)
+				if err != nil {
+					return 0, err
+				}
+				count += childCount
 			}
 		}
+		state[i] = 2
 		m.vertices[i] = count
+		return count, nil
+	}
+	if _, err := visit(0); err != nil {
+		return HRGModel{}, err
+	}
+	for i, seen := range state {
+		if seen != 2 {
+			return HRGModel{}, fmt.Errorf("igraph: HRG internal node %d is unreachable", -i-1)
+		}
 	}
 	return m, nil
 }
@@ -130,6 +170,22 @@ func newCHRGWithInitializer(m HRGModel, initialize func(*cHRG, int) int) (*cHRG,
 	return h, nil
 }
 
+func newEmptyCHRG(size int) (*cHRG, error) {
+	if size < 0 {
+		return nil, fmt.Errorf("igraph: HRG leaf count must be non-negative: %d", size)
+	}
+	cSize, err := intToIgraphInt(size, "HRG leaf count")
+	if err != nil {
+		return nil, err
+	}
+	h := &cHRG{}
+	if code := C.go_hrg_init(&h.value, cSize); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("initialize HRG model", int(code))
+	}
+	h.initialized = true
+	return h, nil
+}
+
 //igraph:internal igraph_hrg_destroy
 func (h *cHRG) close() {
 	if h != nil && h.initialized {
@@ -155,7 +211,11 @@ func (h *cHRG) resize(size int) error {
 
 //igraph:internal igraph_hrg_size
 func (h *cHRG) model() (HRGModel, error) {
-	return h.modelWithReaders(hrgModelReaders{
+	return h.modelWithReaders(defaultHRGModelReaders())
+}
+
+func defaultHRGModelReaders() hrgModelReaders {
+	return hrgModelReaders{
 		size:  func(h *cHRG) (int, error) { return igraphIntToInt(C.igraph_hrg_size(&h.value), "HRG leaf count") },
 		left:  func(h *cHRG) ([]int, error) { return intVectorSlice(&h.value.left) },
 		right: func(h *cHRG) ([]int, error) { return intVectorSlice(&h.value.right) },
@@ -167,7 +227,7 @@ func (h *cHRG) model() (HRGModel, error) {
 			}
 			return values, nil
 		},
-	})
+	}
 }
 
 type hrgModelReaders struct {
@@ -245,7 +305,11 @@ func NewHRGModelFromDendrogram(graph *Graph, probabilities []float64) (HRGModel,
 	if code := C.go_hrg_create(&h.value, &graph.graph, &p.value); code != C.IGRAPH_SUCCESS {
 		return HRGModel{}, igraphError("create HRG model from dendrogram", int(code))
 	}
-	model, err := h.model()
+	readers := defaultHRGModelReaders()
+	readers.probabilities = func(*cHRG, int) ([]float64, error) {
+		return append([]float64{}, internal...), nil
+	}
+	model, err := h.modelWithReaders(readers)
 	if err != nil {
 		return HRGModel{}, err
 	}
@@ -287,4 +351,102 @@ func (m HRGModel) Dendrogram() (*Graph, []float64, error) {
 	result := adoptInitializedGraph(&graph)
 	initialized = false
 	return result, values, nil
+}
+
+type hrgFitAdapters struct {
+	fresh   func(int) (*cHRG, error)
+	start   func(HRGModel) (*cHRG, error)
+	close   func(*cHRG)
+	run     func(*Graph, *cHRG, bool, int) error
+	extract func(*cHRG) (HRGModel, error)
+}
+
+func defaultHRGFitAdapters() hrgFitAdapters {
+	return hrgFitAdapters{
+		fresh: newEmptyCHRG,
+		start: newCHRG,
+		close: (*cHRG).close,
+		run: func(g *Graph, h *cHRG, start bool, steps int) error {
+			if code := C.go_hrg_fit(&g.graph, &h.value, booltoint(start), C.igraph_int_t(steps)); code != C.IGRAPH_SUCCESS {
+				return igraphError("fit HRG model", int(code))
+			}
+			return nil
+		},
+		extract: (*cHRG).model,
+	}
+}
+
+// FitHRG fits a hierarchical random graph model to an undirected simple graph.
+// Empty, singleton, and edgeless inputs are passed to pinned igraph 1.0.1 and
+// may return an upstream error; directed graphs, loops, and parallel edges are
+// rejected before fitting. Equal non-nil seeds replay the complete model.
+//
+// The graph read lock is acquired before the package RNG lock and both remain
+// held through model extraction. StartingModel is unchanged and the returned
+// immutable model is Go-owned and remains valid after the graph is closed.
+//
+//igraph:bind igraph_hrg_fit
+func (g *Graph) FitHRG(options HRGFitOptions) (HRGModel, error) {
+	return g.fitHRG(options, nil)
+}
+
+func (g *Graph) fitHRG(options HRGFitOptions, adapters *hrgFitAdapters) (HRGModel, error) {
+	if options.Steps < 0 {
+		return HRGModel{}, fmt.Errorf("igraph: HRG fit step count must be non-negative: %d", options.Steps)
+	}
+	if _, err := intToIgraphInt(options.Steps, "HRG fit step count"); err != nil {
+		return HRGModel{}, err
+	}
+	if g == nil {
+		return HRGModel{}, ErrClosed
+	}
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	if g.closed {
+		return HRGModel{}, ErrClosed
+	}
+	if C.igraph_is_directed(&g.graph) != booltoint(false) {
+		return HRGModel{}, errors.New("igraph: HRG fitting requires an undirected graph")
+	}
+	var simple C.igraph_bool_t
+	if code := C.go_hrg_is_simple(&g.graph, &simple); code != C.IGRAPH_SUCCESS {
+		return HRGModel{}, igraphError("check HRG fit input simplicity", int(code))
+	}
+	if simple == booltoint(false) {
+		return HRGModel{}, errors.New("igraph: HRG fitting requires a simple graph without loops or parallel edges")
+	}
+	vertexCount, err := igraphIntToInt(C.igraph_vcount(&g.graph), "HRG fit vertex count")
+	if err != nil {
+		return HRGModel{}, err
+	}
+	op := defaultHRGFitAdapters()
+	if adapters != nil {
+		op = *adapters
+	}
+	var h *cHRG
+	start := options.StartingModel != nil
+	if start {
+		if options.StartingModel.LeafCount() != vertexCount {
+			return HRGModel{}, fmt.Errorf("igraph: HRG starting model has %d leaves, want %d", options.StartingModel.LeafCount(), vertexCount)
+		}
+		h, err = op.start(*options.StartingModel)
+	} else {
+		h, err = op.fresh(vertexCount)
+	}
+	if err != nil {
+		return HRGModel{}, err
+	}
+	defer op.close(h)
+	var result HRGModel
+	err = withRNG(options.Seed, func() error {
+		if err := op.run(g, h, start, options.Steps); err != nil {
+			return err
+		}
+		result, err = op.extract(h)
+		return err
+	})
+	if err != nil {
+		return HRGModel{}, err
+	}
+	return result, nil
 }
