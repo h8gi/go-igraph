@@ -3,6 +3,18 @@
 
 #include <igraph.h>
 
+igraph_t *go_igraph_graph_array_alloc(igraph_int_t);
+void go_igraph_graph_array_set(igraph_t *, igraph_int_t, const igraph_t *);
+
+igraph_error_t go_igraph_disjoint_union_many(
+    igraph_t *, const igraph_t *, igraph_int_t);
+igraph_error_t go_igraph_union_many(
+    igraph_t *, const igraph_t *, igraph_int_t,
+    igraph_vector_int_list_t *);
+igraph_error_t go_igraph_intersection_many(
+    igraph_t *, const igraph_t *, igraph_int_t,
+    igraph_vector_int_list_t *);
+
 igraph_error_t go_igraph_disjoint_union(
     igraph_t *, const igraph_t *, const igraph_t *);
 igraph_error_t go_igraph_union(

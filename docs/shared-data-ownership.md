@@ -416,11 +416,18 @@ rule or return `ErrAttributeTypeMismatch`. Any validation, allocation, or
 upstream failure closes a partial result and leaves both operands unchanged;
 successful results own independent attribute storage.
 
-The current public combination API is deliberately binary. The upstream
-`disjoint_union_many`, `union_many`, and `intersection_many` entry points remain
-unbound: their empty-list directedness convention and nested per-operand
-provenance results do not share the binary result contract without adding a
-separate graph-pointer-list and vector-list ownership surface.
+`DisjointUnionMany`, `UnionMany`, and `IntersectionMany` accept ordinary
+borrowed Go slices and return `ManyGraphOperatorResult`. `Inputs` is aligned
+with operand order, including repeated graph pointers, and contains exact
+non-nil Go-owned vertex and edge mappings. Distinct operands are locked once in
+stable order. The temporary C graph-pointer vector and nested edge-map list are
+internal, destroyed before return, and never become public lifecycle objects.
+An empty operand slice returns an independently owned directed null graph and a
+non-nil empty mapping slice, matching the documented upstream convention.
+Disjoint-union mappings preserve each input's order with cumulative offsets;
+union and intersection mappings preserve upstream's exact source-to-result
+edge correspondence. Attribute restoration uses all exact mappings and the
+same scope-specific conflict policy as binary operators.
 
 Connected-component results are eagerly copied while holding the graph lock.
 `Membership` is indexed by vertex ID and contains component IDs; `Sizes` is
