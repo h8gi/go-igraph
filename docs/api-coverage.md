@@ -6,8 +6,8 @@
 - User-facing bindings: **363 / 2015 (18.01%)**
 - Internal dependencies: **65**
 - Composed APIs: **24**
-- Intentionally unsupported: **157**
-- Deferred declarations: **0**
+- Intentionally unsupported: **189**
+- Deferred declarations: **27**
 - Completed domains: **attributes, graph_interchange, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -143,7 +143,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_assortativity` | `igraph_mixing.h` | User-facing | `NumericAssortativity` |
 | `igraph_assortativity_degree` | `igraph_mixing.h` | User-facing | `DegreeAssortativity` |
 | `igraph_assortativity_nominal` | `igraph_mixing.h` | User-facing | `CategoricalAssortativity` |
-| `igraph_asymmetric_preference_game` | `igraph_games.h` | Missing | — |
+| `igraph_asymmetric_preference_game` | `igraph_games.h` | Deferred | — |
 | `igraph_atlas` | `igraph_constructors.h` | Intentionally unsupported | — |
 | `igraph_attribute_combination` | `igraph_attributes.h` | Composed | `AttributeCombinationPolicy` |
 | `igraph_attribute_combination_add` | `igraph_attributes.h` | Internal | `newAttributeCombination` |
@@ -199,7 +199,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_average_local_efficiency` | `igraph_paths.h` | User-facing | `AverageLocalEfficiency` |
 | `igraph_average_path_length` | `igraph_paths.h` | User-facing | `AveragePathLength` |
 | `igraph_avg_nearest_neighbor_degree` | `igraph_structural.h` | User-facing | `AverageNearestNeighborDegree` |
-| `igraph_barabasi_aging_game` | `igraph_games.h` | Missing | — |
+| `igraph_barabasi_aging_game` | `igraph_games.h` | Deferred | — |
 | `igraph_barabasi_game` | `igraph_games.h` | User-facing | `BarabasiGame` |
 | `igraph_beta_weighted_gabriel_graph` | `igraph_spatial.h` | User-facing | `NewBetaWeightedGabrielGraph` |
 | `igraph_betweenness` | `igraph_centrality.h` | User-facing | `VertexBetweenness` |
@@ -280,7 +280,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_bond_percolation` | `igraph_components.h` | User-facing | `BondPercolation` |
 | `igraph_bool_t` | `igraph_typed_list_pmt.h` | Missing | — |
 | `igraph_bridges` | `igraph_components.h` | User-facing | `Bridges` |
-| `igraph_callaway_traits_game` | `igraph_games.h` | Missing | — |
+| `igraph_callaway_traits_game` | `igraph_games.h` | Deferred | — |
 | `igraph_calloc` | `igraph_memory.h` | Missing | — |
 | `igraph_canonical_permutation` | `igraph_isomorphism.h` | User-facing | `CanonicalPermutation` |
 | `igraph_canonical_permutation_bliss` | `igraph_isomorphism.h` | Missing | — |
@@ -329,11 +329,11 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_centralization_degree_tmax` | `igraph_centrality.h` | User-facing | `DegreeCentralization` |
 | `igraph_centralization_eigenvector_centrality` | `igraph_centrality.h` | User-facing | `EigenvectorCentralization` |
 | `igraph_centralization_eigenvector_centrality_tmax` | `igraph_centrality.h` | User-facing | `EigenvectorCentralization` |
-| `igraph_chung_lu_game` | `igraph_games.h` | Missing | — |
+| `igraph_chung_lu_game` | `igraph_games.h` | Deferred | — |
 | `igraph_circle_beta_skeleton` | `igraph_spatial.h` | User-facing | `NewCircleBetaSkeleton` |
 | `igraph_circulant` | `igraph_constructors.h` | User-facing | `NewCirculant` |
-| `igraph_cited_type_game` | `igraph_games.h` | Missing | — |
-| `igraph_citing_cited_type_game` | `igraph_games.h` | Missing | — |
+| `igraph_cited_type_game` | `igraph_games.h` | Deferred | — |
+| `igraph_citing_cited_type_game` | `igraph_games.h` | Deferred | — |
 | `igraph_clique_number` | `igraph_cliques.h` | User-facing | `CliqueNumber` |
 | `igraph_clique_size_hist` | `igraph_cliques.h` | User-facing | `CliqueSizeHistogram` |
 | `igraph_cliques` | `igraph_cliques.h` | User-facing | `Cliques` |
@@ -411,8 +411,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_convex_hull_2d` | `igraph_spatial.h` | User-facing | `ConvexHull2D` |
 | `igraph_copy` | `igraph_interface.h` | User-facing | `Clone` |
 | `igraph_coreness` | `igraph_community.h` | User-facing | `Coreness` |
-| `igraph_correlated_game` | `igraph_games.h` | Missing | — |
-| `igraph_correlated_pair_game` | `igraph_games.h` | Missing | — |
+| `igraph_correlated_game` | `igraph_games.h` | Deferred | — |
+| `igraph_correlated_pair_game` | `igraph_games.h` | Deferred | — |
 | `igraph_count_adjacent_triangles` | `igraph_motifs.h` | User-facing | `AdjacentTrianglesCount` |
 | `igraph_count_automorphisms` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_count_automorphisms_bliss` | `igraph_isomorphism.h` | User-facing | `AutomorphismGroupSize` |
@@ -454,7 +454,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_distances_johnson` | `igraph_paths.h` | Composed | `Distances` |
 | `igraph_diversity` | `igraph_structural.h` | User-facing | `Diversity` |
 | `igraph_dominator_tree` | `igraph_flow.h` | User-facing | `DominatorTree` |
-| `igraph_dot_product_game` | `igraph_games.h` | Missing | — |
+| `igraph_dot_product_game` | `igraph_games.h` | Deferred | — |
 | `igraph_dqueue_back` | `igraph_dqueue.h (generated)` | Missing | — |
 | `igraph_dqueue_bool_back` | `igraph_dqueue.h (generated)` | Missing | — |
 | `igraph_dqueue_bool_clear` | `igraph_dqueue.h (generated)` | Missing | — |
@@ -561,7 +561,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_ess_none` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_range` | `igraph_iterators.h` | Missing | — |
 | `igraph_ess_vector` | `igraph_iterators.h` | Missing | — |
-| `igraph_establishment_game` | `igraph_games.h` | Missing | — |
+| `igraph_establishment_game` | `igraph_games.h` | Deferred | — |
 | `igraph_eulerian_cycle` | `igraph_eulerian.h` | User-facing | `EulerianCycle` |
 | `igraph_eulerian_path` | `igraph_eulerian.h` | User-facing | `EulerianPath` |
 | `igraph_even_tarjan_reduction` | `igraph_flow.h` | User-facing | `EvenTarjanReduction` |
@@ -574,7 +574,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_feedback_arc_set` | `igraph_cycles.h` | User-facing | `FeedbackEdgeSet` |
 | `igraph_feedback_vertex_set` | `igraph_cycles.h` | User-facing | `FeedbackVertexSet` |
 | `igraph_find_cycle` | `igraph_cycles.h` | User-facing | `FindCycle` |
-| `igraph_forest_fire_game` | `igraph_games.h` | Missing | — |
+| `igraph_forest_fire_game` | `igraph_games.h` | Deferred | — |
 | `igraph_free` | `igraph_memory.h` | Internal | `AutomorphismGroupSize` |
 | `igraph_from_hrg_dendrogram` | `igraph_hrg.h` | Missing | — |
 | `igraph_from_prufer` | `igraph_constructors.h` | User-facing | `NewTreeFromPrufer` |
@@ -654,8 +654,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_graphlets` | `igraph_graphlets.h` | User-facing | `Graphlets` |
 | `igraph_graphlets_candidate_basis` | `igraph_graphlets.h` | User-facing | `GraphletsCandidateBasis` |
 | `igraph_graphlets_project` | `igraph_graphlets.h` | User-facing | `GraphletsProject` |
-| `igraph_grg_game` | `igraph_games.h` | Missing | — |
-| `igraph_growing_random_game` | `igraph_games.h` | Missing | — |
+| `igraph_grg_game` | `igraph_games.h` | Deferred | — |
+| `igraph_growing_random_game` | `igraph_games.h` | Deferred | — |
 | `igraph_harmonic_centrality` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
 | `igraph_harmonic_centrality_cutoff` | `igraph_centrality.h` | User-facing | `HarmonicCentrality` |
 | `igraph_has_attribute_table` | `igraph_attributes.h` | Internal | `ensureAttributeRuntime` |
@@ -735,8 +735,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_hrg_sample` | `igraph_hrg.h` | Missing | — |
 | `igraph_hrg_sample_many` | `igraph_hrg.h` | Missing | — |
 | `igraph_hrg_size` | `igraph_hrg.h` | Missing | — |
-| `igraph_hsbm_game` | `igraph_games.h` | Missing | — |
-| `igraph_hsbm_list_game` | `igraph_games.h` | Missing | — |
+| `igraph_hsbm_game` | `igraph_games.h` | Deferred | — |
+| `igraph_hsbm_list_game` | `igraph_games.h` | Deferred | — |
 | `igraph_hub_and_authority_scores` | `igraph_centrality.h` | User-facing | `HITS` |
 | `igraph_hypercube` | `igraph_constructors.h` | User-facing | `NewHypercube` |
 | `igraph_i_lazy_adjlist_get_real` | `igraph_adjlist.h` | Missing | — |
@@ -747,7 +747,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_i_property_cache_invalidate_all` | `igraph_interface.h` | Missing | — |
 | `igraph_i_property_cache_set_bool` | `igraph_interface.h` | Missing | — |
 | `igraph_i_property_cache_set_bool_checked` | `igraph_interface.h` | Missing | — |
-| `igraph_iea_game` | `igraph_games.h` | Missing | — |
+| `igraph_iea_game` | `igraph_games.h` | Deferred | — |
 | `igraph_incident` | `igraph_interface.h` | User-facing | `IncidentEdges` |
 | `igraph_inclist_clear` | `igraph_adjlist.h` | Missing | — |
 | `igraph_inclist_destroy` | `igraph_adjlist.h` | Missing | — |
@@ -817,7 +817,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_largest_cliques` | `igraph_cliques.h` | Composed | `LargestCliques` |
 | `igraph_largest_independent_vertex_sets` | `igraph_cliques.h` | Composed | `LargestIndependentVertexSets` |
 | `igraph_largest_weighted_cliques` | `igraph_cliques.h` | Composed | `MaximumWeightCliques` |
-| `igraph_lastcit_game` | `igraph_games.h` | Missing | — |
+| `igraph_lastcit_game` | `igraph_games.h` | Deferred | — |
 | `igraph_layout_align` | `igraph_layout.h` | Missing | — |
 | `igraph_layout_bipartite` | `igraph_layout.h` | User-facing | `LayoutBipartite` |
 | `igraph_layout_circle` | `igraph_layout.h` | User-facing | `LayoutCircle` |
@@ -1161,38 +1161,38 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_matrix_is_equal` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_is_symmetric` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_isnull` | `igraph_arpack.h (generated)` | Missing | — |
-| `igraph_matrix_list_capacity` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_clear` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_destroy` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_discard` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_discard_back` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_discard_fast` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_empty` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_get_ptr` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_init` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_init_copy` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_insert` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_insert_copy` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_insert_new` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_permute` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_pop_back` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_push_back` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_push_back_copy` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_push_back_new` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_remove` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_remove_consecutive_duplicates` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_remove_fast` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_replace` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_reserve` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_resize` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_reverse` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_set` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_size` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_sort` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_sort_ind` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_swap` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_swap_elements` | `igraph_games.h (generated)` | Missing | — |
-| `igraph_matrix_list_tail_ptr` | `igraph_games.h (generated)` | Missing | — |
+| `igraph_matrix_list_capacity` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_clear` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_destroy` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_discard` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_discard_back` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_discard_fast` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_empty` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_get_ptr` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_init` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_init_copy` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_insert` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_insert_copy` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_insert_new` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_permute` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_pop_back` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_push_back` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_push_back_copy` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_push_back_new` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_remove` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_remove_consecutive_duplicates` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_remove_fast` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_replace` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_reserve` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_resize` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_reverse` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_set` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_size` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_sort` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_sort_ind` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_swap` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_swap_elements` | `igraph_games.h (generated)` | Intentionally unsupported | — |
+| `igraph_matrix_list_tail_ptr` | `igraph_games.h (generated)` | Intentionally unsupported | — |
 | `igraph_matrix_max` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_maxdifference` | `igraph_arpack.h (generated)` | Missing | — |
 | `igraph_matrix_min` | `igraph_arpack.h (generated)` | Missing | — |
@@ -1273,7 +1273,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_personalized_pagerank_vs` | `igraph_centrality.h` | User-facing | `PageRank` |
 | `igraph_plfit_result_calculate_p_value` | `igraph_nongraph.h` | Missing | — |
 | `igraph_power_law_fit` | `igraph_nongraph.h` | Missing | — |
-| `igraph_preference_game` | `igraph_games.h` | Missing | — |
+| `igraph_preference_game` | `igraph_games.h` | Deferred | — |
 | `igraph_product` | `igraph_operators.h` | Missing | — |
 | `igraph_progress` | `igraph_progress.h` | Missing | — |
 | `igraph_progressf` | `igraph_progress.h` | Missing | — |
@@ -1313,8 +1313,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_realize_bipartite_degree_sequence` | `igraph_constructors.h` | User-facing | `RealizeBipartiteDegreeSequence` |
 | `igraph_realize_degree_sequence` | `igraph_constructors.h` | User-facing | `RealizeDegreeSequence` |
 | `igraph_realloc` | `igraph_memory.h` | Missing | — |
-| `igraph_recent_degree_aging_game` | `igraph_games.h` | Missing | — |
-| `igraph_recent_degree_game` | `igraph_games.h` | Missing | — |
+| `igraph_recent_degree_aging_game` | `igraph_games.h` | Deferred | — |
+| `igraph_recent_degree_game` | `igraph_games.h` | Deferred | — |
 | `igraph_reciprocity` | `igraph_structural.h` | User-facing | `Reciprocity` |
 | `igraph_regular_tree` | `igraph_constructors.h` | User-facing | `NewRegularTree` |
 | `igraph_reindex_membership` | `igraph_community.h` | User-facing | `ReindexMembership` |
@@ -1323,7 +1323,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_reverse_edges` | `igraph_operators.h` | Missing | — |
 | `igraph_reverse_residual_graph` | `igraph_flow.h` | User-facing | `ReverseResidualGraph` |
 | `igraph_rewire` | `igraph_operators.h` | User-facing | `Rewire` |
-| `igraph_rewire_directed_edges` | `igraph_games.h` | Missing | — |
+| `igraph_rewire_directed_edges` | `igraph_games.h` | Deferred | — |
 | `igraph_rewire_edges` | `igraph_games.h` | User-facing | `RewireEdges` |
 | `igraph_rich_club_sequence` | `igraph_structural.h` | User-facing | `RichClubSequence` |
 | `igraph_ring` | `igraph_constructors.h` | User-facing | `NewRing` |
@@ -1343,9 +1343,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_rng_init` | `igraph_random.h` | Missing | — |
 | `igraph_rng_max` | `igraph_random.h` | Missing | — |
 | `igraph_rng_name` | `igraph_random.h` | Missing | — |
-| `igraph_rng_sample_dirichlet` | `igraph_sampling.h` | Missing | — |
-| `igraph_rng_sample_sphere_surface` | `igraph_sampling.h` | Missing | — |
-| `igraph_rng_sample_sphere_volume` | `igraph_sampling.h` | Missing | — |
+| `igraph_rng_sample_dirichlet` | `igraph_sampling.h` | Deferred | — |
+| `igraph_rng_sample_sphere_surface` | `igraph_sampling.h` | Deferred | — |
+| `igraph_rng_sample_sphere_volume` | `igraph_sampling.h` | Deferred | — |
 | `igraph_rng_seed` | `igraph_random.h` | Internal | `withRNG` |
 | `igraph_rng_set_default` | `igraph_random.h` | Missing | — |
 | `igraph_rooted_product` | `igraph_operators.h` | Missing | — |
@@ -1369,7 +1369,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_similarity_jaccard_pairs` | `igraph_cocitation.h` | User-facing | `NeighborhoodSimilarityPairs` |
 | `igraph_simple_cycles` | `igraph_cycles.h` | User-facing | `SimpleCycles` |
 | `igraph_simple_cycles_callback` | `igraph_cycles.h` | Intentionally unsupported | — |
-| `igraph_simple_interconnected_islands_game` | `igraph_games.h` | Missing | — |
+| `igraph_simple_interconnected_islands_game` | `igraph_games.h` | Deferred | — |
 | `igraph_simplify` | `igraph_operators.h` | User-facing | `SimplifyInPlace` |
 | `igraph_simplify_and_colorize` | `igraph_isomorphism.h` | Missing | — |
 | `igraph_sir` | `igraph_epidemics.h` | Missing | — |
@@ -1518,8 +1518,8 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_stack_size` | `igraph_stack.h (generated)` | Missing | — |
 | `igraph_stack_top` | `igraph_stack.h (generated)` | Missing | — |
 | `igraph_star` | `igraph_constructors.h` | User-facing | `NewStar` |
-| `igraph_static_fitness_game` | `igraph_games.h` | Missing | — |
-| `igraph_static_power_law_game` | `igraph_games.h` | Missing | — |
+| `igraph_static_fitness_game` | `igraph_games.h` | Deferred | — |
+| `igraph_static_power_law_game` | `igraph_games.h` | Deferred | — |
 | `igraph_status` | `igraph_statusbar.h` | Missing | — |
 | `igraph_statusf` | `igraph_statusbar.h` | Missing | — |
 | `igraph_strength` | `igraph_structural.h` | Internal | `newDegreeCorrection` |
