@@ -188,6 +188,41 @@ igraph_error_t go_igraph_recent_degree_aging_game(igraph_t *graph,
         outpref, pa_exp, aging_exp, aging_bins, window, zero_appeal, directed));
 }
 
+igraph_error_t go_igraph_callaway_traits_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_int_t types, igraph_int_t trials,
+    const igraph_vector_t *dist, const igraph_matrix_t *pref,
+    igraph_bool_t directed, igraph_vector_int_t *node_types) {
+    GO_IGRAPH_CALL(igraph_callaway_traits_game(graph, nodes, types, trials,
+        dist, pref, directed, node_types));
+}
+
+igraph_error_t go_igraph_establishment_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_int_t types, igraph_int_t candidates,
+    const igraph_vector_t *dist, const igraph_matrix_t *pref,
+    igraph_bool_t directed, igraph_vector_int_t *node_types) {
+    GO_IGRAPH_CALL(igraph_establishment_game(graph, nodes, types, candidates,
+        dist, pref, directed, node_types));
+}
+
+igraph_error_t go_igraph_lastcit_game(igraph_t *graph, igraph_int_t nodes,
+    igraph_int_t edges, igraph_int_t bins, const igraph_vector_t *pref,
+    igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_lastcit_game(graph, nodes, edges, bins, pref, directed));
+}
+
+igraph_error_t go_igraph_cited_type_game(igraph_t *graph, igraph_int_t nodes,
+    const igraph_vector_int_t *types, const igraph_vector_t *pref,
+    igraph_int_t edges, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_cited_type_game(graph, nodes, types, pref, edges, directed));
+}
+
+igraph_error_t go_igraph_citing_cited_type_game(igraph_t *graph,
+    igraph_int_t nodes, const igraph_vector_int_t *types,
+    const igraph_matrix_t *pref, igraph_int_t edges, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_citing_cited_type_game(graph, nodes, types, pref,
+        edges, directed));
+}
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,

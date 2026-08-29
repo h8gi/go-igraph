@@ -92,6 +92,20 @@ igraph_error_t go_igraph_recent_degree_game(igraph_t *, igraph_int_t,
 igraph_error_t go_igraph_recent_degree_aging_game(igraph_t *, igraph_int_t,
     igraph_int_t, const igraph_vector_int_t *, igraph_bool_t, igraph_real_t,
     igraph_real_t, igraph_int_t, igraph_int_t, igraph_real_t, igraph_bool_t);
+igraph_error_t go_igraph_callaway_traits_game(igraph_t *, igraph_int_t,
+    igraph_int_t, igraph_int_t, const igraph_vector_t *, const igraph_matrix_t *,
+    igraph_bool_t, igraph_vector_int_t *);
+igraph_error_t go_igraph_establishment_game(igraph_t *, igraph_int_t,
+    igraph_int_t, igraph_int_t, const igraph_vector_t *, const igraph_matrix_t *,
+    igraph_bool_t, igraph_vector_int_t *);
+igraph_error_t go_igraph_lastcit_game(igraph_t *, igraph_int_t, igraph_int_t,
+    igraph_int_t, const igraph_vector_t *, igraph_bool_t);
+igraph_error_t go_igraph_cited_type_game(igraph_t *, igraph_int_t,
+    const igraph_vector_int_t *, const igraph_vector_t *, igraph_int_t,
+    igraph_bool_t);
+igraph_error_t go_igraph_citing_cited_type_game(igraph_t *, igraph_int_t,
+    const igraph_vector_int_t *, const igraph_matrix_t *, igraph_int_t,
+    igraph_bool_t);
 
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,

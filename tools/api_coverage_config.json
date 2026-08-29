@@ -129,18 +129,6 @@
       }
     },
     "deferred": {
-      "igraph_callaway_traits_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review this older trait-growth model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
-      },
-      "igraph_cited_type_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review this specialized citation generator for a typed Go contract or an explicit composed or unsupported disposition."
-      },
-      "igraph_citing_cited_type_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review this specialized citing/cited-type generator for a typed Go contract or an explicit composed or unsupported disposition."
-      },
       "igraph_correlated_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans graph-derived correlated sampling with permutation validation, source read locking, reproducible RNG coordination, and an independently owned result."
@@ -153,10 +141,6 @@
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans random-dot-product generation from a borrowed row-per-vertex Matrix with validated finite probability dot products."
       },
-      "igraph_establishment_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review this older trait-establishment model for a distinct Go-native workflow or an explicit composed or unsupported disposition."
-      },
       "igraph_grg_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 plans geometric random graph generation with an independently owned graph and a Go-owned row-per-vertex coordinate Matrix."
@@ -164,10 +148,6 @@
       "igraph_iea_game": {
         "domain": "advanced_random_graph_models",
         "rationale": "Milestone 22 will review the experimental independent-edge-assignment model against the existing Erdos-Renyi API before choosing a user-facing, composed, or unsupported disposition."
-      },
-      "igraph_lastcit_game": {
-        "domain": "advanced_random_graph_models",
-        "rationale": "Milestone 22 will review this aging-bin citation model for a checked Go-native workflow or an explicit composed or unsupported disposition."
       },
       "igraph_rewire_directed_edges": {
         "domain": "advanced_random_graph_models",
