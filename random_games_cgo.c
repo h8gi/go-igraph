@@ -84,6 +84,70 @@ igraph_error_t go_igraph_sbm_game(
         graph, pref_matrix, block_sizes, directed, allowed_edge_types));
 }
 
+igraph_error_t go_igraph_hsbm_game(igraph_t *graph, igraph_int_t n,
+    igraph_int_t m, const igraph_vector_t *rho, const igraph_matrix_t *C,
+    igraph_real_t p) {
+    GO_IGRAPH_CALL(igraph_hsbm_game(graph, n, m, rho, C, p));
+}
+
+static igraph_error_t go_igraph_hsbm_list_game_impl(igraph_t *graph,
+    igraph_int_t n, const igraph_vector_int_t *sizes,
+    const igraph_vector_int_t *lengths, const igraph_vector_t *rhos,
+    const igraph_vector_t *matrices, igraph_real_t p) {
+    igraph_int_t count = igraph_vector_int_size(sizes), rho_offset = 0, matrix_offset = 0;
+    igraph_vector_list_t rho_list;
+    igraph_matrix_list_t matrix_list;
+    IGRAPH_CHECK(igraph_vector_list_init(&rho_list, count));
+    IGRAPH_FINALLY(igraph_vector_list_destroy, &rho_list);
+    IGRAPH_CHECK(igraph_matrix_list_init(&matrix_list, count));
+    IGRAPH_FINALLY(igraph_matrix_list_destroy, &matrix_list);
+    for (igraph_int_t i = 0; i < count; ++i) {
+        igraph_int_t k = VECTOR(*lengths)[i];
+        igraph_vector_t *rho = igraph_vector_list_get_ptr(&rho_list, i);
+        igraph_matrix_t *matrix = igraph_matrix_list_get_ptr(&matrix_list, i);
+        IGRAPH_CHECK(igraph_vector_resize(rho, k));
+        IGRAPH_CHECK(igraph_matrix_resize(matrix, k, k));
+        for (igraph_int_t j = 0; j < k; ++j) VECTOR(*rho)[j] = VECTOR(*rhos)[rho_offset++];
+        for (igraph_int_t row = 0; row < k; ++row) {
+            for (igraph_int_t col = 0; col < k; ++col) {
+                MATRIX(*matrix, row, col) = VECTOR(*matrices)[matrix_offset++];
+            }
+        }
+    }
+    IGRAPH_CHECK(igraph_hsbm_list_game(graph, n, sizes, &rho_list, &matrix_list, p));
+    igraph_matrix_list_destroy(&matrix_list);
+    igraph_vector_list_destroy(&rho_list);
+    IGRAPH_FINALLY_CLEAN(2);
+    return IGRAPH_SUCCESS;
+}
+
+igraph_error_t go_igraph_hsbm_list_game(igraph_t *graph, igraph_int_t n,
+    const igraph_vector_int_t *sizes, const igraph_vector_int_t *lengths,
+    const igraph_vector_t *rhos, const igraph_vector_t *matrices, igraph_real_t p) {
+    GO_IGRAPH_CALL(go_igraph_hsbm_list_game_impl(graph, n, sizes, lengths, rhos, matrices, p));
+}
+
+igraph_error_t go_igraph_preference_game(igraph_t *graph, igraph_int_t nodes,
+    igraph_int_t types, const igraph_vector_t *dist, igraph_bool_t fixed,
+    const igraph_matrix_t *pref, igraph_vector_int_t *node_types,
+    igraph_bool_t directed, igraph_bool_t loops) {
+    GO_IGRAPH_CALL(igraph_preference_game(graph, nodes, types, dist, fixed,
+        pref, node_types, directed, loops));
+}
+
+igraph_error_t go_igraph_asymmetric_preference_game(igraph_t *graph,
+    igraph_int_t nodes, igraph_int_t out_types, igraph_int_t in_types,
+    const igraph_matrix_t *dist, const igraph_matrix_t *pref,
+    igraph_vector_int_t *out, igraph_vector_int_t *in, igraph_bool_t loops) {
+    GO_IGRAPH_CALL(igraph_asymmetric_preference_game(graph, nodes, out_types,
+        in_types, dist, pref, out, in, loops));
+}
+
+igraph_error_t go_igraph_simple_interconnected_islands_game(igraph_t *graph,
+    igraph_int_t count, igraph_int_t size, igraph_real_t pin, igraph_int_t inter) {
+    GO_IGRAPH_CALL(igraph_simple_interconnected_islands_game(graph, count, size, pin, inter));
+}
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,
@@ -150,4 +214,3 @@ igraph_error_t go_igraph_random_spanning_tree(
     igraph_int_t vid) {
     GO_IGRAPH_CALL(igraph_random_spanning_tree(graph, res, vid));
 }
-

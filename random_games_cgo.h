@@ -65,6 +65,20 @@ igraph_error_t go_igraph_sbm_game(
     igraph_bool_t directed,
     igraph_edge_type_sw_t allowed_edge_types);
 
+igraph_error_t go_igraph_hsbm_game(igraph_t *, igraph_int_t, igraph_int_t,
+    const igraph_vector_t *, const igraph_matrix_t *, igraph_real_t);
+igraph_error_t go_igraph_hsbm_list_game(igraph_t *, igraph_int_t,
+    const igraph_vector_int_t *, const igraph_vector_int_t *,
+    const igraph_vector_t *, const igraph_vector_t *, igraph_real_t);
+igraph_error_t go_igraph_preference_game(igraph_t *, igraph_int_t, igraph_int_t,
+    const igraph_vector_t *, igraph_bool_t, const igraph_matrix_t *,
+    igraph_vector_int_t *, igraph_bool_t, igraph_bool_t);
+igraph_error_t go_igraph_asymmetric_preference_game(igraph_t *, igraph_int_t,
+    igraph_int_t, igraph_int_t, const igraph_matrix_t *, const igraph_matrix_t *,
+    igraph_vector_int_t *, igraph_vector_int_t *, igraph_bool_t);
+igraph_error_t go_igraph_simple_interconnected_islands_game(igraph_t *,
+    igraph_int_t, igraph_int_t, igraph_real_t, igraph_int_t);
+
 igraph_error_t go_igraph_chung_lu_game(
     igraph_t *graph,
     const igraph_vector_t *expected_out_degrees,
@@ -114,4 +128,3 @@ igraph_error_t go_igraph_random_spanning_tree(
     igraph_int_t vid);
 
 #endif
-
