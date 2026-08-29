@@ -2167,6 +2167,52 @@ combination, and early-return cleanup; all temporary selectors, vectors, graph
 lists, mapping lists, attribute records, and partial graphs have explicit
 destructors or adopted ownership.
 
+## Milestone 24: Graph coloring
+
+Goal: expose deterministic greedy vertex coloring and validation of vertex,
+edge, and bipartite color assignments without C types or caller-managed
+storage.
+
+Status: completed. [#366](https://github.com/h8gi/go-igraph/issues/366)
+established the contracts; [#367](https://github.com/h8gi/go-igraph/issues/367)
+through [#369](https://github.com/h8gi/go-igraph/issues/369) delivered the four
+declarations in `igraph_coloring.h`; and
+[#370](https://github.com/h8gi/go-igraph/issues/370) completed integration,
+examples, ownership, concurrency, documentation, and inventory audits.
+
+Reference workflows greedily color a graph with the colored-neighbors or
+DSatur heuristic, validate the returned assignment, and compare its color
+count only with sound clique lower bounds. Bipartite construction results feed
+directly into partition validation with a named inferred direction, while
+caller-provided edge colorings can be independently checked.
+
+Ownership and alignment contract: color inputs and `BipartitePartition` are
+borrowed only for a synchronous call and copied to temporary C vectors. Vertex,
+edge, and partition inputs must exactly match the respective graph count;
+integer colors must be non-negative and checked for C integer conversion.
+Greedy results are non-nil Go-owned slices indexed by vertex ID and survive
+graph closure. Every operation holds a read lock through validation, C
+execution, and result extraction, propagates upstream errors, and destroys all
+initialized temporary vectors on success and failure. Calls after `Close`
+return `ErrClosed`.
+
+Semantic contract: greedy coloring is deterministic for a selected heuristic
+and valid but not necessarily minimum. Vertex coloring ignores direction and
+self-loops; parallel edges do not change adjacency. Edge coloring ignores
+direction, treats parallel and other incident edges as adjacent, and does not
+compare a loop with itself. Bipartite coloring ignores self-loops in pinned
+igraph; false-to-true directed edges report `DirectionOut`, true-to-false
+report `DirectionIn`, and undirected, mixed, empty, or invalid evidence reports
+the neutral `DirectionAll`.
+
+Completion evidence: integration covers Mycielski construction, greedy and
+validated vertex coloring, clique lower bounds, bipartite construction and
+direction inference, edge coloring, empty and disconnected graphs, directed
+graphs, loops, parallel edges, Go-owned results after closure, concurrent
+reads, and post-close calls. Output-checked and runnable examples cover the
+workflow. All four `igraph_coloring.h` declarations are user-facing in the
+completed `coloring` inventory domain, with no deferred disposition.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
