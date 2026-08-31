@@ -141,6 +141,38 @@ type GraphoptOptions struct {
 	InitialCoordinates *Matrix
 }
 
+// DrLPreset selects a pinned igraph DrL parameter template.
+type DrLPreset int
+
+const (
+	DrLDefault DrLPreset = iota
+	DrLCoarsen
+	DrLCoarsest
+	DrLRefine
+	DrLFinal
+)
+
+// DrLOptions controls the scalable DrL layout. Preset selects a Go-native
+// parameter template; no C option type escapes the package.
+type DrLOptions struct {
+	Preset             DrLPreset
+	Seed               *uint64
+	Weights            []float64
+	InitialCoordinates *Matrix
+}
+
+// LGLOptions controls the Large Graph Layout algorithm.
+type LGLOptions struct {
+	Seed            *uint64
+	MaxIter         int
+	MaxDelta        float64
+	Area            float64
+	CoolingExponent float64
+	RepulsionRadius float64
+	CellSize        float64
+	Root            *int
+}
+
 // newOrderVertexSelector validates order slice and converts it to cVertexSelector.
 // If order is nil, natural vertex ordering is used.
 func newOrderVertexSelector(order []int, numVertices int) (*cVertexSelector, error) {
@@ -1074,9 +1106,9 @@ func layoutOptionValue(value *float64, fallback float64) float64 {
 	return *value
 }
 
-func newLayoutSeedMatrix(initial *Matrix, vertices int) (*cMatrix, C.igraph_bool_t, error) {
+func newLayoutSeedMatrix(initial *Matrix, vertices, dimensions int) (*cMatrix, C.igraph_bool_t, error) {
 	if initial == nil && vertices == 0 {
-		empty, err := NewMatrix(0, 2)
+		empty, err := NewMatrix(0, dimensions)
 		if err != nil {
 			return nil, booltoint(false), err
 		}
@@ -1088,8 +1120,8 @@ func newLayoutSeedMatrix(initial *Matrix, vertices int) (*cMatrix, C.igraph_bool
 		return matrix, booltoint(false), err
 	}
 	rows, columns := initial.Dims()
-	if rows != vertices || columns != 2 {
-		return nil, booltoint(false), fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension 2", rows, columns, vertices)
+	if rows != vertices || columns != dimensions {
+		return nil, booltoint(false), fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension %d", rows, columns, vertices, dimensions)
 	}
 	for row, values := range initial.Rows() {
 		for column, value := range values {
@@ -1171,7 +1203,7 @@ func (g *Graph) LayoutDavidsonHarel(options DavidsonHarelOptions) (Matrix, error
 			return Matrix{}, err
 		}
 	}
-	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices, 2)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -1242,7 +1274,7 @@ func (g *Graph) LayoutGEM(options GEMOptions) (Matrix, error) {
 	if tempMin > tempInit || tempInit > tempMax {
 		return Matrix{}, fmt.Errorf("igraph: GEM temperatures must satisfy MinTemperature <= InitialTemperature <= MaxTemperature")
 	}
-	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices, 2)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -1309,7 +1341,7 @@ func (g *Graph) LayoutGraphopt(options GraphoptOptions) (Matrix, error) {
 	if math.IsNaN(mass) || math.IsInf(mass, 0) || mass <= 0 {
 		return Matrix{}, fmt.Errorf("igraph: NodeMass must be finite and positive: %v", mass)
 	}
-	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices, 2)
 	if err != nil {
 		return Matrix{}, err
 	}
@@ -1324,6 +1356,161 @@ func (g *Graph) LayoutGraphopt(options GraphoptOptions) (Matrix, error) {
 			C.igraph_real_t(springConstant), C.igraph_real_t(maxMovement), useSeed)
 		if code != C.IGRAPH_SUCCESS {
 			return igraphError("calculate Graphopt layout", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return Matrix{}, err
+	}
+	return coords.matrix()
+}
+
+// LayoutDrL computes a scalable 2D DrL layout. Weights and initial coordinates
+// are borrowed and copied; the returned V-by-2 matrix is Go-owned.
+//
+//igraph:bind igraph_layout_drl
+func (g *Graph) LayoutDrL(options DrLOptions) (Matrix, error) {
+	return g.layoutDrL(options, 2)
+}
+
+// LayoutDrL3D computes a scalable 3D DrL layout. It shares DrLOptions with the
+// 2D variant; initial coordinates must have three columns.
+//
+//igraph:bind igraph_layout_drl_3d
+func (g *Graph) LayoutDrL3D(options DrLOptions) (Matrix, error) {
+	return g.layoutDrL(options, 3)
+}
+
+//igraph:internal igraph_layout_drl_options_init
+func (g *Graph) layoutDrL(options DrLOptions, dimensions int) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+	if options.Preset < DrLDefault || options.Preset > DrLFinal {
+		return Matrix{}, fmt.Errorf("igraph: invalid DrL preset: %d", options.Preset)
+	}
+	vertices := int(C.igraph_vcount(&g.graph))
+	edges := int(C.igraph_ecount(&g.graph))
+	for index, weight := range options.Weights {
+		if math.IsNaN(weight) || math.IsInf(weight, 0) || weight < 0 {
+			return Matrix{}, fmt.Errorf("igraph: DrL weight at index %d must be finite and non-negative: %v", index, weight)
+		}
+	}
+	weights, err := newOptionalEdgeWeights(options.Weights, edges)
+	if err != nil {
+		return Matrix{}, err
+	}
+	if weights != nil {
+		defer weights.close()
+	}
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices, dimensions)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer coords.close()
+	err = withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_drl(
+			&g.graph, &coords.value, useSeed, C.int(options.Preset),
+			edgeWeightPointer(weights), C.int(dimensions),
+		)
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate DrL layout", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return Matrix{}, err
+	}
+	return coords.matrix()
+}
+
+// LayoutLGL computes a 2D Large Graph Layout. LGL ignores edge direction and
+// is intended for connected graphs. If Root is nil, upstream chooses a random
+// root under the optional reproducible Seed contract. The returned matrix is
+// Go-owned.
+//
+//igraph:bind igraph_layout_lgl
+func (g *Graph) LayoutLGL(options LGLOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+	vertices := int(C.igraph_vcount(&g.graph))
+	if vertices == 0 {
+		return NewMatrix(0, 2)
+	}
+	if options.MaxIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: MaxIter must be non-negative: %d", options.MaxIter)
+	}
+	maxIter := options.MaxIter
+	if maxIter == 0 {
+		maxIter = 150
+	}
+	maxDelta := options.MaxDelta
+	if maxDelta == 0 {
+		maxDelta = float64(vertices)
+	}
+	area := options.Area
+	if area == 0 {
+		area = float64(vertices) * float64(vertices)
+	}
+	cooling := options.CoolingExponent
+	if cooling == 0 {
+		cooling = 1.5
+	}
+	repulsion := options.RepulsionRadius
+	if repulsion == 0 {
+		repulsion = area * float64(vertices)
+	}
+	cellSize := options.CellSize
+	if cellSize == 0 {
+		cellSize = math.Pow(area, 0.25)
+	}
+	for name, value := range map[string]float64{
+		"MaxDelta": maxDelta, "Area": area, "CoolingExponent": cooling,
+		"RepulsionRadius": repulsion, "CellSize": cellSize,
+	} {
+		if math.IsNaN(value) || math.IsInf(value, 0) || value <= 0 {
+			return Matrix{}, fmt.Errorf("igraph: %s must be finite and positive: %v", name, value)
+		}
+	}
+	root := -1
+	if options.Root != nil {
+		root = *options.Root
+		if root < 0 || root >= vertices {
+			return Matrix{}, fmt.Errorf("igraph: LGL root vertex ID %d is out of bounds for graph with %d vertices", root, vertices)
+		}
+	}
+	cMaxIter, err := intToIgraphInt(maxIter, "MaxIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+	cRoot, err := intToIgraphInt(root, "Root")
+	if err != nil {
+		return Matrix{}, err
+	}
+	coords, err := newCMatrix(Matrix{})
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer coords.close()
+	err = withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_lgl(
+			&g.graph, &coords.value, cMaxIter, C.igraph_real_t(maxDelta),
+			C.igraph_real_t(area), C.igraph_real_t(cooling), C.igraph_real_t(repulsion),
+			C.igraph_real_t(cellSize), cRoot,
+		)
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate LGL layout", int(code))
 		}
 		return nil
 	})

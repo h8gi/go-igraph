@@ -176,3 +176,32 @@ igraph_error_t go_igraph_layout_graphopt(
         graph, res, niter, node_charge, node_mass, spring_length,
         spring_constant, max_sa_movement, use_seed));
 }
+
+igraph_error_t go_igraph_layout_drl(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    int preset, const igraph_vector_t *weights, int dim) {
+    igraph_layout_drl_options_t options;
+    igraph_error_handler_t *old_error =
+        igraph_set_error_handler(&igraph_error_handler_ignore);
+    igraph_warning_handler_t *old_warning =
+        igraph_set_warning_handler(&igraph_warning_handler_ignore);
+    igraph_error_t code = igraph_layout_drl_options_init(
+        &options, (igraph_layout_drl_default_t) preset);
+    if (code == IGRAPH_SUCCESS) {
+        code = dim == 2
+            ? igraph_layout_drl(graph, res, use_seed, &options, weights)
+            : igraph_layout_drl_3d(graph, res, use_seed, &options, weights);
+    }
+    igraph_set_warning_handler(old_warning);
+    igraph_set_error_handler(old_error);
+    return code;
+}
+
+igraph_error_t go_igraph_layout_lgl(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_integer_t maxiter,
+    igraph_real_t maxdelta, igraph_real_t area, igraph_real_t coolexp,
+    igraph_real_t repulserad, igraph_real_t cellsize, igraph_integer_t root) {
+    GO_IGRAPH_CALL(igraph_layout_lgl(
+        graph, res, maxiter, maxdelta, area, coolexp,
+        repulserad, cellsize, root));
+}
