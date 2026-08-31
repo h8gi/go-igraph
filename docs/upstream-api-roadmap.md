@@ -2342,6 +2342,82 @@ partial graph-list adoption. Output-checked package examples and the runnable
 different seeds must differ. `make verify` enforces formatting, vet, the full
 test and race suites, the statement-coverage floor, and regenerated inventory.
 
+## Milestone 27: Centrality and local clustering extensions
+
+Goal: complete the remaining high-level centrality and local-clustering APIs
+in `igraph_centrality.h` and `igraph_transitivity.h` without exposing C types,
+storage, or caller-inferred result alignment.
+
+Status: planned in [#390](https://github.com/h8gi/go-igraph/issues/390).
+Implementation proceeds through subset-limited vertex and edge betweenness
+([#393](https://github.com/h8gi/go-igraph/issues/393)), Burt constraint
+([#392](https://github.com/h8gi/go-igraph/issues/392)), edge convergence degree
+([#389](https://github.com/h8gi/go-igraph/issues/389)), and weighted local and
+k-cycle edge clustering ([#388](https://github.com/h8gi/go-igraph/issues/388)).
+[#391](https://github.com/h8gi/go-igraph/issues/391) follows all implementation
+slices with integration, examples, ownership and concurrency evidence, and the
+final two-header inventory audit.
+
+Selector and alignment contract: result selectors are materialized before C
+execution. Their order and duplicates are restored in returned non-nil,
+Go-owned slices. Subset-betweenness source and target selectors have set
+semantics: duplicates do not multiply path contributions. They are validated,
+deduplicated in first-occurrence order for C, and never affect the separately
+ordered result selector. Convergence degree has no selector upstream and
+returns one named result whose convergence, input-set-size, and output-set-size
+slices are equally sized and indexed by edge ID. Returned values remain valid
+after the source graph is closed.
+
+Weight contract: optional weights are borrowed only for a synchronous call and
+copied into temporary C storage. Every supplied vector must match the exact
+edge count. Validation is algorithm-specific: subset betweenness admits the
+pinned finite weight domain required by shortest paths; constraint preserves
+the pinned tie-strength semantics and explicitly defines zero strength;
+Barrat transitivity requires weights so it never triggers the upstream
+unweighted-warning fallback. NaN and infinity are rejected before C execution.
+
+Semantic contract: subset betweenness exposes directed-path selection for
+directed graphs and documents that the flag is ignored for undirected graphs;
+the currently unimplemented upstream normalization flag is not public. Burt
+constraint combines tie strength in both directions, with loops, parallel
+edges, isolates, and zero-strength cases fixed by behavioral tests. Barrat
+transitivity ignores edge direction, requires a simple graph, and reuses the
+package undefined-transitivity mode for NaN-versus-zero results. Edge
+clustering accepts only cycle sizes 3 and 4 and represents offset and
+normalization independently. Its direction, loop, multiplicity, cycle-count,
+and denominator behavior is documented from pinned igraph 1.0.1 tests.
+Convergence degree documents the directed definition and the pinned undirected
+convention of arbitrary edge orientation with absolute convergence.
+
+Ownership, error, and concurrency contract: each graph operation holds its read
+lock through validation, C execution, and extraction. Non-aborting C error and
+warning handlers contain upstream failures. Selector materialization, checked
+integer conversion, graph-shape checks, and weight validation occur before C
+where practical. Every initialized selector and vector is destroyed exactly
+once on initialization, upstream, extraction, and early-return paths. Calls
+after `Close` return `ErrClosed`, read-only calls may run concurrently, and
+close races are safe.
+
+Reference workflows are: restrict vertex and edge shortest-path contributions
+to independently selected source and target sets; compare unweighted and
+weighted Burt constraint on a small structural-hole network; inspect aligned
+edge convergence and supporting set sizes; compute Barrat coefficients for
+selected vertices of a weighted simple graph; and compare triangle- and
+quadrilateral-based edge clustering with each offset/normalization combination.
+The integration workflow composes all five result families on representative
+graphs and independently checks selector order, path restriction, edge and
+weight alignment, undefined-value modes, and structural invariants.
+
+Initial disposition: `igraph_betweenness_subset`,
+`igraph_edge_betweenness_subset`, `igraph_constraint`,
+`igraph_convergence_degree`, `igraph_transitivity_barrat`, and `igraph_ecc` are
+deferred to the implementation issues above in the
+`centrality_and_local_clustering` domain. The final #391 audit must give every
+declaration in `igraph_centrality.h` and `igraph_transitivity.h` a reviewed
+user-facing, composed, internal, or intentionally unsupported disposition,
+remove all scoped deferred or missing entries, regenerate `docs/api-coverage.md`,
+and pass `make verify` with the repository statement-coverage threshold.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones

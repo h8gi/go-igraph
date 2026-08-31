@@ -154,6 +154,30 @@
       }
     },
     "deferred": {
+      "igraph_betweenness_subset": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #393 as selector-aware source/target-limited vertex betweenness with explicit set semantics, borrowed edge weights, and selector-aligned Go-owned results."
+      },
+      "igraph_edge_betweenness_subset": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #393 as selector-aware source/target-limited edge betweenness with explicit set semantics, borrowed edge weights, and selector-aligned Go-owned results."
+      },
+      "igraph_constraint": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #392 as selector-aligned Burt constraint scores with algorithm-specific borrowed-weight validation and documented isolate and multigraph behavior."
+      },
+      "igraph_convergence_degree": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #389 as one aligned edge-indexed result containing convergence and input/output set sizes."
+      },
+      "igraph_ecc": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #388 as selector-aligned k-cycle edge clustering with validated cycle size and independent offset and normalization options."
+      },
+      "igraph_transitivity_barrat": {
+        "domain": "centrality_and_local_clustering",
+        "rationale": "Planned for #388 as selector-aware weighted local transitivity with required aligned weights, simple-graph validation, and explicit undefined-value handling."
+      }
     },
     "intentionally_unsupported": {
       "igraph_matrix_list_capacity": {

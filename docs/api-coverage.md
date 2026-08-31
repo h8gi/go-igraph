@@ -7,7 +7,7 @@
 - Internal dependencies: **71**
 - Composed APIs: **29**
 - Intentionally unsupported: **189**
-- Deferred declarations: **0**
+- Deferred declarations: **6**
 - Completed domains: **advanced_random_graph_models, attributes, coloring, graph_algebra_and_transformations, graph_interchange, hierarchical_random_graph_models, epidemic_simulation, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
@@ -204,7 +204,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_beta_weighted_gabriel_graph` | `igraph_spatial.h` | User-facing | `NewBetaWeightedGabrielGraph` |
 | `igraph_betweenness` | `igraph_centrality.h` | User-facing | `VertexBetweenness` |
 | `igraph_betweenness_cutoff` | `igraph_centrality.h` | User-facing | `VertexBetweenness` |
-| `igraph_betweenness_subset` | `igraph_centrality.h` | Missing | — |
+| `igraph_betweenness_subset` | `igraph_centrality.h` | Deferred | — |
 | `igraph_bfs` | `igraph_visitor.h` | User-facing | `BreadthFirstSearch` |
 | `igraph_bfs_simple` | `igraph_visitor.h` | Missing | — |
 | `igraph_biadjacency` | `igraph_bipartite.h` | User-facing | `NewBiadjacency` |
@@ -405,9 +405,9 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_compose` | `igraph_operators.h` | User-facing | `Compose` |
 | `igraph_connect_neighborhood` | `igraph_operators.h` | User-facing | `ConnectNeighborhoodInPlace` |
 | `igraph_connected_components` | `igraph_components.h` | User-facing | `ConnectedComponents` |
-| `igraph_constraint` | `igraph_centrality.h` | Missing | — |
+| `igraph_constraint` | `igraph_centrality.h` | Deferred | — |
 | `igraph_contract_vertices` | `igraph_operators.h` | User-facing | `ContractVerticesInPlace` |
-| `igraph_convergence_degree` | `igraph_centrality.h` | Missing | — |
+| `igraph_convergence_degree` | `igraph_centrality.h` | Deferred | — |
 | `igraph_convex_hull_2d` | `igraph_spatial.h` | User-facing | `ConvexHull2D` |
 | `igraph_copy` | `igraph_interface.h` | User-facing | `Clone` |
 | `igraph_coreness` | `igraph_community.h` | User-facing | `Coreness` |
@@ -512,13 +512,13 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_dqueue_push` | `igraph_dqueue.h (generated)` | Missing | — |
 | `igraph_dqueue_size` | `igraph_dqueue.h (generated)` | Missing | — |
 | `igraph_dyad_census` | `igraph_motifs.h` | User-facing | `DyadCensus` |
-| `igraph_ecc` | `igraph_transitivity.h` | Missing | — |
+| `igraph_ecc` | `igraph_transitivity.h` | Deferred | — |
 | `igraph_eccentricity` | `igraph_paths.h` | User-facing | `Eccentricities` |
 | `igraph_ecount` | `igraph_interface.h` | User-facing | `EdgeCount` |
 | `igraph_edge` | `igraph_interface.h` | User-facing | `EdgeEndpoints` |
 | `igraph_edge_betweenness` | `igraph_centrality.h` | User-facing | `EdgeBetweenness` |
 | `igraph_edge_betweenness_cutoff` | `igraph_centrality.h` | User-facing | `EdgeBetweenness` |
-| `igraph_edge_betweenness_subset` | `igraph_centrality.h` | Missing | — |
+| `igraph_edge_betweenness_subset` | `igraph_centrality.h` | Deferred | — |
 | `igraph_edge_connectivity` | `igraph_flow.h` | User-facing | `EdgeConnectivity` |
 | `igraph_edge_disjoint_paths` | `igraph_flow.h` | User-facing | `EdgeDisjointPaths` |
 | `igraph_edgelist_percolation` | `igraph_components.h` | User-facing | `EdgeListPercolation` |
@@ -1560,7 +1560,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_topological_sorting` | `igraph_cycles.h` | User-facing | `TopologicalSort` |
 | `igraph_transitive_closure` | `igraph_reachability.h` | User-facing | `TransitiveClosure` |
 | `igraph_transitivity_avglocal_undirected` | `igraph_transitivity.h` | User-facing | `AverageLocalTransitivity` |
-| `igraph_transitivity_barrat` | `igraph_transitivity.h` | Missing | — |
+| `igraph_transitivity_barrat` | `igraph_transitivity.h` | Deferred | — |
 | `igraph_transitivity_local_undirected` | `igraph_transitivity.h` | User-facing | `LocalTransitivity` |
 | `igraph_transitivity_undirected` | `igraph_transitivity.h` | User-facing | `GlobalTransitivity` |
 | `igraph_tree_from_parent_vector` | `igraph_constructors.h` | User-facing | `NewTreeFromParents` |
