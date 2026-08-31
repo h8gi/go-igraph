@@ -144,4 +144,16 @@ igraph_error_t go_igraph_roots_for_tree_layout(
     const igraph_t *graph, igraph_neimode_t mode,
     igraph_vector_int_t *roots, int choice);
 
+igraph_t *go_igraph_layout_graph_array_alloc(igraph_integer_t count);
+void go_igraph_layout_graph_array_set(
+    igraph_t *graphs, igraph_integer_t index, const igraph_t *graph);
+igraph_matrix_t *go_igraph_layout_matrix_array_alloc(igraph_integer_t count);
+void go_igraph_layout_matrix_array_set(
+    igraph_matrix_t *matrices, igraph_integer_t index,
+    const igraph_matrix_t *matrix);
+void go_igraph_layout_array_free(void *array);
+igraph_error_t go_igraph_layout_merge_dla(
+    const igraph_t *graphs, const igraph_matrix_t *coords,
+    igraph_integer_t count, igraph_matrix_t *result);
+
 #endif

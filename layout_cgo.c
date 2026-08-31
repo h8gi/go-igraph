@@ -1,6 +1,8 @@
 #include "layout_cgo.h"
 #include "igraph_error_cgo.h"
 
+#include <stdlib.h>
+
 igraph_error_t go_igraph_layout_circle(
     const igraph_t *graph,
     igraph_matrix_t *res,
@@ -216,4 +218,64 @@ igraph_error_t go_igraph_roots_for_tree_layout(
     igraph_vector_int_t *roots, int choice) {
     GO_IGRAPH_CALL(igraph_roots_for_tree_layout(
         graph, mode, roots, (igraph_root_choice_t) choice));
+}
+
+igraph_t *go_igraph_layout_graph_array_alloc(igraph_integer_t count) {
+    return count == 0 ? NULL : calloc((size_t) count, sizeof(igraph_t));
+}
+
+void go_igraph_layout_graph_array_set(
+    igraph_t *graphs, igraph_integer_t index, const igraph_t *graph) {
+    graphs[index] = *graph;
+}
+
+igraph_matrix_t *go_igraph_layout_matrix_array_alloc(igraph_integer_t count) {
+    return count == 0 ? NULL : calloc((size_t) count, sizeof(igraph_matrix_t));
+}
+
+void go_igraph_layout_matrix_array_set(
+    igraph_matrix_t *matrices, igraph_integer_t index,
+    const igraph_matrix_t *matrix) {
+    matrices[index] = *matrix;
+}
+
+void go_igraph_layout_array_free(void *array) {
+    free(array);
+}
+
+igraph_error_t go_igraph_layout_merge_dla(
+    const igraph_t *graphs, const igraph_matrix_t *coords,
+    igraph_integer_t count, igraph_matrix_t *result) {
+    igraph_error_handler_t *old_error =
+        igraph_set_error_handler(&igraph_error_handler_ignore);
+    igraph_warning_handler_t *old_warning =
+        igraph_set_warning_handler(&igraph_warning_handler_ignore);
+    igraph_vector_ptr_t pointers;
+    igraph_matrix_list_t matrices;
+    igraph_error_t code = igraph_vector_ptr_init(&pointers, count);
+    if (code != IGRAPH_SUCCESS) {
+        goto done;
+    }
+    code = igraph_matrix_list_init(&matrices, count);
+    if (code != IGRAPH_SUCCESS) {
+        igraph_vector_ptr_destroy(&pointers);
+        goto done;
+    }
+    for (igraph_integer_t index = 0; index < count; ++index) {
+        VECTOR(pointers)[index] = (void *) &graphs[index];
+        code = igraph_matrix_update(
+            igraph_matrix_list_get_ptr(&matrices, index), &coords[index]);
+        if (code != IGRAPH_SUCCESS) {
+            break;
+        }
+    }
+    if (code == IGRAPH_SUCCESS) {
+        code = igraph_layout_merge_dla(&pointers, &matrices, result);
+    }
+    igraph_matrix_list_destroy(&matrices);
+    igraph_vector_ptr_destroy(&pointers);
+done:
+    igraph_set_warning_handler(old_warning);
+    igraph_set_error_handler(old_error);
+    return code;
 }

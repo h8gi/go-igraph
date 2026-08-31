@@ -9,6 +9,7 @@ import "C"
 import (
 	"fmt"
 	"math"
+	"unsafe"
 )
 
 // DegMode controls edge direction interpretation in layout algorithms.
@@ -181,6 +182,11 @@ const (
 	TreeRootByDegree TreeRootChoice = iota
 	TreeRootByEccentricity
 )
+
+// DLAMergeOptions controls diffusion-limited aggregation layout merging.
+type DLAMergeOptions struct {
+	Seed *uint64
+}
 
 // newOrderVertexSelector validates order slice and converts it to cVertexSelector.
 // If order is nil, natural vertex ordering is used.
@@ -1606,6 +1612,102 @@ func (g *Graph) TreeLayoutRoots(mode DegMode, choice TreeRootChoice) ([]int, err
 	}
 	if result == nil {
 		result = []int{}
+	}
+	return result, nil
+}
+
+// MergeLayoutsDLA merges independently laid-out graphs using diffusion-limited
+// aggregation. Graphs and coordinate matrices are borrowed for the synchronous
+// call. Each coordinate matrix must be V-by-2 and finite. Result rows are
+// concatenated in graph-slice order and vertex-ID order within each graph; the
+// returned matrix is independently Go-owned. Repeated graph operands are valid.
+//
+//igraph:bind igraph_layout_merge_dla
+func MergeLayoutsDLA(graphs []*Graph, coordinates []Matrix, options DLAMergeOptions) (Matrix, error) {
+	if len(graphs) != len(coordinates) {
+		return Matrix{}, fmt.Errorf("igraph: graph count %d does not match coordinate matrix count %d", len(graphs), len(coordinates))
+	}
+	if len(graphs) == 0 {
+		return NewMatrix(0, 2)
+	}
+	cCount, err := intToIgraphInt(len(graphs), "DLA graph count")
+	if err != nil {
+		return Matrix{}, err
+	}
+	var result Matrix
+	err = withLockedGraphs(graphs, func(values []*C.igraph_t) error {
+		totalVertices := 0
+		for index, graph := range values {
+			vertices, err := igraphIntToInt(C.igraph_vcount(graph), "DLA graph vertex count")
+			if err != nil {
+				return err
+			}
+			if totalVertices > int(^uint(0)>>1)-vertices {
+				return fmt.Errorf("igraph: aggregate DLA vertex count overflows int")
+			}
+			totalVertices += vertices
+			rows, columns := coordinates[index].Dims()
+			if rows != vertices || columns != 2 {
+				return fmt.Errorf("igraph: DLA coordinate matrix %d dimensions (%d, %d) do not match graph vertex count %d and dimension 2", index, rows, columns, vertices)
+			}
+			for row, rowValues := range coordinates[index].Rows() {
+				for column, value := range rowValues {
+					if math.IsNaN(value) || math.IsInf(value, 0) {
+						return fmt.Errorf("igraph: DLA coordinate matrix %d value at row %d, column %d must be finite", index, row, column)
+					}
+				}
+			}
+		}
+		if _, err := intToIgraphInt(totalVertices, "aggregate DLA vertex count"); err != nil {
+			return err
+		}
+
+		graphArray := C.go_igraph_layout_graph_array_alloc(cCount)
+		if graphArray == nil {
+			return fmt.Errorf("igraph: allocate DLA graph array")
+		}
+		defer C.go_igraph_layout_array_free(unsafe.Pointer(graphArray))
+		matrixArray := C.go_igraph_layout_matrix_array_alloc(cCount)
+		if matrixArray == nil {
+			return fmt.Errorf("igraph: allocate DLA coordinate array")
+		}
+		defer C.go_igraph_layout_array_free(unsafe.Pointer(matrixArray))
+		cMatrices := make([]*cMatrix, 0, len(coordinates))
+		defer func() {
+			for _, matrix := range cMatrices {
+				matrix.close()
+			}
+		}()
+		for index := range graphs {
+			matrix, err := newCMatrix(coordinates[index])
+			if err != nil {
+				return err
+			}
+			cMatrices = append(cMatrices, matrix)
+			cIndex := C.igraph_integer_t(index)
+			C.go_igraph_layout_graph_array_set(graphArray, cIndex, values[index])
+			C.go_igraph_layout_matrix_array_set(matrixArray, cIndex, &matrix.value)
+		}
+		cResult, err := newCMatrix(Matrix{})
+		if err != nil {
+			return err
+		}
+		defer cResult.close()
+		err = withRNG(options.Seed, func() error {
+			code := C.go_igraph_layout_merge_dla(graphArray, matrixArray, cCount, &cResult.value)
+			if code != C.IGRAPH_SUCCESS {
+				return igraphError("merge layouts with DLA", int(code))
+			}
+			return nil
+		})
+		if err != nil {
+			return err
+		}
+		result, err = cResult.matrix()
+		return err
+	})
+	if err != nil {
+		return Matrix{}, err
 	}
 	return result, nil
 }
