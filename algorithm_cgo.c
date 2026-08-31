@@ -449,6 +449,12 @@ igraph_error_t go_igraph_edge_betweenness_subset(
         /* normalized = */ false));
 }
 
+igraph_error_t go_igraph_constraint(
+    const igraph_t *graph, igraph_vector_t *result, igraph_vs_t vertices,
+    const igraph_vector_t *weights) {
+    GO_IGRAPH_CALL(igraph_constraint(graph, result, vertices, weights));
+}
+
 void go_igraph_arpack_options(
     igraph_arpack_options_t *options, int max_iterations,
     igraph_real_t tolerance) {

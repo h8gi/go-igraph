@@ -154,10 +154,6 @@
       }
     },
     "deferred": {
-      "igraph_constraint": {
-        "domain": "centrality_and_local_clustering",
-        "rationale": "Planned for #392 as selector-aligned Burt constraint scores with algorithm-specific borrowed-weight validation and documented isolate and multigraph behavior."
-      },
       "igraph_convergence_degree": {
         "domain": "centrality_and_local_clustering",
         "rationale": "Planned for #389 as one aligned edge-indexed result containing convergence and input/output set sizes."
