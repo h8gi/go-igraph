@@ -23,6 +23,8 @@ Examples are grouped by functional domain:
 - `example_spatial_test.go`: Spatial graph construction, edge-ID-aligned distances, weighted routing, convex hulls, and proximity-graph comparison.
 - `example_attributes_test.go`: Typed graph, vertex, and edge metadata with ID-aligned inspection and mutation.
 - `example_random_test.go`: Reproducible expected-degree and fixed-edge-count random graph generation.
+- `example_layout_test.go`: Deterministic, force-directed, advanced, scalable,
+  aligned, tree-root, and many-graph layout workflows.
 
 ### Function Naming & Structure
 - Each example function must start with `Example` (e.g. `ExampleGraph_MaxFlow`, `ExampleNewGraphFromEdges`).
@@ -44,6 +46,7 @@ Each example is placed in its own subdirectory under `examples/`:
 - `examples/shortest_path/main.go`
 - `examples/random/main.go`
 - `examples/layout/main.go`
+- `examples/advanced_layout/main.go`
 - `examples/isomorphism/main.go`
 - `examples/cliques/main.go`
 - `examples/cycles/main.go`

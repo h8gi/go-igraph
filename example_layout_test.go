@@ -122,3 +122,89 @@ func ExampleGraph_AdjacencySpectralEmbedding() {
 	// embedding dimensions: 6x2
 	// number of eigenvalues: 2
 }
+
+func ExampleGraph_LayoutDrL() {
+	graph, err := igraph.NewRing(6, false, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Close()
+	seed := uint64(28)
+	first, err := graph.LayoutDrL(igraph.DrLOptions{Seed: &seed})
+	if err != nil {
+		log.Fatal(err)
+	}
+	second, err := graph.LayoutDrL(igraph.DrLOptions{Seed: &seed})
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, columns := first.Dims()
+	same := true
+	for row := 0; row < rows; row++ {
+		for column := 0; column < columns; column++ {
+			left, _ := first.At(row, column)
+			right, _ := second.At(row, column)
+			same = same && left == right
+		}
+	}
+	fmt.Printf("DrL dimensions: %dx%d\n", rows, columns)
+	fmt.Printf("same seed reproduces DrL: %t\n", same)
+	// Output:
+	// DrL dimensions: 6x2
+	// same seed reproduces DrL: true
+}
+
+func ExampleGraph_TreeLayoutRoots() {
+	graph, err := igraph.NewGraphFromEdges(5, []igraph.Edge{
+		{From: 0, To: 1}, {From: 1, To: 2}, {From: 2, To: 3}, {From: 3, To: 4},
+	}, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer graph.Close()
+	roots, err := graph.TreeLayoutRoots(igraph.DegAll, igraph.TreeRootByEccentricity)
+	if err != nil {
+		log.Fatal(err)
+	}
+	coordinates, err := graph.LayoutReingoldTilford(igraph.DegAll, roots)
+	if err != nil {
+		log.Fatal(err)
+	}
+	aligned, err := graph.AlignLayout(coordinates)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, columns := aligned.Dims()
+	fmt.Printf("selected roots: %v\n", roots)
+	fmt.Printf("aligned tree dimensions: %dx%d\n", rows, columns)
+	// Output:
+	// selected roots: [2]
+	// aligned tree dimensions: 5x2
+}
+
+func ExampleMergeLayoutsDLA() {
+	left, err := igraph.NewGraphFromEdges(2, []igraph.Edge{{From: 0, To: 1}}, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer left.Close()
+	right, err := igraph.NewGraphFromEdges(2, []igraph.Edge{{From: 0, To: 1}}, false)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer right.Close()
+	coordinates, _ := igraph.NewMatrixFromRows([][]float64{{-1, 0}, {1, 0}})
+	seed := uint64(28)
+	merged, err := igraph.MergeLayoutsDLA(
+		[]*igraph.Graph{left, right},
+		[]igraph.Matrix{coordinates, coordinates},
+		igraph.DLAMergeOptions{Seed: &seed},
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+	rows, columns := merged.Dims()
+	fmt.Printf("merged dimensions: %dx%d\n", rows, columns)
+	// Output:
+	// merged dimensions: 4x2
+}
