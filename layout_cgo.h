@@ -128,4 +128,13 @@ igraph_error_t go_igraph_layout_graphopt(
     igraph_real_t spring_length, igraph_real_t spring_constant,
     igraph_real_t max_sa_movement, igraph_bool_t use_seed);
 
+igraph_error_t go_igraph_layout_drl(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    int preset, const igraph_vector_t *weights, int dim);
+
+igraph_error_t go_igraph_layout_lgl(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_integer_t maxiter,
+    igraph_real_t maxdelta, igraph_real_t area, igraph_real_t coolexp,
+    igraph_real_t repulserad, igraph_real_t cellsize, igraph_integer_t root);
+
 #endif
