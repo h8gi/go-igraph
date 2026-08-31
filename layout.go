@@ -173,6 +173,15 @@ type LGLOptions struct {
 	Root            *int
 }
 
+// TreeRootChoice selects the heuristic used to choose one root per relevant
+// component for tree layouts.
+type TreeRootChoice int
+
+const (
+	TreeRootByDegree TreeRootChoice = iota
+	TreeRootByEccentricity
+)
+
 // newOrderVertexSelector validates order slice and converts it to cVertexSelector.
 // If order is nil, natural vertex ordering is used.
 func newOrderVertexSelector(order []int, numVertices int) (*cVertexSelector, error) {
@@ -1518,4 +1527,85 @@ func (g *Graph) LayoutLGL(options LGLOptions) (Matrix, error) {
 		return Matrix{}, err
 	}
 	return coords.matrix()
+}
+
+// AlignLayout translates and rotates borrowed vertex coordinates into an
+// axis-aligned orientation. Any positive coordinate dimension is supported.
+// The input is never mutated and the returned matrix is independently Go-owned.
+//
+//igraph:bind igraph_layout_align
+func (g *Graph) AlignLayout(coordinates Matrix) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+	vertices := int(C.igraph_vcount(&g.graph))
+	rows, columns := coordinates.Dims()
+	if rows != vertices {
+		return Matrix{}, fmt.Errorf("igraph: coordinate row count %d does not match vertex count %d", rows, vertices)
+	}
+	if vertices > 0 && columns == 0 {
+		return Matrix{}, fmt.Errorf("igraph: layout coordinates must have at least one dimension")
+	}
+	for row, values := range coordinates.Rows() {
+		for column, value := range values {
+			if math.IsNaN(value) || math.IsInf(value, 0) {
+				return Matrix{}, fmt.Errorf("igraph: coordinate at row %d, column %d must be finite", row, column)
+			}
+		}
+	}
+	cLayout, err := newCMatrix(coordinates)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer cLayout.close()
+	if code := C.go_igraph_layout_align(&g.graph, &cLayout.value); code != C.IGRAPH_SUCCESS {
+		return Matrix{}, igraphError("align layout", int(code))
+	}
+	return cLayout.matrix()
+}
+
+// TreeLayoutRoots returns a minimal Go-owned root set suitable for the
+// Reingold-Tilford layouts. Undirected graphs ignore mode. Degree chooses the
+// highest-degree candidate; eccentricity chooses the lowest-eccentricity one.
+// Roots follow the pinned upstream component/priority order; equal-score ties
+// retain upstream's deterministic vertex ordering.
+//
+//igraph:bind igraph_roots_for_tree_layout
+func (g *Graph) TreeLayoutRoots(mode DegMode, choice TreeRootChoice) ([]int, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+	cMode, err := mode.cValue()
+	if err != nil {
+		return nil, err
+	}
+	if choice < TreeRootByDegree || choice > TreeRootByEccentricity {
+		return nil, fmt.Errorf("igraph: invalid tree root choice: %d", choice)
+	}
+	roots, err := newIntVector(nil)
+	if err != nil {
+		return nil, err
+	}
+	defer roots.close()
+	if code := C.go_igraph_roots_for_tree_layout(&g.graph, cMode, &roots.value, C.int(choice)); code != C.IGRAPH_SUCCESS {
+		return nil, igraphError("choose tree layout roots", int(code))
+	}
+	result, err := roots.slice()
+	if err != nil {
+		return nil, err
+	}
+	if result == nil {
+		result = []int{}
+	}
+	return result, nil
 }

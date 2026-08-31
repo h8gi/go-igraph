@@ -137,4 +137,11 @@ igraph_error_t go_igraph_layout_lgl(
     igraph_real_t maxdelta, igraph_real_t area, igraph_real_t coolexp,
     igraph_real_t repulserad, igraph_real_t cellsize, igraph_integer_t root);
 
+igraph_error_t go_igraph_layout_align(
+    const igraph_t *graph, igraph_matrix_t *layout);
+
+igraph_error_t go_igraph_roots_for_tree_layout(
+    const igraph_t *graph, igraph_neimode_t mode,
+    igraph_vector_int_t *roots, int choice);
+
 #endif
