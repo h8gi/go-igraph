@@ -145,6 +145,12 @@ igraph_error_t go_igraph_betweenness(
 igraph_error_t go_igraph_edge_betweenness(
     const igraph_t *, const igraph_vector_t *, igraph_vector_t *,
     igraph_es_t, igraph_bool_t, igraph_bool_t, igraph_bool_t, igraph_real_t);
+igraph_error_t go_igraph_betweenness_subset(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_t *,
+    igraph_vs_t, igraph_vs_t, igraph_vs_t, igraph_bool_t);
+igraph_error_t go_igraph_edge_betweenness_subset(
+    const igraph_t *, const igraph_vector_t *, igraph_vector_t *,
+    igraph_vs_t, igraph_vs_t, igraph_es_t, igraph_bool_t);
 igraph_error_t go_igraph_eigenvector_centrality(
     const igraph_t *, igraph_vector_t *, igraph_real_t *, igraph_neimode_t,
     const igraph_vector_t *, int, igraph_real_t);
