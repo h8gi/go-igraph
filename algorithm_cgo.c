@@ -455,6 +455,12 @@ igraph_error_t go_igraph_constraint(
     GO_IGRAPH_CALL(igraph_constraint(graph, result, vertices, weights));
 }
 
+igraph_error_t go_igraph_convergence_degree(
+    const igraph_t *graph, igraph_vector_t *result, igraph_vector_t *ins,
+    igraph_vector_t *outs) {
+    GO_IGRAPH_CALL(igraph_convergence_degree(graph, result, ins, outs));
+}
+
 void go_igraph_arpack_options(
     igraph_arpack_options_t *options, int max_iterations,
     igraph_real_t tolerance) {
