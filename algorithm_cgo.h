@@ -130,6 +130,14 @@ igraph_error_t go_igraph_transitivity_local_undirected(
     igraph_transitivity_mode_t);
 igraph_error_t go_igraph_transitivity_avglocal_undirected(
     const igraph_t *, igraph_real_t *, igraph_transitivity_mode_t);
+igraph_error_t go_igraph_transitivity_barrat(
+    const igraph_t *, igraph_vector_t *, igraph_vs_t,
+    const igraph_vector_t *, igraph_transitivity_mode_t);
+igraph_error_t go_igraph_ecc(
+    const igraph_t *, igraph_vector_t *, igraph_es_t, igraph_int_t,
+    igraph_bool_t, igraph_bool_t);
+igraph_error_t go_igraph_is_simple_undirected(
+    const igraph_t *, igraph_bool_t *);
 
 /* Milestone 4 centrality algorithms. */
 igraph_error_t go_igraph_closeness(

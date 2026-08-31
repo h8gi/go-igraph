@@ -376,6 +376,26 @@ igraph_error_t go_igraph_transitivity_avglocal_undirected(
         graph, result, mode));
 }
 
+igraph_error_t go_igraph_transitivity_barrat(
+    const igraph_t *graph, igraph_vector_t *result, igraph_vs_t vertices,
+    const igraph_vector_t *weights, igraph_transitivity_mode_t mode) {
+    GO_IGRAPH_CALL(igraph_transitivity_barrat(
+        graph, result, vertices, weights, mode));
+}
+
+igraph_error_t go_igraph_ecc(
+    const igraph_t *graph, igraph_vector_t *result, igraph_es_t edges,
+    igraph_int_t cycle_size, igraph_bool_t offset,
+    igraph_bool_t normalize) {
+    GO_IGRAPH_CALL(igraph_ecc(
+        graph, result, edges, cycle_size, offset, normalize));
+}
+
+igraph_error_t go_igraph_is_simple_undirected(
+    const igraph_t *graph, igraph_bool_t *result) {
+    GO_IGRAPH_CALL(igraph_is_simple(graph, result, IGRAPH_UNDIRECTED));
+}
+
 igraph_error_t go_igraph_closeness(
     const igraph_t *graph, igraph_vector_t *result,
     igraph_vector_int_t *reachable_count, igraph_bool_t *all_reachable,
