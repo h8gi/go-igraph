@@ -205,3 +205,15 @@ igraph_error_t go_igraph_layout_lgl(
         graph, res, maxiter, maxdelta, area, coolexp,
         repulserad, cellsize, root));
 }
+
+igraph_error_t go_igraph_layout_align(
+    const igraph_t *graph, igraph_matrix_t *layout) {
+    GO_IGRAPH_CALL(igraph_layout_align(graph, layout));
+}
+
+igraph_error_t go_igraph_roots_for_tree_layout(
+    const igraph_t *graph, igraph_neimode_t mode,
+    igraph_vector_int_t *roots, int choice) {
+    GO_IGRAPH_CALL(igraph_roots_for_tree_layout(
+        graph, mode, roots, (igraph_root_choice_t) choice));
+}
