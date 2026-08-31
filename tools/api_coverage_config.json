@@ -144,17 +144,9 @@
       }
     },
     "deferred": {
-      "igraph_hrg_consensus": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #379 plans a seeded graph analysis that returns aligned, immutable, Go-owned consensus parent and weight data, optionally borrowing a validated starting HRG model."
-      },
       "igraph_hrg_game": {
         "domain": "hierarchical_random_graph_models",
         "rationale": "Milestone 26 issue #380 will review this single-graph generator as composed by one coherent seeded HRG sampling API."
-      },
-      "igraph_hrg_predict": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #379 plans seeded missing-edge prediction with explicit endpoint pairs aligned to finite Go-owned probabilities."
       },
       "igraph_hrg_sample": {
         "domain": "hierarchical_random_graph_models",
