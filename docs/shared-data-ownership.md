@@ -553,6 +553,29 @@ non-negative weights. Every non-nil weight slice is borrowed only for the call
 and copied into a temporary C vector. A nil centrality cutoff means unlimited;
 a non-nil cutoff is borrowed and must be finite and non-negative.
 
+Subset betweenness borrows source, target, and result selectors for one
+synchronous call. Source and target IDs are deduplicated with set semantics;
+result selectors are deduplicated only internally and expanded back to their
+materialized order, including duplicates. Optional edge weights are copied to
+temporary C storage and must be finite and strictly positive. Normalization is
+not exposed because pinned igraph 1.0.1 does not implement it. Returned vertex
+and edge score slices are non-nil Go-owned values.
+
+Burt constraint and Barrat transitivity borrow edge-aligned weights only for a
+synchronous call and return selector-aligned Go-owned slices. Constraint
+accepts nil for unit tie strengths or finite non-negative strengths, combines
+both directions, and preserves pinned NaN results for isolates and zero total
+strength. Barrat transitivity requires a non-nil finite weight vector, rejects
+graphs that are not simple after directions are ignored, and uses
+`TransitivityMode` for zero-strength values. This avoids the upstream warning
+fallback to unweighted transitivity.
+
+`EdgeConvergenceDegree` returns three non-nil, equally sized Go-owned slices
+indexed by edge ID. `EdgeClustering` borrows its selector, restores selector
+order and duplicates, and returns a non-nil Go-owned slice. Its cycle size,
+offset, and normalization options are ordinary copied Go values. All these
+results remain valid after source graph closure.
+
 PageRank reset distributions are borrowed and copied into temporary C storage;
 reset selectors are borrowed and materialized while the graph lock is held.
 The two reset forms are mutually exclusive. Returned PageRank scores follow the
