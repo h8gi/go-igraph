@@ -12,6 +12,16 @@
         "domain": "hierarchical_random_graph_models",
         "rationale": "HRGModel.Dendrogram uses the maintained igraph_from_hrg_dendrogram entry point and also returns the aligned Go-owned probabilities omitted by the deprecated API."
       },
+      "igraph_hrg_game": {
+        "go_api": "Sample",
+        "domain": "hierarchical_random_graph_models",
+        "rationale": "HRGModel.Sample with count one provides the same seeded single-graph workflow through the maintained multi-sample entry point."
+      },
+      "igraph_hrg_sample": {
+        "go_api": "Sample",
+        "domain": "hierarchical_random_graph_models",
+        "rationale": "HRGModel.Sample with count one composes the single-sample contract through igraph_hrg_sample_many without duplicating the public API."
+      },
       "igraph_induced_subgraph": {
         "go_api": "InducedSubgraph",
         "domain": "graph_algebra_and_transformations",
@@ -144,18 +154,6 @@
       }
     },
     "deferred": {
-      "igraph_hrg_game": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #380 will review this single-graph generator as composed by one coherent seeded HRG sampling API."
-      },
-      "igraph_hrg_sample": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #380 plans a one-sample convenience contract within a coherent seeded API returning independently owned Graph values."
-      },
-      "igraph_hrg_sample_many": {
-        "domain": "hierarchical_random_graph_models",
-        "rationale": "Milestone 26 issue #380 plans checked multi-sampling with exact graph-list adoption and independently closable Graph results."
-      }
     },
     "intentionally_unsupported": {
       "igraph_matrix_list_capacity": {
