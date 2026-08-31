@@ -147,3 +147,32 @@ igraph_error_t go_igraph_layout_sphere(
     GO_IGRAPH_CALL(igraph_layout_sphere(graph, res));
 }
 
+igraph_error_t go_igraph_layout_davidson_harel(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    igraph_integer_t maxiter, igraph_integer_t fineiter,
+    igraph_real_t cool_fact, igraph_real_t weight_node_dist,
+    igraph_real_t weight_border, igraph_real_t weight_edge_lengths,
+    igraph_real_t weight_edge_crossings, igraph_real_t weight_node_edge_dist) {
+    GO_IGRAPH_CALL(igraph_layout_davidson_harel(
+        graph, res, use_seed, maxiter, fineiter, cool_fact,
+        weight_node_dist, weight_border, weight_edge_lengths,
+        weight_edge_crossings, weight_node_edge_dist));
+}
+
+igraph_error_t go_igraph_layout_gem(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    igraph_integer_t maxiter, igraph_real_t temp_max,
+    igraph_real_t temp_min, igraph_real_t temp_init) {
+    GO_IGRAPH_CALL(igraph_layout_gem(
+        graph, res, use_seed, maxiter, temp_max, temp_min, temp_init));
+}
+
+igraph_error_t go_igraph_layout_graphopt(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_integer_t niter,
+    igraph_real_t node_charge, igraph_real_t node_mass,
+    igraph_real_t spring_length, igraph_real_t spring_constant,
+    igraph_real_t max_sa_movement, igraph_bool_t use_seed) {
+    GO_IGRAPH_CALL(igraph_layout_graphopt(
+        graph, res, niter, node_charge, node_mass, spring_length,
+        spring_constant, max_sa_movement, use_seed));
+}
