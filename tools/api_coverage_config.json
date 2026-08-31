@@ -920,6 +920,7 @@
     "coloring",
     "graph_algebra_and_transformations",
     "graph_interchange",
+    "hierarchical_random_graph_models",
     "epidemic_simulation",
     "structural_diagnostics"
   ]
