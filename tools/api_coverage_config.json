@@ -917,6 +917,7 @@
   "completed_domains": [
     "advanced_random_graph_models",
     "attributes",
+    "centrality_and_local_clustering",
     "coloring",
     "graph_algebra_and_transformations",
     "graph_interchange",

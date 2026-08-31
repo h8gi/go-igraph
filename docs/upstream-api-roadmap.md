@@ -2348,14 +2348,14 @@ Goal: complete the remaining high-level centrality and local-clustering APIs
 in `igraph_centrality.h` and `igraph_transitivity.h` without exposing C types,
 storage, or caller-inferred result alignment.
 
-Status: planned in [#390](https://github.com/h8gi/go-igraph/issues/390).
-Implementation proceeds through subset-limited vertex and edge betweenness
+Status: completed. [#390](https://github.com/h8gi/go-igraph/issues/390)
+established the contracts. Subset-limited vertex and edge betweenness
 ([#393](https://github.com/h8gi/go-igraph/issues/393)), Burt constraint
 ([#392](https://github.com/h8gi/go-igraph/issues/392)), edge convergence degree
 ([#389](https://github.com/h8gi/go-igraph/issues/389)), and weighted local and
-k-cycle edge clustering ([#388](https://github.com/h8gi/go-igraph/issues/388)).
-[#391](https://github.com/h8gi/go-igraph/issues/391) follows all implementation
-slices with integration, examples, ownership and concurrency evidence, and the
+k-cycle edge clustering ([#388](https://github.com/h8gi/go-igraph/issues/388))
+delivered the six scoped declarations. [#391](https://github.com/h8gi/go-igraph/issues/391)
+completed integration, examples, ownership and concurrency evidence, and the
 final two-header inventory audit.
 
 Selector and alignment contract: result selectors are materialized before C
@@ -2408,15 +2408,27 @@ The integration workflow composes all five result families on representative
 graphs and independently checks selector order, path restriction, edge and
 weight alignment, undefined-value modes, and structural invariants.
 
-Initial disposition: `igraph_betweenness_subset`,
+Final disposition: `igraph_betweenness_subset`,
 `igraph_edge_betweenness_subset`, `igraph_constraint`,
 `igraph_convergence_degree`, `igraph_transitivity_barrat`, and `igraph_ecc` are
-deferred to the implementation issues above in the
-`centrality_and_local_clustering` domain. The final #391 audit must give every
-declaration in `igraph_centrality.h` and `igraph_transitivity.h` a reviewed
-user-facing, composed, internal, or intentionally unsupported disposition,
-remove all scoped deferred or missing entries, regenerate `docs/api-coverage.md`,
-and pass `make verify` with the repository statement-coverage threshold.
+user-facing in the `centrality_and_local_clustering` domain. Every declaration
+in `igraph_centrality.h` and `igraph_transitivity.h` has a final user-facing
+disposition, with no missing or deferred declaration in either header.
+
+Completion evidence: the integration suite composes all five result families,
+independently checks source/target restriction, duplicate selector expansion,
+edge and weight alignment, convergence invariants, undefined-value modes, and
+Go ownership after graph closure. Focused tests cover empty, edgeless,
+disconnected, directed, looped, parallel-edge, zero-strength, weighted, and
+representative simple graphs; invalid selectors, weights, modes, cycle sizes,
+and graph shapes; upstream and initialization failures; concurrent reads;
+close races; and calls after `Close`. All temporary selectors and vectors have
+one cleanup owner, and graph locks span validation, C execution, and result
+extraction. An output-checked package example and runnable
+`examples/centrality_clustering` workflow cover the full API slice. The
+generated inventory reports both scoped headers at 100%, the
+`centrality_and_local_clustering` domain is complete, race tests pass, and
+`make verify` enforces the statement-coverage floor.
 
 ## Later domain milestones
 
