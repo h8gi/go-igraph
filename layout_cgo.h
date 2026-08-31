@@ -110,4 +110,22 @@ igraph_error_t go_igraph_layout_sphere(
     const igraph_t *graph,
     igraph_matrix_t *res);
 
+igraph_error_t go_igraph_layout_davidson_harel(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    igraph_integer_t maxiter, igraph_integer_t fineiter,
+    igraph_real_t cool_fact, igraph_real_t weight_node_dist,
+    igraph_real_t weight_border, igraph_real_t weight_edge_lengths,
+    igraph_real_t weight_edge_crossings, igraph_real_t weight_node_edge_dist);
+
+igraph_error_t go_igraph_layout_gem(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_bool_t use_seed,
+    igraph_integer_t maxiter, igraph_real_t temp_max,
+    igraph_real_t temp_min, igraph_real_t temp_init);
+
+igraph_error_t go_igraph_layout_graphopt(
+    const igraph_t *graph, igraph_matrix_t *res, igraph_integer_t niter,
+    igraph_real_t node_charge, igraph_real_t node_mass,
+    igraph_real_t spring_length, igraph_real_t spring_constant,
+    igraph_real_t max_sa_movement, igraph_bool_t use_seed);
+
 #endif

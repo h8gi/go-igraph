@@ -105,6 +105,42 @@ type MDSOptions struct {
 	Seed *uint64
 }
 
+// DavidsonHarelOptions controls the Davidson-Harel simulated-annealing layout.
+type DavidsonHarelOptions struct {
+	Seed                   *uint64
+	MaxIter                int
+	FineIter               int
+	CoolFactor             float64
+	InitialCoordinates     *Matrix
+	WeightNodeDistance     *float64
+	WeightBorder           *float64
+	WeightEdgeLengths      *float64
+	WeightEdgeCrossings    *float64
+	WeightNodeEdgeDistance *float64
+}
+
+// GEMOptions controls the GEM force-directed layout.
+type GEMOptions struct {
+	Seed               *uint64
+	MaxIter            int
+	MaxTemperature     float64
+	MinTemperature     float64
+	InitialTemperature float64
+	InitialCoordinates *Matrix
+}
+
+// GraphoptOptions controls the Graphopt physical-simulation layout.
+type GraphoptOptions struct {
+	Seed               *uint64
+	NIter              int
+	NodeCharge         *float64
+	NodeMass           float64
+	SpringLength       float64
+	SpringConstant     float64
+	MaxMovement        float64
+	InitialCoordinates *Matrix
+}
+
 // newOrderVertexSelector validates order slice and converts it to cVertexSelector.
 // If order is nil, natural vertex ordering is used.
 func newOrderVertexSelector(order []int, numVertices int) (*cVertexSelector, error) {
@@ -1029,4 +1065,270 @@ func (g *Graph) LayoutSphere() (Matrix, error) {
 		return Matrix{}, igraphError("calculate sphere layout", int(code))
 	}
 	return cMat.matrix()
+}
+
+func layoutOptionValue(value *float64, fallback float64) float64 {
+	if value == nil {
+		return fallback
+	}
+	return *value
+}
+
+func newLayoutSeedMatrix(initial *Matrix, vertices int) (*cMatrix, C.igraph_bool_t, error) {
+	if initial == nil && vertices == 0 {
+		empty, err := NewMatrix(0, 2)
+		if err != nil {
+			return nil, booltoint(false), err
+		}
+		matrix, err := newCMatrix(empty)
+		return matrix, booltoint(true), err
+	}
+	if initial == nil {
+		matrix, err := newCMatrix(Matrix{})
+		return matrix, booltoint(false), err
+	}
+	rows, columns := initial.Dims()
+	if rows != vertices || columns != 2 {
+		return nil, booltoint(false), fmt.Errorf("igraph: initial coordinates matrix dimensions (%d, %d) do not match vertex count %d and dimension 2", rows, columns, vertices)
+	}
+	for row, values := range initial.Rows() {
+		for column, value := range values {
+			if math.IsNaN(value) || math.IsInf(value, 0) {
+				return nil, booltoint(false), fmt.Errorf("igraph: initial coordinate at row %d, column %d must be finite", row, column)
+			}
+		}
+	}
+	matrix, err := newCMatrix(*initial)
+	return matrix, booltoint(true), err
+}
+
+func finiteNonNegativeLayoutOption(name string, value float64) error {
+	if math.IsNaN(value) || math.IsInf(value, 0) || value < 0 {
+		return fmt.Errorf("igraph: %s must be finite and non-negative: %v", name, value)
+	}
+	return nil
+}
+
+// LayoutDavidsonHarel computes a 2D simulated-annealing layout. Edge
+// directions are ignored. InitialCoordinates is borrowed and copied; the
+// returned V-by-2 matrix is Go-owned. Zero iteration and cooling fields select
+// the pinned igraph defaults. Nil energy-weight fields select graph-dependent
+// defaults; a non-nil pointer may explicitly select zero.
+//
+//igraph:bind igraph_layout_davidson_harel
+func (g *Graph) LayoutDavidsonHarel(options DavidsonHarelOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+
+	vertices := int(C.igraph_vcount(&g.graph))
+	edges := int(C.igraph_ecount(&g.graph))
+	if options.MaxIter < 0 || options.FineIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: Davidson-Harel iteration counts must be non-negative")
+	}
+	maxIter := options.MaxIter
+	if maxIter == 0 {
+		maxIter = 10
+	}
+	fineIter := options.FineIter
+	if fineIter == 0 {
+		fineIter = 10
+		if vertices > 1 && int(math.Ceil(math.Log2(float64(vertices)))) > fineIter {
+			fineIter = int(math.Ceil(math.Log2(float64(vertices))))
+		}
+	}
+	cool := options.CoolFactor
+	if cool == 0 {
+		cool = 0.75
+	}
+	if math.IsNaN(cool) || math.IsInf(cool, 0) || cool <= 0 || cool >= 1 {
+		return Matrix{}, fmt.Errorf("igraph: CoolFactor must be finite and in (0, 1): %v", cool)
+	}
+	density := 0.0
+	if vertices > 1 {
+		density = float64(edges) / (float64(vertices) * float64(vertices-1) / 2)
+		if density > 1 {
+			density = 1
+		}
+	}
+	weights := []struct {
+		name  string
+		value float64
+	}{
+		{"WeightNodeDistance", layoutOptionValue(options.WeightNodeDistance, 1)},
+		{"WeightBorder", layoutOptionValue(options.WeightBorder, 0)},
+		{"WeightEdgeLengths", layoutOptionValue(options.WeightEdgeLengths, density/10)},
+		{"WeightEdgeCrossings", layoutOptionValue(options.WeightEdgeCrossings, 1-math.Sqrt(density))},
+		{"WeightNodeEdgeDistance", layoutOptionValue(options.WeightNodeEdgeDistance, (1-density)/5)},
+	}
+	for _, weight := range weights {
+		if err := finiteNonNegativeLayoutOption(weight.name, weight.value); err != nil {
+			return Matrix{}, err
+		}
+	}
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer coords.close()
+	cMaxIter, err := intToIgraphInt(maxIter, "MaxIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+	cFineIter, err := intToIgraphInt(fineIter, "FineIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+	err = withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_davidson_harel(&g.graph, &coords.value, useSeed,
+			cMaxIter, cFineIter, C.igraph_real_t(cool), C.igraph_real_t(weights[0].value),
+			C.igraph_real_t(weights[1].value), C.igraph_real_t(weights[2].value),
+			C.igraph_real_t(weights[3].value), C.igraph_real_t(weights[4].value))
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate Davidson-Harel layout", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return Matrix{}, err
+	}
+	return coords.matrix()
+}
+
+// LayoutGEM computes a 2D GEM layout. Edge directions are ignored.
+// InitialCoordinates is borrowed and copied; the returned matrix is Go-owned.
+// Zero-valued scalar fields select the pinned igraph defaults.
+//
+//igraph:bind igraph_layout_gem
+func (g *Graph) LayoutGEM(options GEMOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+	vertices := int(C.igraph_vcount(&g.graph))
+	if options.MaxIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: MaxIter must be non-negative: %d", options.MaxIter)
+	}
+	maxIter := options.MaxIter
+	if maxIter == 0 {
+		maxIter = 40 * vertices * vertices
+	}
+	tempMax := options.MaxTemperature
+	if tempMax == 0 {
+		tempMax = math.Max(1, float64(vertices))
+	}
+	tempMin := options.MinTemperature
+	if tempMin == 0 {
+		tempMin = 0.1
+	}
+	tempInit := options.InitialTemperature
+	if tempInit == 0 {
+		tempInit = math.Sqrt(math.Max(1, float64(vertices)))
+	}
+	for name, value := range map[string]float64{"MaxTemperature": tempMax, "MinTemperature": tempMin, "InitialTemperature": tempInit} {
+		if math.IsNaN(value) || math.IsInf(value, 0) || value <= 0 {
+			return Matrix{}, fmt.Errorf("igraph: %s must be finite and positive: %v", name, value)
+		}
+	}
+	if tempMin > tempInit || tempInit > tempMax {
+		return Matrix{}, fmt.Errorf("igraph: GEM temperatures must satisfy MinTemperature <= InitialTemperature <= MaxTemperature")
+	}
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer coords.close()
+	cMaxIter, err := intToIgraphInt(maxIter, "MaxIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+	err = withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_gem(&g.graph, &coords.value, useSeed, cMaxIter,
+			C.igraph_real_t(tempMax), C.igraph_real_t(tempMin), C.igraph_real_t(tempInit))
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate GEM layout", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return Matrix{}, err
+	}
+	return coords.matrix()
+}
+
+// LayoutGraphopt computes a 2D Graphopt layout. InitialCoordinates is borrowed
+// and copied; the returned matrix is Go-owned. Zero scalar fields select the
+// original Graphopt defaults. Set NodeCharge to a non-nil pointer to explicitly
+// choose a charge, including zero. Random initialization follows Seed.
+//
+//igraph:bind igraph_layout_graphopt
+func (g *Graph) LayoutGraphopt(options GraphoptOptions) (Matrix, error) {
+	if g == nil {
+		return Matrix{}, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return Matrix{}, ErrClosed
+	}
+	vertices := int(C.igraph_vcount(&g.graph))
+	if options.NIter < 0 {
+		return Matrix{}, fmt.Errorf("igraph: NIter must be non-negative: %d", options.NIter)
+	}
+	nIter := options.NIter
+	if nIter == 0 {
+		nIter = 500
+	}
+	charge := layoutOptionValue(options.NodeCharge, 0.001)
+	mass := options.NodeMass
+	if mass == 0 {
+		mass = 30
+	}
+	springConstant := options.SpringConstant
+	if springConstant == 0 {
+		springConstant = 1
+	}
+	maxMovement := options.MaxMovement
+	if maxMovement == 0 {
+		maxMovement = 5
+	}
+	for name, value := range map[string]float64{"NodeCharge": charge, "SpringLength": options.SpringLength, "SpringConstant": springConstant, "MaxMovement": maxMovement} {
+		if err := finiteNonNegativeLayoutOption(name, value); err != nil {
+			return Matrix{}, err
+		}
+	}
+	if math.IsNaN(mass) || math.IsInf(mass, 0) || mass <= 0 {
+		return Matrix{}, fmt.Errorf("igraph: NodeMass must be finite and positive: %v", mass)
+	}
+	coords, useSeed, err := newLayoutSeedMatrix(options.InitialCoordinates, vertices)
+	if err != nil {
+		return Matrix{}, err
+	}
+	defer coords.close()
+	cNIter, err := intToIgraphInt(nIter, "NIter")
+	if err != nil {
+		return Matrix{}, err
+	}
+	err = withRNG(options.Seed, func() error {
+		code := C.go_igraph_layout_graphopt(&g.graph, &coords.value, cNIter,
+			C.igraph_real_t(charge), C.igraph_real_t(mass), C.igraph_real_t(options.SpringLength),
+			C.igraph_real_t(springConstant), C.igraph_real_t(maxMovement), useSeed)
+		if code != C.IGRAPH_SUCCESS {
+			return igraphError("calculate Graphopt layout", int(code))
+		}
+		return nil
+	})
+	if err != nil {
+		return Matrix{}, err
+	}
+	return coords.matrix()
 }
