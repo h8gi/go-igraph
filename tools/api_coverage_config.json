@@ -922,6 +922,7 @@
     "graph_algebra_and_transformations",
     "graph_interchange",
     "hierarchical_random_graph_models",
+    "layouts",
     "epidemic_simulation",
     "structural_diagnostics"
   ]
