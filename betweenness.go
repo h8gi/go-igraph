@@ -26,6 +26,187 @@ type BetweennessOptions struct {
 	Cutoff        *float64
 }
 
+// SubsetBetweennessOptions controls source/target-limited vertex and edge
+// betweenness. DirectedPaths is significant only for directed graphs. A nil
+// Weights slice selects unweighted shortest paths; otherwise Weights is
+// borrowed for the call, copied to C storage, and must contain one finite,
+// strictly positive value per edge.
+//
+// Normalization is deliberately absent because pinned igraph 1.0.1 does not
+// implement normalized subset betweenness.
+type SubsetBetweennessOptions struct {
+	Weights       []float64
+	DirectedPaths bool
+}
+
+// VertexBetweennessSubset returns selected vertex contributions from shortest
+// paths whose endpoints belong to sources and targets. Source and target
+// selectors have set semantics: duplicates do not multiply contributions.
+// Result vertices preserve materialized selector order and duplicates.
+// Undirected results use igraph's usual half-credit convention because each
+// path has no distinct reverse direction.
+//
+// Inputs are borrowed only for the synchronous call. The returned non-nil
+// slice is Go-owned and remains valid after the graph is closed.
+//
+//igraph:bind igraph_betweenness_subset
+func (g *Graph) VertexBetweennessSubset(
+	vertices, sources, targets VertexSelector,
+	options SubsetBetweennessOptions,
+) ([]float64, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+
+	resultSelector, resultIDs, resultPositions, err := prepareSubsetVertexSelector(&g.graph, vertices, "result")
+	if err != nil {
+		return nil, err
+	}
+	defer resultSelector.close()
+	sourceSelector, _, _, err := prepareSubsetVertexSelector(&g.graph, sources, "source")
+	if err != nil {
+		return nil, err
+	}
+	defer sourceSelector.close()
+	targetSelector, _, _, err := prepareSubsetVertexSelector(&g.graph, targets, "target")
+	if err != nil {
+		return nil, err
+	}
+	defer targetSelector.close()
+	weights, directed, err := g.prepareSubsetBetweennessOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	if weights != nil {
+		defer weights.close()
+	}
+
+	values, err := collectBetweenness("calculate subset vertex betweenness", func(result *realVector) int {
+		return int(C.go_igraph_betweenness_subset(
+			&g.graph, edgeWeightPointer(weights), &result.value,
+			sourceSelector.value, targetSelector.value, resultSelector.value,
+			directed,
+		))
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(values) != len(resultIDs) {
+		values = expandByPositions(values, resultPositions)
+	}
+	return values, nil
+}
+
+// EdgeBetweennessSubset returns selected edge contributions from shortest
+// paths whose endpoints belong to sources and targets. Source and target
+// selectors have set semantics. Result edges preserve materialized selector
+// order and duplicates. Ownership and option semantics match
+// VertexBetweennessSubset, including half credit on undirected graphs.
+//
+//igraph:bind igraph_edge_betweenness_subset
+func (g *Graph) EdgeBetweennessSubset(
+	edges EdgeSelector,
+	sources, targets VertexSelector,
+	options SubsetBetweennessOptions,
+) ([]float64, error) {
+	if g == nil {
+		return nil, ErrClosed
+	}
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	if g.closed {
+		return nil, ErrClosed
+	}
+
+	selectedIDs, err := materializeSelectedEdgeIDs(&g.graph, edges)
+	if err != nil {
+		return nil, fmt.Errorf("igraph: invalid subset betweenness result edge selector: %w", err)
+	}
+	uniqueIDs, positions := deduplicateIDs(selectedIDs)
+	uniqueEdges, err := EdgeIDs(uniqueIDs...)
+	if err != nil {
+		return nil, err
+	}
+	resultSelector, err := newCEdgeSelector(uniqueEdges)
+	if err != nil {
+		return nil, err
+	}
+	defer resultSelector.close()
+	sourceSelector, _, _, err := prepareSubsetVertexSelector(&g.graph, sources, "source")
+	if err != nil {
+		return nil, err
+	}
+	defer sourceSelector.close()
+	targetSelector, _, _, err := prepareSubsetVertexSelector(&g.graph, targets, "target")
+	if err != nil {
+		return nil, err
+	}
+	defer targetSelector.close()
+	weights, directed, err := g.prepareSubsetBetweennessOptions(options)
+	if err != nil {
+		return nil, err
+	}
+	if weights != nil {
+		defer weights.close()
+	}
+
+	values, err := collectBetweenness("calculate subset edge betweenness", func(result *realVector) int {
+		return int(C.go_igraph_edge_betweenness_subset(
+			&g.graph, edgeWeightPointer(weights), &result.value,
+			sourceSelector.value, targetSelector.value, resultSelector.value,
+			directed,
+		))
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(values) != len(selectedIDs) {
+		values = expandByPositions(values, positions)
+	}
+	return values, nil
+}
+
+func prepareSubsetVertexSelector(
+	graph *C.igraph_t,
+	selector VertexSelector,
+	role string,
+) (*cVertexSelector, []int, []int, error) {
+	vertexCount := int(C.igraph_vcount(graph))
+	if err := validateVertexSelector(selector, vertexCount); err != nil {
+		return nil, nil, nil, fmt.Errorf("igraph: invalid subset betweenness %s vertex selector: %w", role, err)
+	}
+	ids, err := materializeVertexIDs(graph, selector)
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("igraph: materialize subset betweenness %s vertex selector: %w", role, err)
+	}
+	uniqueIDs, positions := deduplicateIDs(ids)
+	uniqueSelector, err := VertexIDs(uniqueIDs...)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	cSelector, err := newCVertexSelector(uniqueSelector)
+	if err != nil {
+		return nil, nil, nil, err
+	}
+	return cSelector, ids, positions, nil
+}
+
+func (g *Graph) prepareSubsetBetweennessOptions(
+	options SubsetBetweennessOptions,
+) (*realVector, C.igraph_bool_t, error) {
+	weights, err := newOptionalPositiveEdgeWeights(options.Weights, int(C.igraph_ecount(&g.graph)))
+	if err != nil {
+		return nil, booltoint(false), err
+	}
+	directed := options.DirectedPaths && C.igraph_is_directed(&g.graph) != booltoint(false)
+	return weights, booltoint(directed), nil
+}
+
 // VertexBetweenness returns one score per selected vertex in materialized
 // selector order, including duplicates. Selection controls only which scores
 // are returned; the upstream algorithm still performs a whole-graph

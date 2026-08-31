@@ -431,6 +431,24 @@ igraph_error_t go_igraph_edge_betweenness(
         graph, weights, result, edges, directed, normalized));
 }
 
+igraph_error_t go_igraph_betweenness_subset(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_vs_t sources, igraph_vs_t targets,
+    igraph_vs_t vertices, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_betweenness_subset(
+        graph, weights, result, sources, targets, vertices, directed,
+        /* normalized = */ false));
+}
+
+igraph_error_t go_igraph_edge_betweenness_subset(
+    const igraph_t *graph, const igraph_vector_t *weights,
+    igraph_vector_t *result, igraph_vs_t sources, igraph_vs_t targets,
+    igraph_es_t edges, igraph_bool_t directed) {
+    GO_IGRAPH_CALL(igraph_edge_betweenness_subset(
+        graph, weights, result, sources, targets, edges, directed,
+        /* normalized = */ false));
+}
+
 void go_igraph_arpack_options(
     igraph_arpack_options_t *options, int max_iterations,
     igraph_real_t tolerance) {
