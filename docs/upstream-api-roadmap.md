@@ -2430,6 +2430,113 @@ generated inventory reports both scoped headers at 100%, the
 `centrality_and_local_clustering` domain is complete, race tests pass, and
 `make verify` enforces the statement-coverage floor.
 
+## Milestone 28: Advanced layouts and layout utilities
+
+Goal: complete the remaining high-level APIs in `igraph_layout.h` while
+preserving the package's Go-owned matrix, checked-option, reproducible RNG,
+graph-locking, error, and cleanup contracts.
+
+Status: planned. [#405](https://github.com/h8gi/go-igraph/issues/405)
+defines the contracts and inventory dispositions. Implementation proceeds with
+classic iterative layouts ([#402](https://github.com/h8gi/go-igraph/issues/402)),
+large-graph layouts ([#404](https://github.com/h8gi/go-igraph/issues/404)),
+alignment and automatic tree roots
+([#403](https://github.com/h8gi/go-igraph/issues/403)), and DLA merging
+([#400](https://github.com/h8gi/go-igraph/issues/400)). The final integration,
+examples, documentation, inventory, race, and verification audit is
+[#401](https://github.com/h8gi/go-igraph/issues/401).
+
+Public result and input contract: every layout result is a non-nil, Go-owned
+`Matrix` whose rows are in vertex-ID order and which remains valid after every
+source graph is closed. Single-graph 2D and 3D results have exactly `V x 2` and
+`V x 3` shape, respectively. Borrowed initial-coordinate matrices and weight
+slices are copied into temporary C storage for the synchronous call and are
+never mutated. Initial coordinates must have the exact result shape and all
+coordinates must be finite. Optional edge weights must have length `E` and
+contain only finite values accepted by the selected upstream algorithm.
+
+Classic iterative API contract: `igraph_layout_davidson_harel`,
+`igraph_layout_gem`, and `igraph_layout_graphopt` become `Graph` methods with
+Go-native option structs. Zero-valued option fields select documented pinned
+igraph 1.0.1 defaults; explicitly supplied iteration counts, cooling factors,
+temperatures, masses, charges, spring constants, lengths, and algorithm weights
+are checked for finiteness and their upstream-valid ranges before C execution.
+Davidson-Harel and GEM accept optional `V x 2` initial coordinates and expose
+an optional Go seed because upstream initializes them from its RNG when no
+coordinates are supplied. Graphopt has no random initialization contract and
+therefore exposes no seed. All three ignore edge direction as defined upstream,
+while loop, parallel-edge, component, empty, and singleton behavior is pinned
+by focused tests.
+
+Large-graph API contract: `igraph_layout_drl` and `igraph_layout_drl_3d` become
+paired `LayoutDrL` and `LayoutDrL3D` methods sharing a Go-native `DrLOptions`.
+Named presets and checked field overrides are translated internally to
+`igraph_layout_drl_options_t`; the C struct and enum never escape the package.
+`igraph_layout_drl_options_init` is internal composition plumbing and is
+classified as such rather than receiving a standalone public wrapper. Optional
+initial coordinates have the selected dimension, weights are borrowed and
+edge-ID aligned, and optional seeds serialize access through the package RNG
+lock. `igraph_layout_lgl` becomes `LayoutLGL` with checked iteration, area,
+cooling, repulsion, cell-size, and root options. An omitted root uses upstream's
+automatic choice; an explicit root must identify an existing vertex. LGL's
+RNG-consuming execution uses the same optional-seed contract.
+
+Utility API contract: `igraph_layout_align` becomes a graph-aware method over a
+borrowed finite `V x 2` matrix and returns an independently owned aligned copy.
+`igraph_roots_for_tree_layout` becomes a graph method with a Go-native checked
+root-choice type and the existing `DegMode`; it returns a non-nil Go-owned root
+slice in upstream order, suitable for both Reingold-Tilford methods. Empty,
+singleton, disconnected, invalid-direction, and tie cases are fixed by
+known-answer or invariant tests.
+
+DLA merge contract: `igraph_layout_merge_dla` becomes a package-level many-
+graph operation accepting equally sized borrowed graph and coordinate slices.
+Each coordinate matrix must be finite, two-dimensional, and row-aligned with
+its graph. The result is a non-nil Go-owned `sum(V) x 2` matrix whose row blocks
+follow graph-slice order and vertex-ID order within each block. Empty input,
+nil and closed graphs, mismatched collections, invalid matrices, and checked
+aggregate sizes fail before C execution. Distinct graphs are read-locked once
+in stable identity order; repeated graph operands are accepted without double
+locking. RNG-consuming execution is serialized and supports optional replay by
+seed. Every temporary graph-pointer vector and initialized matrix-list element
+has one cleanup owner on partial initialization, upstream error, conversion
+error, and early return.
+
+Error, lifetime, and concurrency contract: graph read locks span validation, C
+execution, and extraction. Calls after `Close` return `ErrClosed`, concurrent
+read-only calls are supported, and close races are safe. Checked Go-to-C integer
+conversion and all shape, finite-value, enum, root, and option validation occur
+before C where practical. Non-aborting C handlers turn every upstream failure
+into an idiomatic Go error. Every initialized C matrix, vector, option container,
+and list element is destroyed exactly once on all exit paths.
+
+Initial disposition of all 29 declarations: the existing 16 public bindings
+remain user-facing (`igraph_layout_circle`, `igraph_layout_star`,
+`igraph_layout_grid`, `igraph_layout_random`, both Reingold-Tilford variants,
+`igraph_layout_bipartite`, `igraph_layout_sugiyama`, both
+Fruchterman-Reingold variants, both Kamada-Kawai variants,
+`igraph_layout_mds`, `igraph_layout_random_3d`, `igraph_layout_grid_3d`, and
+`igraph_layout_sphere`). Nine declarations become user-facing in this milestone:
+`igraph_layout_davidson_harel`, `igraph_layout_gem`, `igraph_layout_graphopt`,
+`igraph_layout_drl`, `igraph_layout_drl_3d`, `igraph_layout_lgl`,
+`igraph_layout_align`, `igraph_roots_for_tree_layout`, and
+`igraph_layout_merge_dla`. The remaining missing declaration,
+`igraph_layout_drl_options_init`, is an internal
+helper composed behind `DrLOptions`. The three UMAP declarations remain
+intentionally unsupported: `igraph_layout_umap` and `igraph_layout_umap_3d`
+expose an unstable low-level solver contract, while
+`igraph_layout_umap_compute_weights` is solver plumbing without a useful
+standalone Go API. Thus every declaration has an explicit planned disposition.
+
+Reference workflows are: seed classic layouts from existing circle coordinates;
+replay DrL and LGL on weighted disconnected graphs; select automatic roots and
+feed them to both tree layouts; align independently generated layouts; and DLA-
+merge independently laid-out components while retaining graph/vertex row
+alignment. Completion requires output-checked package examples, a runnable
+advanced-layout example, focused initialization/upstream/cleanup tests, close-
+race and concurrent-read tests, regenerated inventory with no missing or
+deferred `igraph_layout.h` declaration, and a passing `make verify`.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
