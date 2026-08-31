@@ -2252,15 +2252,15 @@ Goal: expose construction, conversion, fitting, consensus analysis, missing-edge
 prediction, and graph sampling through one immutable Go-owned hierarchical
 random graph (HRG) model, without C types or caller-managed resources.
 
-Status: planned. [#376](https://github.com/h8gi/go-igraph/issues/376)
-establishes the contracts and initial inventory dispositions;
-[#377](https://github.com/h8gi/go-igraph/issues/377) adds model construction and
+Status: complete. [#376](https://github.com/h8gi/go-igraph/issues/376)
+established the contracts and initial inventory dispositions;
+[#377](https://github.com/h8gi/go-igraph/issues/377) added model construction and
 dendrogram conversion; [#378](https://github.com/h8gi/go-igraph/issues/378)
-adds fitting; [#379](https://github.com/h8gi/go-igraph/issues/379) adds
+added fitting; [#379](https://github.com/h8gi/go-igraph/issues/379) added
 consensus and prediction; [#380](https://github.com/h8gi/go-igraph/issues/380)
-adds sampling; and [#381](https://github.com/h8gi/go-igraph/issues/381)
-performs the final integration, ownership, concurrency, documentation, and
-inventory audit. These issues are implemented in that dependency order.
+added sampling; and [#381](https://github.com/h8gi/go-igraph/issues/381)
+completed the integration, ownership, concurrency, documentation, and
+inventory audit.
 
 The public model is an immutable Go value containing copied left-child,
 right-child, internal-edge-count, and merge-probability slices. A model with
@@ -2321,17 +2321,26 @@ semantics for empty, singleton, disconnected, directed, looped, parallel-edge,
 complete, and representative simple graphs instead of assuming every shape is
 accepted.
 
-Initial inventory disposition: `igraph_hrg_create`,
-`igraph_from_hrg_dendrogram`, `igraph_hrg_fit`, `igraph_hrg_consensus`,
-`igraph_hrg_predict`, `igraph_hrg_sample`, and `igraph_hrg_sample_many` are
-planned public or composed workflow entry points. `igraph_hrg_init`,
-`igraph_hrg_resize`, `igraph_hrg_size`, and `igraph_hrg_destroy` are planned
-call-scoped adapter plumbing. `igraph_hrg_game` is reviewed through the
-single-sample convenience workflow, and deprecated `igraph_hrg_dendrogram` is
-reviewed through the maintained reverse conversion. All 13 declarations in
-`igraph_hrg.h` remain explicitly deferred until their implementation issue
-lands; #381 removes every stale deferred disposition and marks the
-`hierarchical_random_graph_models` inventory domain complete.
+Completion evidence: `igraph_hrg_create`, `igraph_from_hrg_dendrogram`,
+`igraph_hrg_fit`, `igraph_hrg_consensus`, `igraph_hrg_predict`, and
+`igraph_hrg_sample_many` are user-facing bindings. `igraph_hrg_sample`,
+`igraph_hrg_game`, and deprecated `igraph_hrg_dendrogram` are composed by the
+coherent maintained workflows. `igraph_hrg_init`, `igraph_hrg_resize`,
+`igraph_hrg_size`, and `igraph_hrg_destroy` are internal lifecycle plumbing.
+Thus all 13 declarations in `igraph_hrg.h` have final reviewed dispositions,
+there are no deferred HRG declarations, and the
+`hierarchical_random_graph_models` inventory domain is complete.
+
+The integration suite exercises fresh and warm fitting, dendrogram round trips,
+consensus and prediction alignment, seeded one-or-many sampling, source and
+sibling closure, and concurrent graph analysis racing `Close`. Focused tests
+cover checked counts, invalid models, empty, singleton, edgeless, disconnected,
+complete, directed, looped, and parallel-edge inputs, probability boundaries,
+initialization and upstream failures, conversion and extraction failures, and
+partial graph-list adoption. Output-checked package examples and the runnable
+`examples/hrg` workflow report structural invariants rather than claiming that
+different seeds must differ. `make verify` enforces formatting, vet, the full
+test and race suites, the statement-coverage floor, and regenerated inventory.
 
 ## Later domain milestones
 

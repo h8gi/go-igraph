@@ -122,6 +122,15 @@
 // and directed endpoint rewiring commits through clone-and-swap so failures
 // leave the receiver and its attributes unchanged. APIs that mirror upstream
 // experimental generators state that status explicitly.
+// Hierarchical random graph models are immutable Go-owned values. Construction
+// and analysis inputs are borrowed synchronously; accessors and analysis
+// results return Go-owned copies. FitHRG, ConsensusHRG, PredictHRG, and
+// HRGModel.Sample share the optional-seed RNG contract, with graph methods
+// acquiring their read lock before the RNG lock. Consensus group weight i is
+// aligned with consensus vertex n+i, predicted edges align with probabilities,
+// and sampled graphs preserve model leaf IDs as vertex IDs. Every sampled graph
+// is independently owned and must be closed. Pinned igraph 1.0.1 sampling
+// requires at least two leaves.
 // SIR epidemic simulations also use this RNG contract. They return Go-owned,
 // event-aligned trajectories, treat directed edges as undirected, and retain
 // pinned upstream rejection of empty, looped, and parallel-edge graphs.
