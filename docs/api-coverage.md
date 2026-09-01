@@ -8,7 +8,7 @@
 - Composed APIs: **29**
 - Intentionally unsupported: **191**
 - Deferred declarations: **0**
-- Completed domains: **advanced_random_graph_models, attributes, centrality_and_local_clustering, coloring, graph_algebra_and_transformations, graph_interchange, hierarchical_random_graph_models, layouts, epidemic_simulation, structural_diagnostics**
+- Completed domains: **advanced_random_graph_models, attributes, centrality_and_local_clustering, coloring, graph_algebra_and_transformations, graph_interchange, hierarchical_random_graph_models, layouts, epidemic_simulation, statistical_and_assignment_utilities, structural_diagnostics**
 
 User-facing and internal coverage is based on explicit source annotations. Composed,
 deferred, and intentionally unsupported declarations are configured with a domain and

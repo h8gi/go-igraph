@@ -932,6 +932,7 @@
     "hierarchical_random_graph_models",
     "layouts",
     "epidemic_simulation",
+    "statistical_and_assignment_utilities",
     "structural_diagnostics"
   ]
 }

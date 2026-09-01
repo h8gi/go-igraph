@@ -2559,13 +2559,13 @@ Goal: expose the useful standalone analytical algorithms in
 `igraph_nongraph.h` and `igraph_lsap.h` without turning C numeric helpers or
 borrowed C result storage into public Go APIs.
 
-Status: planned in [#412](https://github.com/h8gi/go-igraph/issues/412).
-Implementation proceeds with balanced linear sum assignment
+Status: completed from the plan in [#412](https://github.com/h8gi/go-igraph/issues/412).
+Implementation was delivered through balanced linear sum assignment
 ([#413](https://github.com/h8gi/go-igraph/issues/413)), power-law fitting and
 goodness-of-fit estimation
 ([#414](https://github.com/h8gi/go-igraph/issues/414)), and running means plus
 reproducible integer sampling
-([#415](https://github.com/h8gi/go-igraph/issues/415)). The final integration,
+([#415](https://github.com/h8gi/go-igraph/issues/415)). The integration,
 examples, documentation, inventory, concurrency, and verification audit is
 [#416](https://github.com/h8gi/go-igraph/issues/416).
 
@@ -2613,14 +2613,14 @@ finite-value checks, model domains, window sizes, interval cardinality,
 precision, square shape, and allocation bounds are validated before C where
 practical.
 
-Initial disposition of all seven declarations: `igraph_power_law_fit`,
+Final disposition of all seven declarations: `igraph_power_law_fit`,
 `igraph_plfit_result_calculate_p_value`, `igraph_running_mean`,
-`igraph_random_sample`, and `igraph_solve_lsap` are planned as user-facing
+`igraph_random_sample`, and `igraph_solve_lsap` are user-facing
 bindings in the `statistical_and_assignment_utilities` domain.
 `igraph_almost_equals` and `igraph_cmp_epsilon` are intentionally unsupported:
 they are low-level scalar helpers with no distinct value over Go arithmetic and
 operation-specific validation. No declaration in the scoped headers is left
-without a planned or final disposition.
+without a final disposition.
 
 Reference workflows are: fit a power-law model to a degree-like sequence and
 replay its Monte Carlo p-value; smooth a numeric series and reproducibly sample
@@ -2631,6 +2631,16 @@ initialization, upstream, cleanup, and concurrent paths; output-checked package
 examples; regenerated inventory with no missing or deferred declaration in the
 two scoped headers; statement coverage at or above 90.0%; and a passing
 `make verify`.
+
+Completion evidence: focused and adapter-injection tests cover validation,
+initialization and upstream failures, cleanup, result validation, ownership,
+seed replay, and concurrency. P-value replay is deterministic in OpenMP builds
+as well as single-threaded builds. The cross-feature integration test and
+output-checked package and runnable examples compose all five public bindings.
+The regenerated inventory accounts for 100% of the seven declarations in
+`igraph_nongraph.h` and `igraph_lsap.h` (five user-facing and two intentionally
+unsupported), with no missing or deferred entry. The completed-domain guard,
+race tests, statement-coverage floor, and full `make verify` prevent regression.
 
 ## Later domain milestones
 
