@@ -2553,6 +2553,85 @@ as 25 user-facing, one internal, and three intentionally unsupported; the
 completed-domain guard prevents regressions. Race tests pass and `make verify`
 enforces the statement-coverage and inventory floors.
 
+## Milestone 29: Statistical analysis and assignment utilities
+
+Goal: expose the useful standalone analytical algorithms in
+`igraph_nongraph.h` and `igraph_lsap.h` without turning C numeric helpers or
+borrowed C result storage into public Go APIs.
+
+Status: planned in [#412](https://github.com/h8gi/go-igraph/issues/412).
+Implementation proceeds with balanced linear sum assignment
+([#413](https://github.com/h8gi/go-igraph/issues/413)), power-law fitting and
+goodness-of-fit estimation
+([#414](https://github.com/h8gi/go-igraph/issues/414)), and running means plus
+reproducible integer sampling
+([#415](https://github.com/h8gi/go-igraph/issues/415)). The final integration,
+examples, documentation, inventory, concurrency, and verification audit is
+[#416](https://github.com/h8gi/go-igraph/issues/416).
+
+Power-law contract: `igraph_power_law_fit` becomes a package-level
+`FitPowerLaw` operation over a borrowed finite `[]float64`. A Go-native option
+selects automatic or explicit lower cutoff and may force the continuous model;
+the automatic model choice from pinned igraph remains visible in the result.
+The returned `PowerLawFit` owns its exponent, cutoff, log-likelihood,
+Kolmogorov-Smirnov statistic, model kind, and a private Go copy of the fitted
+sample needed for later p-value estimation. It contains no C pointer and does
+not retain the caller's slice. `igraph_plfit_result_calculate_p_value` is
+composed as a method on that result: it reconstructs a call-scoped C model from
+the Go-owned fields and data, validates precision, and uses the package RNG lock
+and optional seed. Equal non-nil seeds replay exactly; concurrent stochastic
+calls cannot interleave C RNG state.
+
+Sequence-utility contract: `igraph_running_mean` becomes `RunningMean`, taking
+a borrowed finite slice and positive window width and returning a non-nil,
+Go-owned slice of length `len(data)-width+1`. Invalid or oversized windows fail
+before C execution; the empty input therefore has no valid window.
+`igraph_random_sample` becomes `SampleIntegers`, sampling without replacement
+from a checked inclusive `[low, high]` interval. Its output is a non-nil,
+Go-owned increasing slice in upstream order. A zero sample is empty, a full
+sample contains the complete interval, and overflow in interval width or Go/C
+integer conversion fails before allocation. Sampling reuses the package RNG
+lock and optional-seed replay contract.
+
+Assignment contract: `igraph_solve_lsap` becomes `SolveLinearAssignment` over
+a borrowed finite square `Matrix`. Rows are agents and columns are tasks; result
+element `i` is the zero-based task assigned to agent `i`. The result is a
+non-nil, Go-owned permutation and the input matrix is never mutated. Empty and
+singleton matrices have explicit results, dimensions and allocation sizes are
+checked before C execution, and negative finite costs remain supported as
+documented upstream for maximization-by-negation workflows.
+
+Error, ownership, and cleanup contract: public slice and matrix inputs are
+borrowed for only the synchronous call and copied into temporary C storage.
+Every initialized C vector and matrix has one cleanup owner across successful,
+initialization-failure, upstream-error, conversion-error, and early-return
+paths. Non-aborting C handlers convert upstream failures to idiomatic Go
+errors. Outputs never alias caller storage or C memory. Pure operations support
+concurrent calls; operations that consume randomness additionally serialize
+through the existing package RNG boundary. Checked integer conversions,
+finite-value checks, model domains, window sizes, interval cardinality,
+precision, square shape, and allocation bounds are validated before C where
+practical.
+
+Initial disposition of all seven declarations: `igraph_power_law_fit`,
+`igraph_plfit_result_calculate_p_value`, `igraph_running_mean`,
+`igraph_random_sample`, and `igraph_solve_lsap` are planned as user-facing
+bindings in the `statistical_and_assignment_utilities` domain.
+`igraph_almost_equals` and `igraph_cmp_epsilon` are intentionally unsupported:
+they are low-level scalar helpers with no distinct value over Go arithmetic and
+operation-specific validation. No declaration in the scoped headers is left
+without a planned or final disposition.
+
+Reference workflows are: fit a power-law model to a degree-like sequence and
+replay its Monte Carlo p-value; smooth a numeric series and reproducibly sample
+aligned indices from a large inclusive range; and solve a balanced assignment,
+then independently sum the selected costs. Completion requires focused tests
+for empty, boundary, invalid, non-finite, overflow, tie, stochastic,
+initialization, upstream, cleanup, and concurrent paths; output-checked package
+examples; regenerated inventory with no missing or deferred declaration in the
+two scoped headers; statement coverage at or above 90.0%; and a passing
+`make verify`.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones

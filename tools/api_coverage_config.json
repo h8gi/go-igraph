@@ -156,6 +156,14 @@
     "deferred": {
     },
     "intentionally_unsupported": {
+      "igraph_almost_equals": {
+        "domain": "statistical_and_assignment_utilities",
+        "rationale": "Approximate scalar comparison is expressed directly with Go arithmetic and call-specific tolerances; a cgo round trip would add no distinct graph or statistical contract."
+      },
+      "igraph_cmp_epsilon": {
+        "domain": "statistical_and_assignment_utilities",
+        "rationale": "Three-way epsilon comparison is low-level C numeric plumbing; public Go APIs validate finite values and apply operation-specific tolerances without exporting an igraph-specific comparator."
+      },
       "igraph_matrix_list_capacity": {
         "domain": "advanced_random_graph_models",
         "rationale": "Matrix-list capacity is an internal C storage detail; public hierarchical-model inputs use ordinary Go slices of immutable Matrix values."

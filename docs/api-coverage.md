@@ -6,7 +6,7 @@
 - User-facing bindings: **427 / 2015 (21.19%)**
 - Internal dependencies: **72**
 - Composed APIs: **29**
-- Intentionally unsupported: **189**
+- Intentionally unsupported: **191**
 - Deferred declarations: **0**
 - Completed domains: **advanced_random_graph_models, attributes, centrality_and_local_clustering, coloring, graph_algebra_and_transformations, graph_interchange, hierarchical_random_graph_models, layouts, epidemic_simulation, structural_diagnostics**
 
@@ -128,7 +128,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_all_st_cuts` | `igraph_flow.h` | User-facing | `AllSTCuts` |
 | `igraph_all_st_mincuts` | `igraph_flow.h` | User-facing | `AllSTMincuts` |
 | `igraph_allow_interruption` | `igraph_interrupt.h` | Missing | — |
-| `igraph_almost_equals` | `igraph_nongraph.h` | Missing | — |
+| `igraph_almost_equals` | `igraph_nongraph.h` | Intentionally unsupported | — |
 | `igraph_are_adjacent` | `igraph_structural.h` | User-facing | `AreAdjacent` |
 | `igraph_arpack_error_to_string` | `igraph_arpack.h` | Missing | — |
 | `igraph_arpack_get_last_error` | `igraph_arpack.h` | Missing | — |
@@ -340,7 +340,7 @@ preprocessed header where each declaration is found rather than a canonical owne
 | `igraph_cliques_callback` | `igraph_cliques.h` | Intentionally unsupported | — |
 | `igraph_closeness` | `igraph_centrality.h` | User-facing | `Closeness` |
 | `igraph_closeness_cutoff` | `igraph_centrality.h` | User-facing | `Closeness` |
-| `igraph_cmp_epsilon` | `igraph_nongraph.h` | Missing | — |
+| `igraph_cmp_epsilon` | `igraph_nongraph.h` | Intentionally unsupported | — |
 | `igraph_cocitation` | `igraph_cocitation.h` | User-facing | `CitationCoupling` |
 | `igraph_cohesion` | `igraph_flow.h` | User-facing | `Cohesion` |
 | `igraph_cohesive_blocks` | `igraph_cohesive_blocks.h` | User-facing | `CohesiveBlocks` |
