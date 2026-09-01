@@ -43,6 +43,10 @@ func TestSolveLinearAssignmentEmptySingletonNegativeAndTie(t *testing.T) {
 	if got, err := SolveLinearAssignment(singleton); err != nil || !reflect.DeepEqual(got, []int{0}) {
 		t.Fatalf("singleton = %v, %v", got, err)
 	}
+	large, _ := NewMatrixFromRows([][]float64{{math.MaxFloat64}})
+	if got, err := SolveLinearAssignment(large); err != nil || !reflect.DeepEqual(got, []int{0}) {
+		t.Fatalf("large finite cost = %v, %v", got, err)
+	}
 	tie, _ := NewMatrixFromRows([][]float64{{1, 1}, {1, 1}})
 	got, err := SolveLinearAssignment(tie)
 	if err != nil {
