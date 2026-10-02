@@ -2642,6 +2642,135 @@ The regenerated inventory accounts for 100% of the seven declarations in
 unsupported), with no missing or deferred entry. The completed-domain guard,
 race tests, statement-coverage floor, and full `make verify` prevent regression.
 
+## Milestone 30: Sparse graph matrices
+
+Goal: enable graph/matrix workflows for large sparse networks without
+implicitly allocating a vertex-count-squared dense matrix. Existing sparse
+entry points were reviewed as intentionally unsupported in Milestones 19 and
+20 because the package lacked a Go sparse-value and ownership boundary. This
+milestone establishes that boundary and revisits those dispositions.
+
+Status: planned in [Milestone 30](https://github.com/h8gi/go-igraph/milestone/30).
+The contract and roadmap plan is
+[#422](https://github.com/h8gi/go-igraph/issues/422). Implementation slices are
+immutable sparse values and private C adapters
+([#423](https://github.com/h8gi/go-igraph/issues/423)), sparse adjacency graph
+construction ([#424](https://github.com/h8gi/go-igraph/issues/424)), and sparse
+adjacency, Laplacian, and stochastic extraction
+([#425](https://github.com/h8gi/go-igraph/issues/425)). The integration,
+Go/C memory, examples, inventory, and verification audit is
+[#426](https://github.com/h8gi/go-igraph/issues/426).
+
+### Public value and canonicalization contract
+
+`SparseMatrix` is an immutable Go-owned value with explicit row and column
+dimensions and canonical compressed sparse row (CSR) storage. CSR supports
+row-oriented inspection without requiring callers to understand C storage.
+Its zero value is a valid 0-by-0 matrix; rectangular zero-sized dimensions and
+all-zero matrices preserve their shape. Stored entries have finite values,
+sorted unique column indexes within each row, and no exact zeros. Row offsets
+start at zero, are monotone, contain one entry per row plus the terminal
+offset, and end at the stored-entry count. Dimensions, offsets, indexes,
+entry counts, and allocation arithmetic are checked before allocation or C
+conversion where practical.
+
+Construction accepts copied CSR arrays and coordinate entries. CSR inputs must
+already satisfy the canonical structural invariants; stored exact zeros are
+removed. Coordinate construction sums duplicate coordinates in stable input
+order, rejects non-finite values and non-finite aggregate sums, sorts by row
+and column, and removes exact zeros after aggregation. Negative finite values
+are valid matrix values; individual graph operations apply their own domains.
+Public sparse accessors return independent Go copies. Lookup and shape/nonzero
+inspection do not materialize dense storage. Any explicit conversion to dense
+`Matrix` checks dimensions and allocation sizes and documents its potentially
+quadratic storage. Graph sparse APIs never invoke that conversion. Final
+exported constructor/accessor names are settled in #423 using these contracts.
+
+### C boundary, ownership, and concurrency
+
+Pinned igraph 1.0.1 sparse adjacency constructors require column-compressed
+(CSC) input. Private adapters translate between canonical Go CSR and upstream
+triplet/CSC storage using sparse traversal. Each initialized C matrix, vector,
+and graph has one cleanup owner across success, initialization failure,
+compression failure, upstream error, output conversion failure, and early
+return. Result conversion aggregates duplicate entries, removes exact zeros,
+validates finite results, and copies into canonical Go-owned storage before
+releasing resources. No C pointer or raw sparse iterator enters the public API.
+
+Public inputs are borrowed only for a synchronous call and copied when
+retained or converted to C. `SparseMatrix` requires no `Close`; returned sparse
+values and weight slices do not alias caller or C storage and remain valid
+after graph closure. Constructed graphs are independently owned and must be
+closed. Read-only graph extraction holds the graph read lock through C
+execution and Go result copying, coordinating with mutation and `Close`.
+Immutable sparse values support concurrent reads. Non-aborting upstream
+handlers propagate C errors through idiomatic Go errors.
+
+### Graph construction and extraction
+
+Sparse graph construction binds `igraph_sparse_adjacency` and
+`igraph_sparse_weighted_adjacency`, reusing `AdjacencyOptions`,
+`AdjacencyMode`, `AdjacencyLoops`, and `WeightedAdjacencyResult`. Input matrices
+must be square and preserve isolated vertices. Unweighted entries represent
+finite non-negative integer multiplicities. Weighted construction follows the
+existing finite-weight contract and returns weights aligned with the new
+graph's edge IDs. Symmetry, upper/lower triangles, min/max/plus combinations,
+and loop-once/loop-twice conventions match dense construction. Validate emitted
+edge counts and multiplicity expansion without dense traversal; a compact
+input may still request a very large graph. Dense and sparse constructors need
+not produce identical edge-ID order.
+
+Extraction binds `igraph_get_adjacency_sparse`,
+`igraph_get_laplacian_sparse`, and `igraph_get_stochastic_sparse`, reusing
+`AdjacencyMatrixOptions`, `LaplacianOptions`, `StochasticMatrixOptions`,
+`DirectionMode`, and borrowed edge-ID-aligned weights. Results are canonical
+vertex-ID-indexed square sparse matrices. Parallel-edge contributions are
+summed; loop, triangle, direction, normalization, zero-degree, and zero-total
+weight behavior follows the corresponding dense API. Tests establish numerical
+equivalence on small graphs with appropriate floating-point tolerances.
+Adjacency roundtrips preserve the selected matrix semantics and vertex count;
+they do not generally preserve edge IDs, parallel-edge identity, or attributes.
+
+### Execution, inventory, and completion
+
+Execution order: #422 establishes the shared contracts; #423 implements the
+value and adapters; #424 and #425 build on that boundary; #426 audits the
+combined workflow. General sparse algebra, factorization, linear solvers,
+ARPACK interfaces, public mutable C handles, and callbacks are outside this
+milestone's public API scope.
+
+The five previously unsupported graph entry points receive source binding
+annotations and have their superseded configuration entries removed in the
+same implementation changes. Preserve completed-domain validation, including
+`structural_diagnostics`; do not introduce deferred entries into an already
+completed domain. The final audit reviews every declaration in pinned
+`igraph_sparsemat.h` and all five graph entry points, records a user-facing,
+internal, composed, or intentionally unsupported disposition with rationale,
+and adds the completed `sparse_graph_matrices` guard. Low-level operations and
+out-of-scope solvers receive individually reviewed dispositions rather than
+mechanical public wrappers. Until implementation, existing inventory
+classifications continue to describe the shipped API.
+
+Reference workflows are: construct a weighted sparse graph while preserving
+isolated vertices, then extract and compare its adjacency matrix; obtain
+Laplacian and row/column stochastic matrices without dense intermediates; and
+inspect all returned values after closing the source graph. Provide
+output-checked package examples and a runnable sparse workflow.
+
+Completion requires focused tests for canonicalization, aliasing, nil/empty
+values, rectangular shapes, invalid options/coordinates, non-finite values,
+overflow, initialization/upstream/conversion failures, cleanup, concurrent
+calls, and use after graph `Close`. Small-graph tests compare dense and sparse
+results; larger fixed-average-degree graph families demonstrate sparse memory
+scaling. Conversion and extraction storage must follow rows plus columns plus
+stored entries, with construction additionally accounting for emitted edges.
+Inspect Go adapters and upstream paths for hidden dense allocation. Record the
+measurement environment and both Go and C memory methodology: Go `benchmem`
+alone cannot account for C allocations. Avoid brittle RSS or wall-time CI
+thresholds. Finish with shared ownership/example documentation, regenerated
+inventory with no missing or deferred declaration in scope, statement coverage
+at or above 90.0%, race tests, and a passing `make verify`.
+
 ## Later domain milestones
 
 Other specialized upstream domains remain candidates after the milestones
